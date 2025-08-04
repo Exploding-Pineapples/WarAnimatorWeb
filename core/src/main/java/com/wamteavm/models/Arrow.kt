@@ -1,0 +1,49 @@
+package com.wamteavm.models
+
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
+import com.wamteavm.inputelements.InputElement
+import com.wamteavm.inputelements.TextInput
+import com.wamteavm.interpolator.LinearInterpolatedFloat
+import com.wamteavm.interpolator.PCHIPInterpolatedFloat
+import com.wamteavm.utilities.AreaColor
+
+class Arrow(x: Float, y: Float, time: Int): ScreenObject(), HasAlpha, HasColor {
+    override var position: Coordinate = Coordinate(x, y)
+    override var xInterpolator = PCHIPInterpolatedFloat(x, time)
+    override var yInterpolator = PCHIPInterpolatedFloat(y, time)
+    override val alpha = LinearInterpolatedFloat(1f, time)
+    override val initTime = time
+    override var color = AreaColor.RED
+    var thickness = 10f
+    @Transient
+    override var inputElements: MutableList<InputElement<*>> = mutableListOf()
+
+    override fun shouldDraw(time: Int): Boolean {
+        return true
+    }
+
+    override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
+        uiVisitor.show(verticalGroup, this)
+    }
+
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+        if (!paused) { alpha.update(time) }
+        return super.goToTime(time, zoom, cx, cy)
+    }
+
+    override fun buildInputs() {
+        super<ScreenObject>.buildInputs()
+        super<HasAlpha>.buildInputs()
+        super<HasColor>.buildInputs()
+
+        inputElements.add(
+            TextInput(null, { input ->
+                if (input != null) {
+                    thickness = input
+                }
+            }, label@{
+                return@label thickness.toString()
+            }, Float::class.java, "Set thickness")
+        )
+    }
+}

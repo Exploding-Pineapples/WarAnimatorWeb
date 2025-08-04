@@ -1,0 +1,132 @@
+/*******************************************************************************
+ * Copyright 2011 See AUTHORS file.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.wamteavm.files
+
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.utils.Array
+import java.util.*
+
+object Assets {
+    private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
+    private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
+
+    var countryNames: Array<String> = Array()
+    var images: Array<String> = Array()
+    var unitTypes: Array<String> = Array()
+
+    fun flagsPath(file: String): String { return "assets/units/countries/$file" }
+    fun unitKindsPath(file: String): String { return "assets/units/symbols/$file" }
+    fun mapsPath(file: String): String { return "assets/maps/$file" }
+
+    fun loadSkin(file: String): Skin? {
+        if (LOADED_SKINS.containsKey(file)) {
+            return LOADED_SKINS[file]
+        }
+
+        println("skin: " + Gdx.files.internal(file).exists())
+
+        try {
+            val skin = Skin(Gdx.files.internal(file))
+            println("skin loaded")
+            LOADED_SKINS[file] = skin
+            return skin
+        } catch (e: Exception) {
+            Gdx.app.error("UI", "Failed to load skin", e)
+        }
+
+        return null
+    }
+
+    fun loadTexture(file: String): Texture? {
+        if (LOADED_TEXTURES.containsKey(file)) {
+            return LOADED_TEXTURES[file]
+        }
+
+        try {
+            val texture = Texture(Gdx.files.local(file))
+            LOADED_TEXTURES[file] = texture
+            return texture
+        } catch (e: RuntimeException) {
+            return null
+        }
+    }
+
+    fun whitePixel(): TextureRegion {
+        return TextureRegion(Texture(Gdx.files.internal("habibi.png")))
+    }
+
+    fun loadFont(): BitmapFont {
+        val texture = Texture(Gdx.files.internal("fonts/bitstream_vera_sans/distancefield.png"), true)
+        texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear)
+        return BitmapFont(
+            Gdx.files.internal("fonts/bitstream_vera_sans/distancefield.fnt"),
+            TextureRegion(texture),
+            false
+        )
+    }
+
+    fun loadFontShader(): ShaderProgram {
+        return ShaderProgram(
+            Gdx.files.internal("fonts/bitstream_vera_sans/font.vert"),
+            Gdx.files.internal("fonts/bitstream_vera_sans/font.frag")
+        )
+    }
+
+    fun countryNames(): Array<String> {
+        if (countryNames.isEmpty) {
+            //updateCountryNames()
+        }
+        return countryNames
+    }
+
+    fun unitTypes(): Array<String> {
+        if (unitTypes.isEmpty) {
+            updateUnitTypes()
+        }
+        return unitTypes
+    }
+
+    fun images(): Array<String> {
+        if (images.isEmpty) {
+            updateImages()
+        }
+        return images
+    }
+
+    fun updateCountryNames() {
+        countryNames.clear()
+        countryNames = listFiles("units/countries")
+    }
+
+    fun updateImages() {
+        images.clear()
+        images = listFiles("maps")
+    }
+
+    fun updateUnitTypes() {
+        unitTypes.clear()
+        unitTypes = listFiles("units/symbols")
+    }
+
+    fun listFiles(internalPath: String): Array<String> {
+        return Array()
+    }
+}

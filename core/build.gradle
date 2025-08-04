@@ -1,0 +1,25 @@
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+}
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-core'
+
+// This must be at least 11, and no higher than the JDK version this project is built with.
+// This should probably be equal to targetCompatibility, above. This only affects the TeaVM module.
+
+dependencies {
+  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+  api "space.earlygrey:shapedrawer:$shapeDrawerVersion"
+
+  if(enableGraalNative == 'true') {
+    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+  }
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  implementation("org.joml:joml:1.10.5")
+}
+repositories {
+  mavenCentral()
+}
+kotlin {
+  jvmToolchain(11)
+}

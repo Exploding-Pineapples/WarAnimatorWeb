@@ -158,11 +158,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel = new Table();
         stage.addActor(leftPanel);
 
-        game.multiplexer.clear();
-        game.multiplexer.addProcessor(stage);
-        game.multiplexer.addProcessor(this);
-        Gdx.input.setInputProcessor(game.multiplexer);
-
         // Final init
         animation.camera().goToTime(time);
         updateCam();
@@ -321,7 +316,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     }
 
     public void updateNewEdgeInputs() { // Makes new edges match ID with first selected node collection
-        //TODO make this work for multiple node collections at once
         System.out.println("Updating new edge inputs");
         for (AnyObject selectedObject : selectedObjects) {
             if (selectedObject.getClass() == NodeCollection.class) {
@@ -619,16 +613,10 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         game.batch.end();
 
         stage.draw();
-        //game.frameExporter.captureFrame(time); // uncomment to export (temp)
 
         if (!paused) {
             time++;
         }
-    }
-
-    @Override
-    public void pause() {
-        FileHandler.INSTANCE.save();
     }
 
     @Override
@@ -744,5 +732,13 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public boolean scrolled(float amountX, float amountY) {
         return false;
+    }
+
+    @Override
+    public void show() {
+        game.multiplexer.clear();
+        game.multiplexer.addProcessor(stage);
+        game.multiplexer.addProcessor(this);
+        Gdx.input.setInputProcessor(game.multiplexer);
     }
 }

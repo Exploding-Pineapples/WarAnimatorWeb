@@ -14,17 +14,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.wamteavm.WarAnimator;
+import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
+import org.jetbrains.annotations.NotNull;
 
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
 public class MenuScreen extends ScreenAdapter implements InputProcessor {
     WarAnimator game;
-    Stage stage;
     Skin skin;
+    Stage stage = new Stage();
     Table table = new Table();
-
 
     public MenuScreen(WarAnimator game) {
         table.clear();
@@ -32,8 +33,6 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         skin = game.skin;
         this.game = game;
         table.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT/2f);
-
-        stage = new Stage();
 
         Table titleTable = new Table();
         titleTable.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
@@ -46,22 +45,19 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         newAnimationButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new NewAnimationScreen(game));
+                game.setScreen(new NewAnimationScreen(game, new Animation()));
             }
         });
         table.add(newAnimationButton).colspan(4);
         table.row().pad(10);
 
-        Gdx.input.setInputProcessor(stage);
-
-        //FileHandler.INSTANCE.load();
-        //FileHandler.INSTANCE.save();
+        FileHandler.INSTANCE.load();
 
         Label animationTitle = new Label("Animations", skin);
         table.add(animationTitle).colspan(4);
         table.row().pad(10).height(40);
 
-        /*for (Animation animation : FileHandler.INSTANCE.getAnimations()) {
+        for (Animation animation : FileHandler.INSTANCE.getAnimations()) {
             TextButton deleteButton = getDeleteButton(animation);
             Label animationLabel = new Label(animation.getName(), skin);
             TextButton openButton = getOpenButton(animation);
@@ -73,7 +69,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             table.add(getEditButton(animation));
 
             table.row().pad(10).height(40);
-        }*/
+        }
 
         stage.addActor(table);
     }
@@ -85,6 +81,43 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
 
         stage.act();
         stage.draw();
+    }
+
+    private @NotNull TextButton getOpenButton(Animation animation) {
+        TextButton textButton = new TextButton("Open", skin, "small");
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                LoadingScreen loadingScreen = new LoadingScreen(game, animation);
+                game.setScreen(loadingScreen);
+            }
+        });
+        return textButton;
+    }
+
+    private @NotNull TextButton getDeleteButton(Animation animation) {
+        TextButton textButton = new TextButton("Delete", skin, "small");
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                FileHandler.INSTANCE.deleteAnimation(animation);
+                game.menuScreen = new MenuScreen(game);
+                game.setScreen(game.menuScreen);
+            }
+        });
+        return textButton;
+    }
+
+    private @NotNull TextButton getEditButton(Animation animation) {
+        TextButton textButton = new TextButton("Edit", skin, "small");
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                NewAnimationScreen newAnimationScreen = new NewAnimationScreen(game, animation);
+                game.setScreen(newAnimationScreen);
+            }
+        });
+        return textButton;
     }
 
     @Override
@@ -130,5 +163,10 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public boolean scrolled(float v, float v1) {
         return false;
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stage);
     }
 }

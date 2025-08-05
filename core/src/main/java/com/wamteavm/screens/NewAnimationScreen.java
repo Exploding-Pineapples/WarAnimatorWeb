@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.wamteavm.WarAnimator;
+import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
 import kotlin.Pair;
 
@@ -27,24 +28,18 @@ import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
 public class NewAnimationScreen extends ScreenAdapter implements InputProcessor {
     WarAnimator game;
-    public Stage stage;
-    public Label imageLabel;
-    public Label countriesLabel;
+    public Stage stage = new Stage();
+    Table table = new Table();
     public Label warningLabel;
-    Table table;
-    ArrayList<Actor> elements;
 
-    public NewAnimationScreen(WarAnimator game) {
+    public NewAnimationScreen(WarAnimator game, Animation animation) {
         this.game = game;
-        stage = new Stage();
-        table = new Table();
-        elements = new ArrayList<>();
 
         Table titleTable = new Table();
         titleTable.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT - 100);
         Label titleLabel;
-        if (false) { //FileHandler.INSTANCE.getAnimations().contains(animation)
-            titleLabel = new Label("Editing " + "animation.getName()", game.skin);
+        if (FileHandler.INSTANCE.getAnimations().contains(animation)) {
+            titleLabel = new Label("Editing " + animation.getName(), game.skin);
         } else {
             titleLabel = new Label("Creating new animation", game.skin);
         }
@@ -66,20 +61,12 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
 
         Table nameArea = new Table();
         Label nameLabel = new Label("Name: ", game.skin);
-        TextField nameField = new TextField("animation.getName()", game.skin);
+        TextField nameField = new TextField(animation.getName(), game.skin);
         nameArea.add(nameLabel);
         nameArea.add(nameField);
         nameArea.row();
         table.add(nameArea);
         table.row().pad(10);
-
-        imageLabel = new Label("", game.skin);
-        table.add(imageLabel).colspan(3);
-        table.row();
-
-        countriesLabel = new Label("Countries: ", game.skin);
-        table.add(countriesLabel);
-        table.row();
 
         TextButton submitButton = new TextButton("Submit", game.skin, "small");
         submitButton.addListener(new ClickListener() {
@@ -89,29 +76,28 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
                 String name = nameField.getText();
                 Pair<Boolean, String> inputCheck = checkInput(nameField.getText());
                 if (inputCheck.getFirst()) {
-                    /*for (Animation existingAnimation : FileHandler.INSTANCE.getAnimations()) {
+                    for (Animation existingAnimation : FileHandler.INSTANCE.getAnimations()) {
                         if (existingAnimation.getName().equals(name)) {
                             System.out.println("Using existing animation: " + name);
                             existingAnimation.setName(nameField.getText());
                             animationExists = true;
 
-                            AnimationScreen screen = new AnimationScreen(game, existingAnimation);
-                            game.setScreen(screen);
+                            game.setScreen(new LoadingScreen(game, existingAnimation));
                             break;
                         }
-                    }*/
+                    }
                     if (!animationExists) {
                         System.out.println("Created New Animation");
                         Animation newAnimation = new Animation(nameField.getText());
-                        //FileHandler.INSTANCE.createNewAnimation(newAnimation);
-                        AnimationScreen screen = new AnimationScreen(game, newAnimation);
-                        game.setScreen(screen);
+                        FileHandler.INSTANCE.createNewAnimation(newAnimation);
+                        game.setScreen(new LoadingScreen(game, newAnimation));
                     }
                 } else {
                     warningLabel.setText(inputCheck.getSecond());
                 }
             }
         });
+
         table.add(submitButton).height(40);
         table.row().pad(10);
 

@@ -37,8 +37,7 @@ public class LoadingScreen extends ScreenAdapter implements InputProcessor {
         game.batch.end();
 
         if (loading) {
-            AnimationScreen screen = new AnimationScreen(game, animation);
-            game.setScreen(screen);
+            game.setScreen(new AnimationScreen(game, animation));
             System.out.println("Loaded screen");
         }
 

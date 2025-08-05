@@ -32,9 +32,9 @@ object Assets {
     var images: Array<String> = Array()
     var unitTypes: Array<String> = Array()
 
-    fun flagsPath(file: String): String { return "assets/units/countries/$file" }
-    fun unitKindsPath(file: String): String { return "assets/units/symbols/$file" }
-    fun mapsPath(file: String): String { return "assets/maps/$file" }
+    fun flagsPath(file: String): String { return "units/countries/$file" }
+    fun unitKindsPath(file: String): String { return "units/symbols/$file" }
+    fun mapsPath(file: String): String { return "maps/$file" }
 
     fun loadSkin(file: String): Skin? {
         if (LOADED_SKINS.containsKey(file)) {
@@ -55,14 +55,14 @@ object Assets {
         return null
     }
 
-    fun loadTexture(file: String): Texture? {
-        if (LOADED_TEXTURES.containsKey(file)) {
-            return LOADED_TEXTURES[file]
+    fun loadTexture(internalPath: String): Texture? {
+        if (LOADED_TEXTURES.containsKey(internalPath)) {
+            return LOADED_TEXTURES[internalPath]
         }
 
         try {
-            val texture = Texture(Gdx.files.local(file))
-            LOADED_TEXTURES[file] = texture
+            val texture = Texture(Gdx.files.internal(internalPath))
+            LOADED_TEXTURES[internalPath] = texture
             return texture
         } catch (e: RuntimeException) {
             return null
@@ -92,7 +92,7 @@ object Assets {
 
     fun countryNames(): Array<String> {
         if (countryNames.isEmpty) {
-            //updateCountryNames()
+            updateCountryNames()
         }
         return countryNames
     }
@@ -127,6 +127,14 @@ object Assets {
     }
 
     fun listFiles(internalPath: String): Array<String> {
-        return Array()
+        val fileNames = Array<String>()
+        Gdx.files.internal(internalPath).list().forEach {
+            print("${it.name()} ")
+        }
+        println()
+        for (file in Gdx.files.internal(internalPath).list()!!) {
+            fileNames.add(file.name())
+        }
+        return fileNames
     }
 }

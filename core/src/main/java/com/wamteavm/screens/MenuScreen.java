@@ -46,7 +46,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         newAnimationButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new NewAnimationScreen(game, new Animation("")));
+                game.setScreen(new NewAnimationScreen(game));
             }
         });
         table.add(newAnimationButton).colspan(4);

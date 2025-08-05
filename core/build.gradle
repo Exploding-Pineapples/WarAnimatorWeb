@@ -15,7 +15,6 @@ dependencies {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-  implementation("org.joml:joml:1.10.5")
 }
 repositories {
   mavenCentral()

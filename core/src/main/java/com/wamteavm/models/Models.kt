@@ -94,15 +94,15 @@ fun projectToScreen(position: Coordinate, zoom: Float, cx: Float, cy: Float): Co
     )
 }
 
-interface AbstractTypeSerializable {
+/*interface AbstractTypeSerializable {
 
     fun getAbstractType(): Type {
         throw IllegalStateException("Serializable abstract type has not been setup")
     }
 
-}
+}*/
 
-interface ID : Comparable<ID>, AbstractTypeSerializable {
+interface ID : Comparable<ID> {
     val value: Int
 
     override fun compareTo(other: ID): Int {
@@ -116,12 +116,9 @@ class NodeCollectionID(override val value: Int = -1) : ID {
     override fun duplicate() : NodeCollectionID {
         return NodeCollectionID(value)
     }
-
-    override fun getAbstractType() = NodeCollectionID::class.java
 }
 
 class NodeID(override val value: Int = -1) : ID {
-    override fun getAbstractType() = NodeID::class.java
     override fun duplicate(): NodeID {
         return NodeID(value)
     }

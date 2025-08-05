@@ -301,6 +301,7 @@ class Drawer(val font: BitmapFont,
         font.color = colorWithAlpha(color, alpha)
         font.data.setScale(size)
         batcher.shader = fontShader
+        fontShader.setUniformf("scale", 1.0f)
         fontShader.setUniformf("outlineDistance", 0.05f)
         fontShader.setUniformf("outlineColor", colorWithAlpha(outlineColor, alpha))
     }

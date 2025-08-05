@@ -21,12 +21,16 @@ public class WarAnimator extends Game {
 
     @Override
     public void create() {
-        skin = Assets.INSTANCE.loadSkin("skin/glassy-ui.json");
+        skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
         bitmapFont = Assets.INSTANCE.loadFont();
         fontShader = Assets.INSTANCE.loadFontShader();
         batch = new SpriteBatch();
         shapeDrawer = new ShapeDrawer(batch, Assets.INSTANCE.whitePixel());
         multiplexer = new InputMultiplexer();
+
+        if (!fontShader.isCompiled()) {
+            Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
+        }
 
         menuScreen = new MenuScreen(this);
         setScreen(menuScreen);

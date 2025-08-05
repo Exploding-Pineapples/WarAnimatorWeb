@@ -34,7 +34,7 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
     Table table;
     ArrayList<Actor> elements;
 
-    public NewAnimationScreen(WarAnimator game, Animation animation) {
+    public NewAnimationScreen(WarAnimator game) {
         this.game = game;
         stage = new Stage();
         table = new Table();
@@ -44,7 +44,7 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
         titleTable.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT - 100);
         Label titleLabel;
         if (false) { //FileHandler.INSTANCE.getAnimations().contains(animation)
-            titleLabel = new Label("Editing " + animation.getName(), game.skin);
+            titleLabel = new Label("Editing " + "animation.getName()", game.skin);
         } else {
             titleLabel = new Label("Creating new animation", game.skin);
         }
@@ -66,7 +66,7 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
 
         Table nameArea = new Table();
         Label nameLabel = new Label("Name: ", game.skin);
-        TextField nameField = new TextField(animation.getName(), game.skin);
+        TextField nameField = new TextField("animation.getName()", game.skin);
         nameArea.add(nameLabel);
         nameArea.add(nameField);
         nameArea.row();

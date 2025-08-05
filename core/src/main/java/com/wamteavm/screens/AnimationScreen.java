@@ -94,7 +94,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         drawer = new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, animation.getInitTime());
 
         // Animation init
-        time = 0;//animation.getInitTime();
+        time = animation.getInitTime();
         paused = true;
         animationMode = true;
 
@@ -248,7 +248,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     if (selectedObject.getClass() == Node.class) {
                         Node newNode = animation.newNode(mouseX, mouseY, time);
                         animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode);
-                        switchSelected(newNode);
+                        //switchSelected(newNode);
                     }
                 }
                 return null;
@@ -256,7 +256,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ).build());
         //Key presses which require control pressed
         actions.add(Action.createBuilder(() -> {
-            switchSelected(animation.camera());
+            //switchSelected(animation.camera());
             return null;
         }, "Select the camera", Input.Keys.C).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {
@@ -599,7 +599,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public void render(float delta) {
-        /*update();
+        update();
 
         game.batch.begin();
         animation.draw(drawer);
@@ -623,7 +623,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         if (!paused) {
             time++;
-        }*/
+        }
     }
 
     @Override
@@ -676,6 +676,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         y = DISPLAY_HEIGHT - y;
 
         System.out.println("Clicked " + mouseX + " " + mouseY + " touch mode " + touchMode);
+
+        animation.selectObjectWithType(x, y, time, Node.class);
 
         if (paused) {
             if (touchMode == TouchMode.DEFAULT) { // Default behavior: select an object to show info about it

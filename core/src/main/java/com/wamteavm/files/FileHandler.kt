@@ -45,11 +45,10 @@ object FileHandler {
 
     fun load() {
         println("placeholder loading system")
-        println(Gdx.files.isLocalStorageAvailable)
-        println(Gdx.files.localStoragePath)
-        animationsFolder.file().listFiles()?.forEach {
-            //val content = it.readText()
-            animations += Animation(it.name)
+
+        animationsFolder.list().forEach {
+            val content = it.read()
+            animations += Animation(it.name())
         }
         println("animations loaded")
     }

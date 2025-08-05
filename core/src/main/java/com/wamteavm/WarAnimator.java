@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.wamteavm.files.Assets;
+import com.wamteavm.files.FileHandler;
 import com.wamteavm.screens.MenuScreen;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -39,6 +40,7 @@ public class WarAnimator extends Game {
     @Override
     public void dispose() {
         batch.dispose();
+        FileHandler.INSTANCE.save();
     }
 
     public static final int DISPLAY_WIDTH = 1920;

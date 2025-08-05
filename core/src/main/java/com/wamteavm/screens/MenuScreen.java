@@ -53,19 +53,16 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
 
         FileHandler.INSTANCE.load();
 
-        Label animationTitle = new Label("Animations", skin);
-        table.add(animationTitle).colspan(4);
+        Label title = new Label("Animations", skin);
+        table.add(title).colspan(4);
         table.row().pad(10).height(40);
 
         for (Animation animation : FileHandler.INSTANCE.getAnimations()) {
-            TextButton deleteButton = getDeleteButton(animation);
-            Label animationLabel = new Label(animation.getName(), skin);
-            TextButton openButton = getOpenButton(animation);
-            TextButton editButton = getEditButton(animation);
+            Label nameLabel = new Label(animation.getName(), skin);
 
-            table.add(deleteButton);
-            table.add(animationLabel);
-            table.add(openButton);
+            table.add(getDeleteButton(animation));
+            table.add(nameLabel);
+            table.add(getOpenButton(animation));
             table.add(getEditButton(animation));
 
             table.row().pad(10).height(40);

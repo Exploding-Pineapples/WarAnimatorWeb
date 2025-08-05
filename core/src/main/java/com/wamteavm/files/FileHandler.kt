@@ -3,7 +3,6 @@ package com.wamteavm.files
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.wamteavm.models.Animation
-import java.lang.reflect.Type
 
 object FileHandler {
 

@@ -19,8 +19,6 @@ import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
 import kotlin.Pair;
 
-import java.util.ArrayList;
-
 import static com.badlogic.gdx.Gdx.gl;
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;

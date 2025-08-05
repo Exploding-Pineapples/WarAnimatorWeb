@@ -29,7 +29,7 @@ public class LoadingScreen extends ScreenAdapter implements InputProcessor {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         game.batch.setShader(game.fontShader);
-        game.fontShader.setUniformf("outlineDistance", 0.5f);
+        game.fontShader.setUniformf("outlineDistance", 0.5f); // See assets/font.frag
         GlyphLayout layout = new GlyphLayout();
         layout.setText(game.bitmapFont, "Loading...");
         game.bitmapFont.draw(game.batch, layout, DISPLAY_WIDTH/2F - layout.width / 2, DISPLAY_HEIGHT/2F - layout.height / 2);

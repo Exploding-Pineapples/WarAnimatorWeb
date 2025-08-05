@@ -24,23 +24,21 @@ import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
 
-public class NewAnimationScreen extends ScreenAdapter implements InputProcessor {
+public class EditAnimationScreen extends ScreenAdapter implements InputProcessor {
     WarAnimator game;
-    public Stage stage = new Stage();
+    Stage stage = new Stage();
     Table table = new Table();
-    public Label warningLabel;
+    Label warningLabel;
+    boolean newAnimation;
 
-    public NewAnimationScreen(WarAnimator game, Animation animation) {
+    public EditAnimationScreen(WarAnimator game, Animation animation, boolean newAnimation) {
         this.game = game;
+        this.newAnimation = newAnimation;
 
         Table titleTable = new Table();
         titleTable.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT - 100);
-        Label titleLabel;
-        if (FileHandler.INSTANCE.getAnimations().contains(animation)) {
-            titleLabel = new Label("Editing " + animation.getName(), game.skin);
-        } else {
-            titleLabel = new Label("Creating new animation", game.skin);
-        }
+        Label titleLabel = new Label("", game.skin);
+        updateTitle(titleLabel, animation);
         titleTable.add(titleLabel);
         stage.addActor(titleTable);
 
@@ -60,6 +58,12 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
         Table nameArea = new Table();
         Label nameLabel = new Label("Name: ", game.skin);
         TextField nameField = new TextField(animation.getName(), game.skin);
+        nameField.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                updateTitle(titleLabel, animation);
+            }
+        });
         nameArea.add(nameLabel);
         nameArea.add(nameField);
         nameArea.row();
@@ -70,26 +74,13 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
         submitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                boolean animationExists = false;
-                String name = nameField.getText();
                 Pair<Boolean, String> inputCheck = checkInput(nameField.getText());
                 if (inputCheck.getFirst()) {
-                    for (Animation existingAnimation : FileHandler.INSTANCE.getAnimations()) {
-                        if (existingAnimation.getName().equals(name)) {
-                            System.out.println("Using existing animation: " + name);
-                            existingAnimation.setName(nameField.getText());
-                            animationExists = true;
-
-                            game.setScreen(new LoadingScreen(game, existingAnimation));
-                            break;
-                        }
+                    animation.setName(nameField.getText());
+                    if (newAnimation) {
+                        FileHandler.INSTANCE.addAnimation(animation);
                     }
-                    if (!animationExists) {
-                        System.out.println("Created New Animation");
-                        Animation newAnimation = new Animation(nameField.getText());
-                        FileHandler.INSTANCE.createNewAnimation(newAnimation);
-                        game.setScreen(new LoadingScreen(game, newAnimation));
-                    }
+                    game.setScreen(new LoadingScreen(game, animation));
                 } else {
                     warningLabel.setText(inputCheck.getSecond());
                 }
@@ -103,19 +94,34 @@ public class NewAnimationScreen extends ScreenAdapter implements InputProcessor 
         warningLabel.setColor(Color.RED);
         table.add(warningLabel);
 
-        init();
+        stage.addActor(table);
     }
 
     public Pair<Boolean, String> checkInput(String name) {
         if (name.isEmpty()) {
             return new Pair<>(false, "Name cannot be empty");
         }
+        if (newAnimation) {
+            for (Animation existing : FileHandler.INSTANCE.getAnimations()) {
+                if (existing.getName().equals(name)) {
+                    return new Pair<>(false, "Animation already exists");
+                }
+            }
+        }
         return new Pair<>(true, "");
     }
 
-    public void init() {
+    public void updateTitle(Label label, Animation animation) {
+        if (newAnimation) {
+            label.setText("Creating new animation");
+        } else {
+            label.setText("Editing " + animation.getName());
+        }
+    }
+
+    @Override
+    public void show() {
         Gdx.input.setInputProcessor(stage);
-        stage.addActor(table);
     }
     @Override
     public void render(float delta) {

@@ -165,6 +165,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }
 
         animation.init();
+        updateCam();
     }
 
     public void buildActions() {
@@ -246,7 +247,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     if (selectedObject.getClass() == Node.class) {
                         Node newNode = animation.newNode(mouseX, mouseY, time);
                         animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode);
-                        //switchSelected(newNode);
+                        switchSelected(newNode);
                     }
                 }
                 return null;
@@ -416,6 +417,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     for (int key : action.getActionKeys()) {
                         options.append(Input.Keys.toString(key)).append(", ");
                     }
+                    options.replace(options.length() - 2, options.length(), ""); // Remove trailing comma, StringJoiner unavailable in TeaVM
                     options.append(action.getActionName()).append("\n");
                 }
             }

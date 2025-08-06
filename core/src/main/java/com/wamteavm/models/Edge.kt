@@ -1,9 +1,12 @@
 package com.wamteavm.models
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.hypot
 import kotlin.math.tan
 
+@Serializable
 class Edge(
     var collectionID: NodeCollectionID,
     var segment: Pair<NodeID, NodeID>,

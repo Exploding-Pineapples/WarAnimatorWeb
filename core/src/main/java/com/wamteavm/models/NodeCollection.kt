@@ -5,14 +5,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
-import com.wamteavm.interpolator.LinearInterpolatedFloat
+import com.wamteavm.interpolator.FloatSetPoints
 import com.wamteavm.interpolator.NodeCollectionInterpolator
-import com.wamteavm.models.*
 import com.wamteavm.utilities.AreaColor
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
+@Serializable
 open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInputs, HasID, HasAlpha, HasColor,
     Clickable {
-    override var alpha = LinearInterpolatedFloat(1f, 0)
+    override var alpha: FloatSetPoints = FloatSetPoints()
     @Transient var interpolator: NodeCollectionInterpolator = NodeCollectionInterpolator()
     override var color: AreaColor = AreaColor.RED
     var type: String = "None"
@@ -37,10 +39,8 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     }
 
     fun init(initTime: Int) {
-        alpha.update(initTime)
-        if (interpolator == null) {
-            interpolator = NodeCollectionInterpolator()
-        }
+        alpha.evaluate(initTime)
+        interpolator = NodeCollectionInterpolator()
     }
 
     override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
@@ -54,7 +54,7 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
 
     fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {
         if (!paused) {
-            alpha.update(time)
+            alpha.evaluate(time)
             //interpolator.updateInterpolationFunction()
         }
         interpolator.evaluate(time)

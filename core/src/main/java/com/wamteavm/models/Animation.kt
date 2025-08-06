@@ -1,7 +1,11 @@
 package com.wamteavm.models
 
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.wamteavm.WarAnimator
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
+@Serializable
 data class Animation @JvmOverloads constructor(
     var name: String = "My Animation",
     var countries: List<String> = mutableListOf(),
@@ -29,9 +33,9 @@ data class Animation @JvmOverloads constructor(
         nodeCollections.forEach { it.init(initTime) }
         nodeEdgeHandler.updateNodeCollections()
         units.forEach { it.init(initTime) }
-        mapLabels.forEach { it.alpha.update(initTime) }
-        arrows.forEach { it.alpha.update(initTime) }
-        images.forEach { it.alpha.update(initTime); it.loadTexture() }
+        mapLabels.forEach { it.alpha.evaluate(initTime) }
+        arrows.forEach { it.alpha.evaluate(initTime) }
+        images.forEach { it.alpha.evaluate(initTime); it.loadTexture() }
         buildInputs()
     }
 
@@ -39,7 +43,7 @@ data class Animation @JvmOverloads constructor(
     {
         if (camera == null)
         {
-            camera = Camera(Coordinate(960f, 540f),1.0f, 0)
+            camera = Camera(Coordinate(WarAnimator.DISPLAY_WIDTH / 2f, WarAnimator.DISPLAY_HEIGHT / 2f),1.0f, initTime)
         }
 
         return camera!!
@@ -81,21 +85,21 @@ data class Animation @JvmOverloads constructor(
     }
 
     fun newArrow(x: Float, y: Float, time: Int): Arrow {
-        val new = Arrow(x, y, time)
+        val new = Arrow(Coordinate(x, y), time)
         new.buildInputs()
         arrows.add(new)
         return new
     }
 
     fun newMapLabel(x: Float, y: Float, time: Int): MapLabel {
-        val new = MapLabel(x, y, time)
+        val new = MapLabel(Coordinate(x, y), time)
         new.buildInputs()
         mapLabels.add(new)
         return new
     }
 
     fun newImage(x: Float, y: Float, time: Int): Image {
-        val new = Image(x, y, time, "")
+        val new = Image(Coordinate(x, y), time, "")
         new.buildInputs()
         images.add(new)
         return new

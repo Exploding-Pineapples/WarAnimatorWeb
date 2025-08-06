@@ -1,15 +1,16 @@
 package com.wamteavm.files
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.files.FileHandle
 import com.wamteavm.models.Animation
+import kotlinx.serialization.json.Json
+
+import java.io.File
 
 object FileHandler {
-
+    val json = Json { ignoreUnknownKeys = true }
     val animations = mutableListOf<Animation>()
 
     private val animationsFolder by lazy {
-        val file = Gdx.files.local("animations")
+        val file = File("animations")
         if (!file.exists()) {
             file.mkdirs()
         }
@@ -18,36 +19,48 @@ object FileHandler {
 
     fun deleteAnimation(animation: Animation) {
         animations.remove(animation)
-        val file = FileHandle("$animationsFolder/${animation.name}")
+        println(animation.name)
+        val file = File(animationsFolder.toString(), "${animation.name}.json")
         if (file.exists()) {
-            file.delete()
-            println("deleted")
+            println("deleted: ${file.delete()}")
         }
     }
 
     fun save() {
         animations.forEach {
-            val fileName = it.name
-            val file = FileHandle("$animationsFolder/$fileName")
+            val file = File("$animationsFolder","${it.name}.json")
 
             if (!file.exists()) {
-                file.file().createNewFile()
+                file.createNewFile()
             }
 
-            println("placeholder save")
+            kotlin.runCatching {
+                file.writeText(json.encodeToString(Animation.serializer(), it))
+            }.onFailure { x ->
+                x.printStackTrace()
+                println("couldnt save ${it.name} rip")
+            }
+
+            println("saved")
         }
     }
 
-    fun createNewAnimation(animation: Animation) {
+    fun addAnimation(animation: Animation) {
         animations.add(animation)
     }
 
     fun load() {
-        println("placeholder loading system")
+        animationsFolder.list()?.forEach { name ->
+            val content = File(animationsFolder.toString(), name).readText()
 
-        animationsFolder.list().forEach {
-            val content = it.read()
-            animations += Animation(it.name())
+            if (!animations.any { animation -> animation.name == name.removeSuffix(".json") })
+            {
+                kotlin.runCatching {
+                    animations += json.decodeFromString<Animation>(content)
+                }.onFailure { e ->
+                    e.printStackTrace()
+                }
+            }
         }
         println("animations loaded")
     }

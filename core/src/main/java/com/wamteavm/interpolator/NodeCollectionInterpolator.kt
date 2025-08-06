@@ -7,34 +7,35 @@ import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import com.wamteavm.models.Animation
 import com.wamteavm.models.NodeCollectionSetPoint
 import com.wamteavm.screens.AnimationScreen
-import java.util.*
 import kotlin.math.round
 
-class NodeCollectionInterpolator : HasSetPoints<Int, NodeCollectionSetPoint> {
-    override var setPoints: SortedMap<Int, NodeCollectionSetPoint> = TreeMap()
-    var coordinates: FloatArray = floatArrayOf()
+class NodeCollectionInterpolator : HasSetPoints<Int, NodeCollectionSetPoint, FloatArray> {
+    override var setPoints: MutableMap<Int, NodeCollectionSetPoint> = sortedMapOf()
+    override var value: FloatArray = floatArrayOf()
     var screenCoordinates: FloatArray = floatArrayOf()
     var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
 
     override fun updateInterpolationFunction() {
+        super.updateInterpolationFunction()
+
         setPoints.values.forEach { it.updateInterpolators() }
         cachedInterpolators.clear()
     }
 
     fun updateScreenCoordinates(camera: OrthographicCamera) {
-        screenCoordinates = FloatArray(coordinates.size)
-        for (i in coordinates.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
-            screenCoordinates[i] = coordinates[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
-            screenCoordinates[i + 1] = coordinates[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
+        screenCoordinates = FloatArray(value.size)
+        for (i in value.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
+            screenCoordinates[i] = value[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
+            screenCoordinates[i + 1] = value[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
         }
     }
 
-    fun evaluate(time: Int): FloatArray {
+    override fun evaluate(at: Int): FloatArray {
         var num = 0
 
         if (setPoints.isNotEmpty()) {
-            if (setPoints.containsKey(time)) {
-                num = round((setPoints[time]?.length ?: 0.0) / AnimationScreen.LINE_RESOLUTION).toInt()
+            if (setPoints.containsKey(at)) {
+                num = round((setPoints[at]?.length ?: 0.0) / AnimationScreen.LINE_RESOLUTION).toInt()
             } else {
                 if (setPoints.size < 2) {
                     num = round((setPoints.values.first().length / AnimationScreen.LINE_RESOLUTION)).toInt()
@@ -48,10 +49,10 @@ class NodeCollectionInterpolator : HasSetPoints<Int, NodeCollectionSetPoint> {
                         if (found) {
                             val deltaTime = frame.value.time - time0
                             num =
-                                round((length0 + ((time - time0).toDouble() / deltaTime) * (frame.value.length - length0)) / AnimationScreen.LINE_RESOLUTION).toInt()
+                                round((length0 + ((at - time0).toDouble() / deltaTime) * (frame.value.length - length0)) / AnimationScreen.LINE_RESOLUTION).toInt()
                             break
                         }
-                        if (frame.key < time) {
+                        if (frame.key < at) {
                             time0 = frame.value.time
                             length0 = frame.value.length
                             found = true
@@ -63,14 +64,14 @@ class NodeCollectionInterpolator : HasSetPoints<Int, NodeCollectionSetPoint> {
 
             num = num.coerceIn(0..AnimationScreen.MAX_LINES)
 
-            coordinates = FloatArray(num * 2)
+            value = FloatArray(num * 2)
             val parameter = DoubleArray(num) { index -> index.toDouble() / num }
 
             for (i in 0 until num) { // For every point to draw, build an interpolator for the point which evaluates from a specific t (parameter) value (0 to 1) through time
                 val cachedInterpolators = this.cachedInterpolators[parameter[i]]
                 if (cachedInterpolators != null) {
-                    coordinates[i * 2] = (cachedInterpolators.first.evaluate(time).toFloat())
-                    coordinates[i * 2 + 1] = (cachedInterpolators.second.evaluate(time).toFloat())
+                    value[i * 2] = (cachedInterpolators.first.evaluate(at).toFloat())
+                    value[i * 2 + 1] = (cachedInterpolators.second.evaluate(at).toFloat())
                 } else {
                     val xInTime = DoubleArray(setPoints.size)
                     val yInTime = DoubleArray(setPoints.size)
@@ -87,15 +88,15 @@ class NodeCollectionInterpolator : HasSetPoints<Int, NodeCollectionSetPoint> {
                     val xInterpolatorTime = PCHIPInterpolationFunction<Int>(times, xInTime)
                     val yInterpolatorTime = PCHIPInterpolationFunction<Int>(times, yInTime)
 
-                    coordinates[i * 2] = (xInterpolatorTime.evaluate(time).toFloat())
-                    coordinates[i * 2 + 1] = (yInterpolatorTime.evaluate(time).toFloat())
+                    value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
+                    value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
 
                     this.cachedInterpolators[parameter[i]] = Pair(xInterpolatorTime, yInterpolatorTime)
                 }
             }
         }
 
-        return coordinates
+        return value
     }
 
     fun holdValueUntil(time: Int, animation: Animation) { // Special hold function for NodeCollectionInterpolator since values are objects (pointers), not literals

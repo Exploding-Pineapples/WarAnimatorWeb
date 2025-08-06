@@ -8,11 +8,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Rectangle
 import com.wamteavm.models.Unit.Companion.sizePresets
 import com.wamteavm.utilities.Earcut
-import com.wamteavm.models.AnyObject
-import com.wamteavm.models.Arrow
-import com.wamteavm.models.HasScreenPosition
-import com.wamteavm.models.InterpolatedObject
 import com.wamteavm.screens.AnimationScreen
+import com.wamteavm.utilities.measureText
 import space.earlygrey.shapedrawer.JoinType
 import space.earlygrey.shapedrawer.ShapeDrawer
 import kotlin.math.min
@@ -147,8 +144,8 @@ class Drawer(val font: BitmapFont,
                 unit.screenPosition.y + unit.height / 2 - padding
             )
 
-            if (unit.name != null) {
-                val nameSize = measureText(font, unit.name!!)
+            if (unit.name != "") {
+                val nameSize = measureText(font, unit.name)
                 font.draw(
                     batcher,
                     unit.name,
@@ -163,29 +160,20 @@ class Drawer(val font: BitmapFont,
 
     fun draw(node: Node) {
         if (time == node.initTime) {
-            shapeDrawer.setColor(node.color)
+            shapeDrawer.setColor(Color.GREEN)
             shapeDrawer.filledCircle(node.screenPosition.x, node.screenPosition.y, 7.0f)
         }
     }
 
     fun draw(arrow: Arrow) {
-        var previous = projectToScreen(
-            Coordinate(
-                arrow.xInterpolator.interpolationFunction.evaluate(arrow.xInterpolator.setPoints.keys.first()),
-                arrow.yInterpolator.interpolationFunction.evaluate(arrow.xInterpolator.setPoints.keys.first())
-            ), camera.zoom, camera.position.x, camera.position.y
-        )
+        var previous = projectToScreen(arrow.posSetPoints.evaluate(arrow.posSetPoints.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
 
         shapeDrawer.setColor(colorWithAlpha(arrow.color.color, arrow.alpha.value))
 
-        val endTime = min(time, arrow.xInterpolator.setPoints.keys.last())
+        val endTime = min(time, arrow.posSetPoints.setPoints.keys.last())
 
-        for (time in arrow.xInterpolator.setPoints.keys.first().toInt()..endTime) { // Draws entire body of arrow
-            val position = projectToScreen(
-                Coordinate(
-                    arrow.xInterpolator.interpolationFunction.evaluate(time),
-                    arrow.yInterpolator.interpolationFunction.evaluate(time)
-                ), camera.zoom, camera.position.x, camera.position.y
+        for (time in arrow.posSetPoints.setPoints.keys.first().toInt()..endTime) { // Draws entire body of arrow
+            val position = projectToScreen(arrow.posSetPoints.evaluate(time), camera.zoom, camera.position.x, camera.position.y
             )
             shapeDrawer.line(previous.x, previous.y, position.x, position.y, arrow.thickness)
             if (time == endTime) {
@@ -240,28 +228,17 @@ class Drawer(val font: BitmapFont,
     fun drawAsSelected(anyObject: AnyObject) {
         if (InterpolatedObject::class.java.isAssignableFrom(anyObject.javaClass)) {
             val screenObject = anyObject as InterpolatedObject
-            val xInterpolator = screenObject.xInterpolator
-            val yInterpolator = screenObject.yInterpolator
+            val posInterpolator = screenObject.posSetPoints
 
             shapeDrawer.setColor(Color.SKY)
-            for (time in xInterpolator.setPoints.keys.first().toInt()..xInterpolator.setPoints.keys.last()
+            for (time in posInterpolator.setPoints.keys.first().toInt()..posInterpolator.setPoints.keys.last()
                 .toInt() step 4) { // Draws entire path of the selected object over time
-                val position = projectToScreen(
-                    Coordinate(
-                        xInterpolator.interpolationFunction.evaluate(time),
-                        yInterpolator.interpolationFunction.evaluate(time)
-                    ), camera.zoom, camera.position.x, camera.position.y
-                )
+                val position = projectToScreen(posInterpolator.evaluate(time), camera.zoom, camera.position.x, camera.position.y)
                 shapeDrawer.filledCircle(position.x, position.y, 2f)
             }
             shapeDrawer.setColor(Color.PURPLE)
-            for (time in xInterpolator.setPoints.keys) { // Draws all set points of the selected object
-                val position = projectToScreen(
-                    Coordinate(
-                        xInterpolator.interpolationFunction.evaluate(time),
-                        yInterpolator.interpolationFunction.evaluate(time)
-                    ), camera.zoom, camera.position.x, camera.position.y
-                )
+            for (time in posInterpolator.setPoints.keys) { // Draws all set points of the selected object
+                val position = projectToScreen(posInterpolator.evaluate(time), camera.zoom, camera.position.x, camera.position.y)
                 shapeDrawer.filledCircle(position.x, position.y, 4f)
             }
 
@@ -316,12 +293,11 @@ class Drawer(val font: BitmapFont,
 
         // Perpendicular direction (rotated 90°)
         val px = -uy
-        val py = ux
 
         // Base endpoints, perpendicular to direction, centered at B
         val halfBase = baseWidth / 2.0f
-        val p1 = Coordinate(b.x + px * halfBase, b.y + py * halfBase)
-        val p2 = Coordinate(b.x - px * halfBase, b.y - py * halfBase)
+        val p1 = Coordinate(b.x + px * halfBase, b.y + ux * halfBase)
+        val p2 = Coordinate(b.x - px * halfBase, b.y - ux * halfBase)
 
         // Tip of triangle, extending in A→B direction from B
         val tip = Coordinate(b.x + ux * height, b.y + uy * height)

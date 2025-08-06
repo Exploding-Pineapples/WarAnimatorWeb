@@ -3,8 +3,8 @@ package com.wamteavm.models
 import com.wamteavm.inputelements.TextInput
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
-import com.wamteavm.interpolator.LinearInterpolatedFloat
-import com.wamteavm.interpolator.PCHIPInterpolatedFloat
+import com.wamteavm.interpolator.CoordinateSetPoints
+import com.wamteavm.interpolator.FloatSetPoints
 import com.wamteavm.utilities.AreaColor
 import kotlin.math.absoluteValue
 
@@ -29,39 +29,30 @@ interface HasScreenPosition : HasPosition {
 
 interface InterpolatedObject : AnyObject, HasPosition {
     val initTime: Int
-    var xInterpolator: PCHIPInterpolatedFloat
-    var yInterpolator: PCHIPInterpolatedFloat
+    val posSetPoints: CoordinateSetPoints
+
+    fun init() {
+        posSetPoints.updateInterpolationFunction()
+    }
 
     fun goToTime(time: Int): Boolean { // Can only be called after at least one key frame has been added
-        if (xInterpolator == null) {
-            xInterpolator = PCHIPInterpolatedFloat(position.x, initTime)
-            yInterpolator = PCHIPInterpolatedFloat(position.y, initTime)
-        }
-        position.x = xInterpolator.update(time)
-        position.y = yInterpolator.update(time)
-
+        position = posSetPoints.evaluate(time)
         return true
     }
 
-    fun shouldDraw(time: Int): Boolean
+    fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
+        posSetPoints.holdValueUntil(time)
+    }
 
     fun removeFrame(time: Int): Boolean {
-        return xInterpolator.removeFrame(time) && yInterpolator.removeFrame(time) // Both should be paired
+        return posSetPoints.removeFrame(time)
     }
 
     fun newSetPoint(time: Int, x: Float, y: Float) {
-        xInterpolator.newSetPoint(time, x)
-        yInterpolator.newSetPoint(time, y)
+        posSetPoints.newSetPoint(time, Coordinate(x, y))
     }
 
-    // When you add a time coordinate pair to an object which hasn't had a defined movement for a long time, it will interpolate a motion the whole way, which can be undesirable
-    // Ex. last defined position was at time 0, you want it to move to another position at 800
-    // But you only want it to move starting from time 600
-    // The below function is used hold the object at the last position until the desired time
-    fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
-        xInterpolator.holdValueUntil(time)
-        yInterpolator.holdValueUntil(time)
-    }
+    fun shouldDraw(time: Int): Boolean
 }
 
 abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable, HasInputs {
@@ -79,15 +70,12 @@ abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable, 
     }
 
     override fun shouldDraw(time: Int): Boolean {
-        return time >= xInterpolator.setPoints.keys.first()
+        return time >= posSetPoints.setPoints.keys.first()
     }
 
     override fun toString(): String {
-        val output = StringBuilder()
-        output.append("Movements: " + xInterpolator.setPoints.keys + "\n")
-        output.append("       xs: " + xInterpolator.setPoints.values + "\n")
-        output.append("       ys: " + yInterpolator.setPoints.values + "\n")
-        return output.toString()
+        return "Movements: " + posSetPoints.setPoints.keys + "\n" +
+               "Positions: " + posSetPoints.setPoints.values + "\n"
     }
 }
 
@@ -96,17 +84,18 @@ interface HasID {
 }
 
 interface HasZoom {
-    var zoom: Float
-    var zoomInterpolator: PCHIPInterpolatedFloat
+    var zoomInterpolator: FloatSetPoints
 }
 
 interface HasAlpha : HasInputs {
-    val alpha: LinearInterpolatedFloat
+    val alpha: FloatSetPoints
 
     override fun buildInputs() {
+        alpha.updateInterpolationFunction()
+
         inputElements.add(TextInput(null, { input ->
             if (input != null) {
-                alpha.value = input
+                alpha.newSetPoint(0, input) //TODO get the time
             }
         }, label@{
             return@label alpha.value.toString()

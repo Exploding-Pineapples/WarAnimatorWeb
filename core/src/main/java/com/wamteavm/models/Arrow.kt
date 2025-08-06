@@ -3,20 +3,19 @@ package com.wamteavm.models
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.TextInput
-import com.wamteavm.interpolator.LinearInterpolatedFloat
-import com.wamteavm.interpolator.PCHIPInterpolatedFloat
+import com.wamteavm.interpolator.CoordinateSetPoints
+import com.wamteavm.interpolator.FloatSetPoints
 import com.wamteavm.utilities.AreaColor
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-class Arrow(x: Float, y: Float, time: Int): ScreenObject(), HasAlpha, HasColor {
-    override var position: Coordinate = Coordinate(x, y)
-    override var xInterpolator = PCHIPInterpolatedFloat(x, time)
-    override var yInterpolator = PCHIPInterpolatedFloat(y, time)
-    override val alpha = LinearInterpolatedFloat(1f, time)
-    override val initTime = time
+@Serializable
+class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObject(), HasAlpha, HasColor {
+    override val posSetPoints: CoordinateSetPoints = CoordinateSetPoints().apply { newSetPoint(initTime, position) }
+    override val alpha: FloatSetPoints = FloatSetPoints()
     override var color = AreaColor.RED
     var thickness = 10f
-    @Transient
-    override var inputElements: MutableList<InputElement<*>> = mutableListOf()
+    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     override fun shouldDraw(time: Int): Boolean {
         return true
@@ -27,7 +26,7 @@ class Arrow(x: Float, y: Float, time: Int): ScreenObject(), HasAlpha, HasColor {
     }
 
     fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
-        if (!paused) { alpha.update(time) }
+        if (!paused) { alpha.evaluate(time) }
         return super.goToTime(time, zoom, cx, cy)
     }
 

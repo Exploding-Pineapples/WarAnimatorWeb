@@ -6,23 +6,25 @@ import com.wamteavm.files.Assets
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
 import com.wamteavm.inputelements.TextInput
-import com.wamteavm.interpolator.LinearInterpolatedFloat
-import com.wamteavm.interpolator.PCHIPInterpolatedFloat
+import com.wamteavm.interpolator.CoordinateSetPoints
+import com.wamteavm.interpolator.FloatSetPoints
 import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.AreaColor
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
+@Serializable
 data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
     var image: String = ""
 ) : ScreenObject(), HasAlpha, HasColor {
-    override var xInterpolator: PCHIPInterpolatedFloat = PCHIPInterpolatedFloat(position.x, initTime)
-    override var yInterpolator: PCHIPInterpolatedFloat = PCHIPInterpolatedFloat(position.y, initTime)
-    override val alpha: LinearInterpolatedFloat = LinearInterpolatedFloat(1f, initTime)
+    override val posSetPoints = CoordinateSetPoints().apply { newSetPoint(initTime, position) }
+    override val alpha = FloatSetPoints().apply { newSetPoint(initTime, 1f) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     override var color: AreaColor = AreaColor.BLUE
-    var name: String? = null
+    var name: String = ""
     var type: String = "infantry.png"
     var size: String = "XX"
     var drawSize: Float? = 1.0f
@@ -33,10 +35,6 @@ data class Unit(
 
     override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
         uiVisitor.show(verticalGroup ,this)
-    }
-
-    fun init(initTime: Int) {
-        alpha.update(initTime)
     }
 
     override fun buildInputs() {
@@ -85,7 +83,7 @@ data class Unit(
     }
 
     fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
-        if (!paused) { alpha.update(time) }
+        if (!paused) { alpha.evaluate(time) }
         return super.goToTime(time, zoom, cx, cy)
     }
 

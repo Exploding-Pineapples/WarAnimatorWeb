@@ -1,11 +1,12 @@
 package com.wamteavm.interpolator
 
-import java.util.*
+interface HasSetPoints<I : Number, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
+    var setPoints: MutableMap<I, O>
+    var value: V
 
-interface HasSetPoints<I : Number, O> {
-    var setPoints: SortedMap<I, O>
-
-    fun updateInterpolationFunction()
+    fun updateInterpolationFunction() {
+        setPoints.putAll(setPoints.toSortedMap(compareBy { it.toDouble() }))
+    }
 
     fun removeFrame(x: I): Boolean {
         if (setPoints.size > 1) {
@@ -76,6 +77,9 @@ interface HasSetPoints<I : Number, O> {
         }
         // If the input time was not in the defined period, add a movement to the end
         setPoints[time] = setPoints.values.last()
+
         updateInterpolationFunction()
     }
+
+    fun evaluate(at: I): V
 }

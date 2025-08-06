@@ -6,8 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
-import java.lang.reflect.Type
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Coordinate(
     var x: Float,
     var y: Float
@@ -112,12 +113,14 @@ interface ID : Comparable<ID> {
     fun duplicate() : ID
 }
 
+@Serializable
 class NodeCollectionID(override val value: Int = -1) : ID {
     override fun duplicate() : NodeCollectionID {
         return NodeCollectionID(value)
     }
 }
 
+@Serializable
 class NodeID(override val value: Int = -1) : ID {
     override fun duplicate(): NodeID {
         return NodeID(value)

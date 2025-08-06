@@ -194,7 +194,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
                 if (InterpolatedObject.class.isAssignableFrom(selectedObject.getClass())) {
-                    ((InterpolatedObject) selectedObject).holdPositionUntil(time);
+                    ((InterpolatedObject) selectedObject).getPosSetPoints().holdValueUntil(time);
                 }
                 if (selectedObject.getClass() == NodeCollection.class) {
                     ((NodeCollection) selectedObject).getInterpolator().holdValueUntil(time, animation);
@@ -289,7 +289,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
                 if (InterpolatedObject.class.isAssignableFrom(selectedObject.getClass())) {
-                    if (((InterpolatedObject) selectedObject).removeFrame(time)) {
+                    if (((InterpolatedObject) selectedObject).getPosSetPoints().removeFrame(time)) {
                         System.out.println("Deleted last frame");
                     } else {
                         System.out.println("Cannot delete frame on object with less than 2 frames");
@@ -331,7 +331,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     private void moveObjects(ArrayList<AnyObject> objects) {
         for (AnyObject object : objects) {
             if (InterpolatedObject.class.isAssignableFrom(object.getClass())) {
-                ((InterpolatedObject) object).newSetPoint(time, mouseX, mouseY);
+                ((InterpolatedObject) object).getPosSetPoints().newSetPoint(time, new Coordinate(mouseX, mouseY));
             }
             if (object.getClass() == Node.class) {
                 ((Node) object).setPosition(new Coordinate(mouseX, mouseY));

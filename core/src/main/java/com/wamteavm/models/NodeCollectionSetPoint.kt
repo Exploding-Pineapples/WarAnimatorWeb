@@ -9,7 +9,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
     var tInterpolator: InterpolationFunction<Int, Double> =
         LinearInterpolationFunction(
             arrayOf(0),
-            arrayOf(0.0)
+            doubleArrayOf(0.0)
         )
     var xInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
     var yInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))

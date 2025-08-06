@@ -6,16 +6,16 @@ import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
 import com.wamteavm.inputelements.TextInput
 import com.wamteavm.files.Assets
-import com.wamteavm.interpolator.LinearInterpolatedFloat
-import com.wamteavm.interpolator.PCHIPInterpolatedFloat
+import com.wamteavm.interpolator.CoordinateSetPoints
+import com.wamteavm.interpolator.FloatSetPoints
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-class Image(x: Float, y: Float, time: Int, var path: String) : ScreenObject(), HasAlpha {
-    override var position: Coordinate = Coordinate(x, y)
-    override var xInterpolator = PCHIPInterpolatedFloat(x, time)
-    override var yInterpolator = PCHIPInterpolatedFloat(y, time)
-    override var alpha = LinearInterpolatedFloat(1f, time)
+@Serializable
+class Image(override var position: Coordinate, override var initTime: Int, var path: String) : ScreenObject(), HasAlpha {
+    override val posSetPoints: CoordinateSetPoints = CoordinateSetPoints().apply { newSetPoint(initTime, position) }
+    override var alpha = FloatSetPoints().apply { newSetPoint(initTime, 1f) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-    override val initTime = time
     var scale: Float = 1f
 
     @Transient var texture: Texture? = Assets.loadTexture(path)
@@ -38,7 +38,7 @@ class Image(x: Float, y: Float, time: Int, var path: String) : ScreenObject(), H
     }
 
     fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
-        if (!paused) { alpha.update(time) }
+        if (!paused) { alpha.evaluate(time) }
         return super.goToTime(time, zoom, cx, cy)
     }
 

@@ -1,9 +1,11 @@
 package com.wamteavm.interpolator.interpfunction;
 
+import java.util.Arrays;
+
 public class LinearInterpolationFunction<I extends Number> extends InterpolationFunction<I, Double> {
 
-    public LinearInterpolationFunction(I[] x, Double[] y) {
-        super(x, y);
+    public LinearInterpolationFunction(I[] x, double[] y) {
+        super(x, Arrays.stream(y).boxed().toArray(Double[]::new));
     }
 
     @Override
@@ -14,7 +16,12 @@ public class LinearInterpolationFunction<I extends Number> extends Interpolation
         for (int index = 0; index < i.length; index++) {
             i[index] = genericI[index].doubleValue();
         }
-        Double[] y = getO();
+        double[] y = new double[getO().length];
+
+        for (int index = 0; index < getO().length; index++) {
+            y[index] = getO()[index];
+        }
+
         if (atDouble <= i[0]) {
             return y[0];
         }

@@ -1,19 +1,20 @@
 package com.wamteavm.models
 
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.TextInput
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.math.absoluteValue
 
+@Serializable
 data class Node(
     override var position: Coordinate,
     val initTime: Int,
     override val id: NodeID
 ) : AnyObject, HasScreenPosition, Clickable, HasInputs, HasID {
     override var screenPosition = Coordinate(0f, 0f)
-    var color: Color = Color.GREEN
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
     @Transient var visitedBy = mutableListOf<NodeCollectionID>()
     var tSetPoint: Double? = null

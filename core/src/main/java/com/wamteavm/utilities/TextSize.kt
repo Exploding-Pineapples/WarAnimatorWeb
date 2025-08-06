@@ -1,4 +1,4 @@
-package com.wamteavm.models
+package com.wamteavm.utilities
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 

@@ -1,9 +1,6 @@
 package com.wamteavm.models
 
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
-import com.wamteavm.ui.inputelements.InputElement
-import com.wamteavm.ui.inputelements.TextInput
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.math.absoluteValue
@@ -14,8 +11,7 @@ data class Node(
     val initTime: Int,
     override val id: NodeID
 ) : AnyObject, HasScreenPosition, Clickable, HasInputs, HasID {
-    override var screenPosition = Coordinate(0f, 0f)
-    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
+    @Transient override var screenPosition = Coordinate(0f, 0f)
     @Transient var visitedBy = mutableListOf<NodeCollectionID>()
     var tSetPoint: Double? = null
     var edges = mutableListOf<Edge>()
@@ -38,7 +34,6 @@ data class Node(
         if (screenPosition == null) {
             screenPosition = Coordinate(0f, 0f)
         }
-        buildInputs()
     }
 
     fun update(time: Int, camera: OrthographicCamera) { // Goes to time, and if animation mode is active, draws colored circle

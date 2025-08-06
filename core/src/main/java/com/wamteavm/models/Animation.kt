@@ -78,36 +78,35 @@ data class Animation @JvmOverloads constructor(
 
     fun newNode(x: Float, y: Float, time: Int): Node {
         val node = Node(Coordinate(x, y), time, NodeID(nodeId))
-        node.buildInputs()
+        node.init()
         nodeEdgeHandler.addNode(node)
         return node
     }
 
     fun newArrow(x: Float, y: Float, time: Int): Arrow {
         val new = Arrow(Coordinate(x, y), time)
-        new.buildInputs()
+        new.init()
         arrows.add(new)
         return new
     }
 
     fun newMapLabel(x: Float, y: Float, time: Int): MapLabel {
         val new = MapLabel(Coordinate(x, y), time)
-        new.buildInputs()
+        new.init()
         mapLabels.add(new)
         return new
     }
 
     fun newImage(x: Float, y: Float, time: Int): Image {
         val new = Image(Coordinate(x, y), time, "")
-        new.buildInputs()
+        new.init()
         images.add(new)
         return new
     }
 
     fun newUnit(x: Float, y: Float, time: Int, image: String = ""): Unit {
         val new = Unit(Coordinate(x, y), time, image)
-        new.typeTexture()
-        new.buildInputs()
+        new.init()
         units.add(new)
         return new
     }

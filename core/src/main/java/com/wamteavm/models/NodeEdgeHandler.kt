@@ -167,7 +167,7 @@ class NodeEdgeHandler(val animation: Animation) {
                 println("Warning: Created node collection ${newNodeCollection.id.value}")
                 newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
                 animation.nodeCollections.add(newNodeCollection)
-                newNodeCollection.buildInputs()
+                newNodeCollection.init()
             } else {
                 existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }

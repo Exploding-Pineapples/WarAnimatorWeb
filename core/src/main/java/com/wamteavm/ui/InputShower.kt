@@ -34,7 +34,6 @@ class InputShower(val skin: Skin) {
         var specificClass: Class<HasInputs>? = HasInputs::class.java
 
         for (element in elements) {
-            element.updateInputs()
             if (alpha && !HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
                 alpha = false
             }

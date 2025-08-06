@@ -57,7 +57,7 @@ interface InterpolatedObject : AnyObject, HasPosition {
     fun shouldDraw(time: Int): Boolean
 }
 
-abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable, HasInputs {
+abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable {
     @Transient override var screenPosition: Coordinate = Coordinate(0f, 0f)
 
     override fun clicked(x: Float, y: Float): Boolean
@@ -91,36 +91,10 @@ interface HasZoom {
 
 interface HasAlpha : HasInputs {
     val alpha: FloatSetPointInterpolator
-
-    override fun buildInputs() {
-        alpha.updateInterpolationFunction()
-
-        inputElements.add(TextInput(null, { input ->
-            if (input != null) {
-                alpha.newSetPoint(0, input) //TODO get the time
-            }
-        }, label@{
-            return@label alpha.value.toString()
-        }, Float::class.java, "Set alpha set point"))
-    }
 }
 
 interface HasColor : HasInputs {
     var color: AreaColor
-
-    override fun buildInputs() {
-        inputElements.add(TextInput(null, { input ->
-            if (input != null) {
-                for (color in AreaColor.entries) {
-                    if (input == color.name) {
-                        this.color = color
-                    }
-                }
-            }
-        }, label@{
-            return@label color.name
-        }, String::class.java, "Set color"))
-    }
 }
 
 interface Clickable {

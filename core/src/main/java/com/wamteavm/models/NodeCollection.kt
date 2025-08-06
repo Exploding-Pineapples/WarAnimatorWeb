@@ -1,10 +1,6 @@
 package com.wamteavm.models
 
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
-import com.badlogic.gdx.utils.Array
-import com.wamteavm.ui.inputelements.InputElement
-import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.interpolator.NodeCollectionInterpolator
 import com.wamteavm.utilities.AreaColor
@@ -19,18 +15,10 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     override var color: AreaColor = AreaColor.RED
     var type: String = "None"
     var width: Float? = null
-    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-
-    override fun buildInputs() {
-        super<HasInputs>.buildInputs()
-        super<HasAlpha>.buildInputs()
-        super<HasColor>.buildInputs()
-    }
 
     override fun init() {
         alpha.updateInterpolationFunction()
         interpolator = NodeCollectionInterpolator()
-        buildInputs()
     }
 
     fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {

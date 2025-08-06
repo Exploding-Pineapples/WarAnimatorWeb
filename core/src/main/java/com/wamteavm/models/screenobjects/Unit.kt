@@ -1,11 +1,7 @@
 package com.wamteavm.models.screenobjects
 
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.files.Assets
-import com.wamteavm.ui.inputelements.InputElement
-import com.wamteavm.ui.inputelements.SelectBoxInput
-import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.*
@@ -22,7 +18,6 @@ data class Unit(
 ) : ScreenObject(), HasAlpha, HasColor {
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
-    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     override var color: AreaColor = AreaColor.BLUE
     var name: String = ""
@@ -36,16 +31,9 @@ data class Unit(
 
     override fun init() {
         super.init()
-        buildInputs()
         countryTexture()
         typeTexture()
         alpha.updateInterpolationFunction()
-    }
-
-    override fun buildInputs() {
-        super<ScreenObject>.buildInputs()
-        super<HasAlpha>.buildInputs()
-        super<HasColor>.buildInputs()
     }
 
     override fun clicked(x: Float, y: Float): Boolean {

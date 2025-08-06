@@ -722,7 +722,13 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        return false;
+        if (paused) {
+            float zoomMultiplier = 1 - 0.05f * amountY;;
+            orthographicCamera.zoom *= zoomMultiplier;
+            orthographicCamera.position.x -= (mouseX - orthographicCamera.position.x) * (1 - zoomMultiplier);
+            orthographicCamera.position.y -= (mouseY - orthographicCamera.position.y) * (1 - zoomMultiplier);
+        }
+        return true;
     }
 
     @Override

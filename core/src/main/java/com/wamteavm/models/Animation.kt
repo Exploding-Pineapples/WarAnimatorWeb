@@ -176,8 +176,4 @@ data class Animation @JvmOverloads constructor(
         arrows.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
         mapLabels.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
     }
-
-    fun draw(drawer: Drawer) {
-        drawer.draw(this)
-    }
 }

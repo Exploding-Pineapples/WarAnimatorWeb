@@ -28,17 +28,21 @@ class InputShower(val skin: Skin) {
     fun update(verticalGroup: VerticalGroup, objects: List<AnyObject>, time: Int) {
         inputElements.forEach { it.hide(verticalGroup) }
         inputElements.clear()
-        val elements = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
-        var alpha = elements.isNotEmpty()
-        var color = elements.isNotEmpty()
+        val hasInputs = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
+        val hasAlphas: MutableList<HasAlpha> = mutableListOf()
+        val hasColors: MutableList<HasColor> = mutableListOf()
+        var alpha = false
+        var color = false
         val classElementMap: MutableMap<Class<HasInputs>, MutableList<HasInputs>> = mutableMapOf()
 
-        for (element in elements) {
-            if (alpha && !HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
-                alpha = false
+        for (element in hasInputs) {
+            if (HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
+                alpha = true
+                hasAlphas.add(element as HasAlpha)
             }
-            if (color && !HasColor::class.java.isAssignableFrom(element.javaClass)) {
-                color = false
+            if (HasColor::class.java.isAssignableFrom(element.javaClass)) {
+                color = true
+                hasColors.add(element as HasColor)
             }
             if (classElementMap.containsKey(element.javaClass)) {
                 classElementMap[element.javaClass]!!.add(element)
@@ -47,20 +51,21 @@ class InputShower(val skin: Skin) {
             }
         }
 
+        println(hasAlphas)
         if (alpha) {
             val alphaInput = TextInput(null, { input ->
                 if (input != null) {
-                    for (element in elements) {
-                        (element as HasAlpha).alpha.newSetPoint(time, input)
+                    for (element in hasAlphas) {
+                        element.alpha.newSetPoint(time, input)
                         element.alpha.value = input
                     }
                 } else {
-                    for (element in elements) {
-                        (element as HasAlpha).alpha.removeFrame(time)
+                    for (element in hasAlphas) {
+                        element.alpha.removeFrame(time)
                     }
                 }
             }, label@{
-                return@label returnIfSame(elements.map { (it as HasAlpha).alpha.value.toString() })
+                return@label returnIfSame(hasAlphas.map { it.alpha.value.toString() })
             }, Float::class.java, "Set alpha set point")
             inputElements.add(alphaInput)
         }
@@ -70,14 +75,14 @@ class InputShower(val skin: Skin) {
                 if (input != null) {
                     for (areaColor in AreaColor.entries) {
                         if (input == areaColor.name) {
-                            for (element in elements) {
-                                (element as HasColor).color = areaColor
+                            for (element in hasColors) {
+                                element.color = areaColor
                             }
                         }
                     }
                 }
             }, label@{
-                return@label returnIfSame(elements.map { (it as HasColor).color.toString() })
+                return@label returnIfSame(hasColors.map { it.color.toString() })
             }, String::class.java, "Set color")
             inputElements.add(colorInput)
         }

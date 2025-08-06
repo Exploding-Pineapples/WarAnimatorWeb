@@ -573,10 +573,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         if (!paused) { //don't update camera when paused to allow for movement when paused
             updateCam();
         }
-        //orthographicCamera.update();
         drawer.update(time, animationMode);
 
-        //UI
         updateUI();
 
         stage.act();
@@ -587,7 +585,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         update();
 
         game.batch.begin();
-        animation.draw(drawer);
+        drawer.draw(animation);
 
         if (animationMode) {
             // Draw contrast backgrounds for UI

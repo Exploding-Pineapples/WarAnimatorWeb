@@ -15,6 +15,15 @@ class NodeEdgeHandler(val animation: Animation) {
         updateNodeCollections()
     }
 
+    private fun newNodeCollection(nodeCollectionSetPoint: NodeCollectionSetPoint) : NodeCollection {
+        val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID))
+        animation.nodeCollectionID++
+        newNodeCollection.alpha.newSetPoint(nodeCollectionSetPoint.time, 1f)
+        newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
+        newNodeCollection.init()
+        return newNodeCollection
+    }
+
     fun addNode(node: Node)
     {
         animation.nodes.add(node)
@@ -158,16 +167,11 @@ class NodeEdgeHandler(val animation: Animation) {
                 nodeCollectionSetPoint.nodes.forEach { node ->
                     node.edges.filter { it.collectionID.value == nodeCollectionSetPoint.id.value }.forEach {
                         it.collectionID = NodeCollectionID(nodeCollectionSetPoint.id.value)
-                        //it.prepare(time)
                     }
                 }
-
-                val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID))
-                animation.nodeCollectionID++
-                println("Warning: Created node collection ${newNodeCollection.id.value}")
-                newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
+                val newNodeCollection = newNodeCollection(nodeCollectionSetPoint)
+                println("Created node collection ${newNodeCollection.id.value}")
                 animation.nodeCollections.add(newNodeCollection)
-                newNodeCollection.init()
             } else {
                 existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }

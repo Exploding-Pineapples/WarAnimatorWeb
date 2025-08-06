@@ -45,15 +45,15 @@ class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coo
 class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
     override var setPoints: MutableMap<Int, Float> = sortedMapOf()
     override var value: Float = 1f
-    @Transient var zoomInterpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
+    @Transient var interpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
 
     override fun updateInterpolationFunction() {
         super.updateInterpolationFunction()
-        zoomInterpolationFunction = PCHIPInterpolationFunction(setPoints.keys.toTypedArray(), setPoints.values.toTypedArray().map { it.toDouble() }.toDoubleArray())
+        interpolationFunction = PCHIPInterpolationFunction(setPoints.keys.toTypedArray(), setPoints.values.toTypedArray().map { it.toDouble() }.toDoubleArray())
     }
 
     override fun evaluate(at: Int): Float {
-        value = zoomInterpolationFunction.evaluate(at).toFloat()
+        value = interpolationFunction.evaluate(at).toFloat()
         return value
     }
 }
@@ -101,6 +101,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
     override var value: FloatArray = floatArrayOf()
     var screenCoordinates: FloatArray = floatArrayOf()
     var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
+    var zoom: Float = 1f
 
     override fun updateInterpolationFunction() {
         super.updateInterpolationFunction()
@@ -117,15 +118,22 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
         }
     }
 
+    fun prepare(zoom: Float) {
+        this.zoom = zoom
+    }
+
     override fun evaluate(at: Int): FloatArray {
         var num = 0
+        var setPoint: NodeCollectionSetPoint? = null
 
         if (setPoints.isNotEmpty()) {
             if (setPoints.containsKey(at)) {
-                num = round((setPoints[at]?.length ?: 0.0) / AnimationScreen.LINE_RESOLUTION).toInt()
+                setPoint = setPoints[at]!!
+                num = round((setPoint.length) / AnimationScreen.LINE_RESOLUTION).toInt()
             } else {
                 if (setPoints.size < 2) {
-                    num = round((setPoints.values.first().length / AnimationScreen.LINE_RESOLUTION)).toInt()
+                    setPoint = setPoints.values.first()
+                    num = round((setPoint.length / AnimationScreen.LINE_RESOLUTION)).toInt()
                 } else {
                     var index = 0
                     var time0 = 0
@@ -134,9 +142,9 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
 
                     for (frame in setPoints) {
                         if (found) {
-                            val deltaTime = frame.value.time - time0
-                            num =
-                                round((length0 + ((at - time0).toDouble() / deltaTime) * (frame.value.length - length0)) / AnimationScreen.LINE_RESOLUTION).toInt()
+                            setPoint = frame.value
+                            val deltaTime = setPoint.time - time0
+                            num = round((length0 + ((at - time0).toDouble() / deltaTime) * (setPoint.length - length0)) / AnimationScreen.LINE_RESOLUTION).toInt()
                             break
                         }
                         if (frame.key < at) {
@@ -149,16 +157,19 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                 }
             }
 
-            num = num.coerceIn(0..AnimationScreen.MAX_LINES)
+
+            num = (num * zoom).toInt().coerceIn(0..AnimationScreen.MAX_LINES)
 
             value = FloatArray(num * 2)
-            val parameter = DoubleArray(num) { index -> index.toDouble() / num }
+            var parameter = 0.0
 
             for (i in 0 until num) { // For every point to draw, build an interpolator for the point which evaluates from a specific t (parameter) value (0 to 1) through time
-                val cachedInterpolators = this.cachedInterpolators[parameter[i]]
+                val cachedInterpolators = this.cachedInterpolators[parameter]
+                lateinit var xInterpolatorTime: PCHIPInterpolationFunction<Int>
+                lateinit var yInterpolatorTime: PCHIPInterpolationFunction<Int>
                 if (cachedInterpolators != null) {
-                    value[i * 2] = (cachedInterpolators.first.evaluate(at).toFloat())
-                    value[i * 2 + 1] = (cachedInterpolators.second.evaluate(at).toFloat())
+                    xInterpolatorTime = cachedInterpolators.first
+                    yInterpolatorTime = cachedInterpolators.second
                 } else {
                     val xInTime = DoubleArray(setPoints.size)
                     val yInTime = DoubleArray(setPoints.size)
@@ -166,20 +177,20 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                     var index = 0
                     for (frame in setPoints) {
                         // frame.value's interpolators are through space at a specific time
-                        xInTime[index] = frame.value.xInterpolator.evaluate(parameter[i])
-                        yInTime[index] = frame.value.yInterpolator.evaluate(parameter[i])
+                        xInTime[index] = frame.value.xInterpolator.evaluate(parameter)
+                        yInTime[index] = frame.value.yInterpolator.evaluate(parameter)
                         index++
                     }
 
                     val times = setPoints.keys.toTypedArray()
-                    val xInterpolatorTime = PCHIPInterpolationFunction<Int>(times, xInTime)
-                    val yInterpolatorTime = PCHIPInterpolationFunction<Int>(times, yInTime)
+                    xInterpolatorTime = PCHIPInterpolationFunction(times, xInTime)
+                    yInterpolatorTime = PCHIPInterpolationFunction(times, yInTime)
 
-                    value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
-                    value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
-
-                    this.cachedInterpolators[parameter[i]] = Pair(xInterpolatorTime, yInterpolatorTime)
+                    this.cachedInterpolators[parameter] = Pair(xInterpolatorTime, yInterpolatorTime)
                 }
+                value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
+                value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
+                parameter = (i + 1.0) / num
             }
         }
 

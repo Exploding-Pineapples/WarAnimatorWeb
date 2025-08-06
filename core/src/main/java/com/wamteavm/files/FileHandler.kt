@@ -51,10 +51,9 @@ object FileHandler {
 
     fun load() {
         animationsFolder.list()?.forEach { name ->
-            val content = File(animationsFolder.toString(), name).readText()
-
             if (!animations.any { animation -> animation.name == name.removeSuffix(".json") })
             {
+                val content = File(animationsFolder.toString(), name).readText()
                 kotlin.runCatching {
                     animations += json.decodeFromString<Animation>(content)
                 }.onFailure { e ->

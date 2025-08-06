@@ -3,21 +3,13 @@ package com.wamteavm.models
 import com.wamteavm.inputelements.TextInput
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
-import com.wamteavm.inputelements.InputElement
-import com.wamteavm.interpolators.ColorSetPointInterpolator
-import com.wamteavm.interpolators.CoordinateSetPointInterpolator
-import com.wamteavm.interpolators.FloatSetPointInterpolator
+import com.wamteavm.interpolator.CoordinateSetPointInterpolator
+import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.utilities.AreaColor
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlin.math.absoluteValue
 
 interface AnyObject {
     fun init()
-}
-
-interface Drawable {
-    fun draw(drawer: Drawer)
 }
 
 interface HasPosition {
@@ -45,12 +37,12 @@ interface InterpolatedObject : AnyObject, HasPosition {
         posSetPoints.updateInterpolationFunction()
     }
 
-    fun update(time: Int): Boolean {
+    fun goToTime(time: Int): Boolean { // Can only be called after at least one key frame has been added
         position = posSetPoints.evaluate(time)
         return true
     }
 
-    fun holdPositionUntil(time: Int) {
+    fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
         posSetPoints.holdValueUntil(time)
     }
 
@@ -61,47 +53,31 @@ interface InterpolatedObject : AnyObject, HasPosition {
     fun newSetPoint(time: Int, x: Float, y: Float) {
         posSetPoints.newSetPoint(time, Coordinate(x, y))
     }
+
+    fun shouldDraw(time: Int): Boolean
 }
 
 abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable, HasInputs {
     @Transient override var screenPosition: Coordinate = Coordinate(0f, 0f)
-    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-
-    override fun init() {
-        buildInputs()
-    }
 
     override fun clicked(x: Float, y: Float): Boolean
     {
         return (x - screenPosition.x).absoluteValue <= 10 && (y - screenPosition.y).absoluteValue <= 10
     }
 
-    protected fun update(time: Int, zoom: Float, cx: Float, cy: Float) {
-        super.update(time)
+    protected open fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float): Boolean {
+        super.goToTime(time)
         updateScreenPosition(zoom, cx, cy)
+        return shouldDraw(time)
+    }
+
+    override fun shouldDraw(time: Int): Boolean {
+        return time >= posSetPoints.setPoints.keys.first()
     }
 
     override fun toString(): String {
         return "Movements: " + posSetPoints.setPoints.keys + "\n" +
-            "Positions: " + posSetPoints.setPoints.values + "\n"
-    }
-}
-
-abstract class ScreenObjectWithAlpha : ScreenObject(), HasAlpha, Drawable {
-    override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
-    @Transient override var screenPosition: Coordinate = Coordinate(0f, 0f)
-    @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-
-    override fun init() {
-        buildInputs()
-        alpha.updateInterpolationFunction()
-    }
-
-    protected open fun update(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
-        super.update(time, zoom, cx, cy)
-        if (!paused) {
-            alpha.evaluate(time)
-        }
+               "Positions: " + posSetPoints.setPoints.values + "\n"
     }
 }
 
@@ -121,7 +97,7 @@ interface HasAlpha : HasInputs {
 
         inputElements.add(TextInput(null, { input ->
             if (input != null) {
-                alpha.newSetPoint(0, input) // TODO get the time
+                alpha.newSetPoint(0, input) //TODO get the time
             }
         }, label@{
             return@label alpha.value.toString()
@@ -129,21 +105,20 @@ interface HasAlpha : HasInputs {
     }
 }
 
-interface HasColor : HasInputs { // TODO make direct hex color work
-    var color: ColorSetPointInterpolator
+interface HasColor : HasInputs {
+    var color: AreaColor
 
     override fun buildInputs() {
         inputElements.add(TextInput(null, { input ->
             if (input != null) {
                 for (color in AreaColor.entries) {
                     if (input == color.name) {
-                        this.color.newSetPoint(0, color)
-                        this.color.value = color.color
+                        this.color = color
                     }
                 }
             }
         }, label@{
-            return@label color.value.toString()
+            return@label color.name
         }, String::class.java, "Set color"))
     }
 }

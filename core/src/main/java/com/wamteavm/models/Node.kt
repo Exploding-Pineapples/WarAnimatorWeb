@@ -42,7 +42,7 @@ data class Node(
     }
 
     override fun init() { // Initialize transient properties
-        edges.forEach { it.init() }
+        edges.forEach { it.prepare() }
 
         if (visitedBy == null) {
             visitedBy = mutableListOf()
@@ -51,6 +51,7 @@ data class Node(
         if (screenPosition == null) {
             screenPosition = Coordinate(0f, 0f)
         }
+        buildInputs()
     }
 
     fun update(time: Int, camera: OrthographicCamera) { // Goes to time, and if animation mode is active, draws colored circle
@@ -58,7 +59,7 @@ data class Node(
         updateScreenPosition(camera.zoom, camera.position.x, camera.position.y)
         if (time == initTime) {
             edges.forEach {
-                it.init()
+                it.prepare()
             }
         }
     }

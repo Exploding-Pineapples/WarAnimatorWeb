@@ -3,8 +3,8 @@ package com.wamteavm.models
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.WarAnimator
 import com.wamteavm.inputelements.InputElement
-import com.wamteavm.interpolators.CoordinateSetPointInterpolator
-import com.wamteavm.interpolators.FloatSetPointInterpolator
+import com.wamteavm.interpolator.CoordinateSetPointInterpolator
+import com.wamteavm.interpolator.FloatSetPointInterpolator
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -13,13 +13,18 @@ data class Camera(
     override var position: Coordinate = Coordinate(WarAnimator.DISPLAY_WIDTH / 2f, WarAnimator.DISPLAY_HEIGHT / 2f),
     override val initTime: Int
 ) : ScreenObject(), HasZoom {
-    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
+    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, Coordinate(0f, 0f)) }
     override var zoomInterpolator: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
-    override fun update(time: Int): Boolean {
+    override fun init() {
+        super.init()
+        zoomInterpolator.updateInterpolationFunction()
+    }
+
+    override fun goToTime(time: Int): Boolean {
         zoomInterpolator.evaluate(time)
-        super.update(time, zoomInterpolator.value, position.x, position.y)
+        super.goToTime(time, zoomInterpolator.value, position.x, position.y)
         return true
     }
 

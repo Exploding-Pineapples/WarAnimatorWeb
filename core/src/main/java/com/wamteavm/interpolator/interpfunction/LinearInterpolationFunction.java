@@ -1,4 +1,4 @@
-package com.wamteavm.interpolators.interpfunction;
+package com.wamteavm.interpolator.interpfunction;
 
 import java.util.Arrays;
 

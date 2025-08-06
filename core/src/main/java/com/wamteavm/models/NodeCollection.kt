@@ -5,18 +5,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
-import com.wamteavm.interpolators.ColorSetPointInterpolator
-import com.wamteavm.interpolators.FloatSetPointInterpolator
-import com.wamteavm.interpolators.NodeCollectionInterpolator
+import com.wamteavm.interpolator.FloatSetPointInterpolator
+import com.wamteavm.interpolator.NodeCollectionInterpolator
 import com.wamteavm.utilities.AreaColor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-open class NodeCollection(override val id: NodeCollectionID, val initTime: Int) : AnyObject, HasInputs, HasID, HasAlpha, HasColor, Clickable {
-    override var alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
-    override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, AreaColor.BLUE) }
+open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInputs, HasID, HasAlpha, HasColor,
+    Clickable {
+    override var alpha: FloatSetPointInterpolator = FloatSetPointInterpolator()
     @Transient var interpolator: NodeCollectionInterpolator = NodeCollectionInterpolator()
+    override var color: AreaColor = AreaColor.RED
     var type: String = "None"
     var width: Float? = null
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
@@ -40,7 +40,6 @@ open class NodeCollection(override val id: NodeCollectionID, val initTime: Int) 
 
     override fun init() {
         alpha.updateInterpolationFunction()
-        color.updateInterpolationFunction()
         interpolator = NodeCollectionInterpolator()
         buildInputs()
     }
@@ -57,6 +56,7 @@ open class NodeCollection(override val id: NodeCollectionID, val initTime: Int) 
     fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {
         if (!paused) {
             alpha.evaluate(time)
+            //interpolator.updateInterpolationFunction()
         }
         interpolator.evaluate(time)
         interpolator.updateScreenCoordinates(camera)

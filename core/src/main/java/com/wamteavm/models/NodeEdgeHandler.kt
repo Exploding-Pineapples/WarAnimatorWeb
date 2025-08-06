@@ -4,14 +4,21 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 
 class NodeEdgeHandler(val animation: Animation) {
 
-    fun buildInputs() {
-        animation.nodes.forEach { it.buildInputs() }
+    fun init() {
+        animation.nodes.forEach { node ->
+            node.init()
+            node.edges.forEach {
+                it.updateScreenCoords(animation)
+            }
+        }
+        animation.nodeCollections.forEach { it.init() }
+        updateNodeCollections()
     }
 
     fun addNode(node: Node)
     {
         animation.nodes.add(node)
-        animation.nodeID++
+        animation.nodeId++
     }
 
     fun removeNode(removeNode: Node, redirectEdge: Boolean): Boolean
@@ -155,12 +162,12 @@ class NodeEdgeHandler(val animation: Animation) {
                     }
                 }
 
-                val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID), nodeCollectionSetPoint.time)
+                val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID))
                 animation.nodeCollectionID++
                 println("Warning: Created node collection ${newNodeCollection.id.value}")
                 newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
                 animation.nodeCollections.add(newNodeCollection)
-                newNodeCollection.init()
+                newNodeCollection.buildInputs()
             } else {
                 existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }

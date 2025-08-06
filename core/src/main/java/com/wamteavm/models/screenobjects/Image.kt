@@ -6,29 +6,30 @@ import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
 import com.wamteavm.inputelements.TextInput
 import com.wamteavm.files.Assets
-import com.wamteavm.interpolators.CoordinateSetPointInterpolator
+import com.wamteavm.interpolator.CoordinateSetPointInterpolator
+import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.Coordinate
-import com.wamteavm.models.Drawer
-import com.wamteavm.models.ScreenObjectWithAlpha
+import com.wamteavm.models.HasAlpha
+import com.wamteavm.models.ScreenObject
 import com.wamteavm.models.UIVisitor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class Image(override var position: Coordinate, override var initTime: Int, var path: String = "") : ScreenObjectWithAlpha() {
+class Image(override var position: Coordinate, override var initTime: Int, var path: String) : ScreenObject(),
+    HasAlpha {
     override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
+    override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
     var scale: Float = 1f
 
     @Transient var texture: Texture? = Assets.loadTexture(path)
 
     override fun init() {
+        super.init()
         buildInputs()
         loadTexture()
-    }
-
-    override fun draw(drawer: Drawer) {
-        drawer.draw(this)
+        alpha.updateInterpolationFunction()
     }
 
     override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
@@ -48,8 +49,14 @@ class Image(override var position: Coordinate, override var initTime: Int, var p
         loadTexture()
     }
 
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+        if (!paused) { alpha.evaluate(time) }
+        return super.goToTime(time, zoom, cx, cy)
+    }
+
     override fun buildInputs() {
-        super.buildInputs()
+        super<ScreenObject>.buildInputs()
+        super<HasAlpha>.buildInputs()
 
         inputElements.add(SelectBoxInput(null, { input ->
             updateTexture(Assets.mapsPath(input ?: ""))

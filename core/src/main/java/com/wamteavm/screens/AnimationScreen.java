@@ -158,9 +158,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel = new Table();
         stage.addActor(leftPanel);
 
-        // Final init
-        animation.camera().update(time);
-        updateCam();
         animation.init();
     }
 
@@ -311,7 +308,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     private void updateTime(int newTime) {
         time = newTime;
         animation.update(time, orthographicCamera, false);
-        animation.camera().update(time);
+        animation.camera().goToTime(time);
         updateCam();
     }
 
@@ -548,8 +545,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ctrlPressed = (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT));
         shiftPressed = (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT));
 
-        //Camera
-        animation.camera().update(time);
+        animation.update(time, orthographicCamera, paused);
+
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             orthographicCamera.position.y += 10 / orthographicCamera.zoom;
         }
@@ -581,9 +578,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         if (!paused) { //don't update camera when paused to allow for movement when paused
             updateCam();
         }
-        orthographicCamera.update();
+        //orthographicCamera.update();
         drawer.update(time, animationMode);
-        animation.update(time, orthographicCamera, paused);
 
         //UI
         updateUI();

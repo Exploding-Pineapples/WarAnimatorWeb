@@ -1,11 +1,11 @@
-package com.wamteavm.interpolators
+package com.wamteavm.interpolator
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
-import com.wamteavm.interpolators.interpfunction.LinearInterpolationFunction
-import com.wamteavm.interpolators.interpfunction.PCHIPInterpolationFunction
+import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
+import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import com.wamteavm.models.Animation
 import com.wamteavm.models.Coordinate
 import com.wamteavm.models.NodeCollectionSetPoint
@@ -172,8 +172,8 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                     }
 
                     val times = setPoints.keys.toTypedArray()
-                    val xInterpolatorTime = PCHIPInterpolationFunction(times, xInTime)
-                    val yInterpolatorTime = PCHIPInterpolationFunction(times, yInTime)
+                    val xInterpolatorTime = PCHIPInterpolationFunction<Int>(times, xInTime)
+                    val yInterpolatorTime = PCHIPInterpolationFunction<Int>(times, yInTime)
 
                     value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
                     value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())

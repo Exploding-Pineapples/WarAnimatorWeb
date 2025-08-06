@@ -1,4 +1,4 @@
-package com.wamteavm.interpolators.interpfunction;
+package com.wamteavm.interpolator.interpfunction;
 
 public class StepInterpolationFunction<I extends Number, O> extends InterpolationFunction<I, O> {
     public StepInterpolationFunction(I[] x, O[] y) {

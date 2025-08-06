@@ -249,7 +249,7 @@ class Drawer(val font: BitmapFont,
             if (anyObject.javaClass == Unit::class.java) {
                 val unit = anyObject as Unit
                 shapeDrawer.setColor(colorWithAlpha(Color.BLACK, 0.5f))
-                shapeDrawer.line(
+                shapeDrawer.filledRectangle(
                     unit.screenPosition.x - unit.width / 2,
                     unit.screenPosition.y - unit.width / 2,
                     unit.width,

@@ -88,7 +88,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         // Camera
         orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-        orthographicCamera.position.set(DISPLAY_WIDTH / 2.0f, DISPLAY_HEIGHT / 2.0f, 0);
+        orthographicCamera.position.set(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT / 2f, 0);
         animation.camera();
         // Graphics init
         drawer = new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, animation.getInitTime());
@@ -164,6 +164,10 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             Gdx.input.setCatchKey(key, true);
         }
 
+        for (int key = Input.Keys.A; key <= Input.Keys.Z; key++) {
+            Gdx.input.setCatchKey(key, true);
+        }
+
         animation.init();
         updateCam();
     }
@@ -193,7 +197,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         actions.add(Action.createBuilder(() -> {
             animationMode = !animationMode;
             return null;
-        }, "Toggle animation mode", Input.Keys.V).build());
+        }, "Toggle UI", Input.Keys.V).build());
         // Selection required
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
@@ -239,7 +243,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     touchMode = TouchMode.DEFAULT;
                 }
                 return null;
-            }, "Create Object Mode", Input.Keys.C
+            }, "Toggle create object mode", Input.Keys.C
         ).build());
         actions.add(Action.createBuilder(() -> {
                 ArrayList<AnyObject> selectedObjectsCopy = new ArrayList<>(selectedObjects);
@@ -266,7 +270,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 updateNewEdgeInputs();
             }
             return null;
-        }, "Switch to New Edge Mode", Input.Keys.E).requiresControl(true).build());
+        }, "Toggle new edge mode", Input.Keys.E).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {
             FileHandler.INSTANCE.save();
             System.out.println("saved");
@@ -281,7 +285,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             clearSelected();
             System.out.println("Deselected object");
             return null;
-        }, "Deselect Object", Input.Keys.D).description("Deselects object").requiresSelected(Requirement.REQUIRES).build());
+        }, "Deselect Object", Input.Keys.D).description("Deselect object").requiresSelected(Requirement.REQUIRES).build());
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
                 animation.deleteObject(selectedObject);
@@ -289,7 +293,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             System.out.println("Deleted object");
             clearSelected();
             return null;
-        }, "Delete selected unit", Input.Keys.FORWARD_DEL).requiresSelected(Requirement.REQUIRES).build());
+        }, "Delete selected object", Input.Keys.FORWARD_DEL).requiresSelected(Requirement.REQUIRES).build());
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
                 if (InterpolatedObject.class.isAssignableFrom(selectedObject.getClass())) {
@@ -303,7 +307,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             clearSelected();
             touchMode = TouchMode.DEFAULT;
             return null;
-        }, "Delete last frame of selected object", Input.Keys.ESCAPE, Input.Keys.DEL).build());
+        }, "Delete last frame of selected object", Input.Keys.ESCAPE).build());
     }
 
     public void updateCam() {
@@ -417,7 +421,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     for (int key : action.getActionKeys()) {
                         options.append(Input.Keys.toString(key)).append(", ");
                     }
-                    options.replace(options.length() - 2, options.length(), ""); // Remove trailing comma, StringJoiner unavailable in TeaVM
+                    options.replace(options.length() - 2, options.length() - 1, " |"); // Replace trailing comma, StringJoiner unavailable in TeaVM
                     options.append(action.getActionName()).append("\n");
                 }
             }

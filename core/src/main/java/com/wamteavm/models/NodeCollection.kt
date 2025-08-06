@@ -30,10 +30,6 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
         interpolator.updateScreenCoordinates(camera)
     }
 
-    fun draw(drawer: Drawer) {
-        drawer.draw(this)
-    }
-
     override fun clicked(x: Float, y: Float): Boolean {
         return clickedCoordinates(x, y, interpolator.screenCoordinates.toTypedArray())
     }

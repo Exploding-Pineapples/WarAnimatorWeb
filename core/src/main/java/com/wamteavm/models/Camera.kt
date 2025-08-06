@@ -14,7 +14,7 @@ data class Camera(
     override val initTime: Int
 ) : ScreenObject(), HasZoom {
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, Coordinate(0f, 0f)) }
+    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var zoomInterpolator: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
     override fun init() {

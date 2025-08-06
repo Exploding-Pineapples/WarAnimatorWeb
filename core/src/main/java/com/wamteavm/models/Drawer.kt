@@ -170,14 +170,14 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(arrow: Arrow) {
-        var previous = projectToScreen(arrow.posSetPoints.evaluate(arrow.posSetPoints.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
+        var previous = projectToScreen(arrow.posInterpolator.evaluate(arrow.posInterpolator.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
 
         shapeDrawer.setColor(colorWithAlpha(arrow.color.color, arrow.alpha.value))
 
-        val endTime = min(time, arrow.posSetPoints.setPoints.keys.last())
+        val endTime = min(time, arrow.posInterpolator.setPoints.keys.last())
 
-        for (time in arrow.posSetPoints.setPoints.keys.first().toInt()..endTime) { // Draws entire body of arrow
-            val position = projectToScreen(arrow.posSetPoints.evaluate(time), camera.zoom, camera.position.x, camera.position.y
+        for (time in arrow.posInterpolator.setPoints.keys.first().toInt()..endTime) { // Draws entire body of arrow
+            val position = projectToScreen(arrow.posInterpolator.evaluate(time), camera.zoom, camera.position.x, camera.position.y
             )
             shapeDrawer.line(previous.x, previous.y, position.x, position.y, arrow.thickness)
             if (time == endTime) {
@@ -232,7 +232,7 @@ class Drawer(val font: BitmapFont,
     fun drawAsSelected(anyObject: AnyObject) {
         if (InterpolatedObject::class.java.isAssignableFrom(anyObject.javaClass)) {
             val screenObject = anyObject as InterpolatedObject
-            val posInterpolator = screenObject.posSetPoints
+            val posInterpolator = screenObject.posInterpolator
 
             shapeDrawer.setColor(Color.SKY)
             for (time in posInterpolator.setPoints.keys.first().toInt()..posInterpolator.setPoints.keys.last()

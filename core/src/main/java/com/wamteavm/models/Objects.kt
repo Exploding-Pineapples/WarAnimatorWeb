@@ -31,27 +31,27 @@ interface HasScreenPosition : HasPosition {
 
 interface InterpolatedObject : AnyObject, HasPosition {
     val initTime: Int
-    val posSetPoints: CoordinateSetPointInterpolator
+    val posInterpolator: CoordinateSetPointInterpolator
 
     override fun init() {
-        posSetPoints.updateInterpolationFunction()
+        posInterpolator.updateInterpolationFunction()
     }
 
     fun goToTime(time: Int): Boolean { // Can only be called after at least one key frame has been added
-        position = posSetPoints.evaluate(time)
+        position = posInterpolator.evaluate(time)
         return true
     }
 
     fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
-        posSetPoints.holdValueUntil(time)
+        posInterpolator.holdValueUntil(time)
     }
 
     fun removeFrame(time: Int): Boolean {
-        return posSetPoints.removeFrame(time)
+        return posInterpolator.removeFrame(time)
     }
 
     fun newSetPoint(time: Int, x: Float, y: Float) {
-        posSetPoints.newSetPoint(time, Coordinate(x, y))
+        posInterpolator.newSetPoint(time, Coordinate(x, y))
     }
 
     fun shouldDraw(time: Int): Boolean
@@ -72,12 +72,12 @@ abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable, 
     }
 
     override fun shouldDraw(time: Int): Boolean {
-        return time >= posSetPoints.setPoints.keys.first()
+        return time >= posInterpolator.setPoints.keys.first()
     }
 
     override fun toString(): String {
-        return "Movements: " + posSetPoints.setPoints.keys + "\n" +
-               "Positions: " + posSetPoints.setPoints.values + "\n"
+        return "Movements: " + posInterpolator.setPoints.keys + "\n" +
+               "Positions: " + posInterpolator.setPoints.values + "\n"
     }
 }
 

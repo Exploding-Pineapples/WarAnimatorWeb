@@ -20,7 +20,7 @@ data class Unit(
     override val initTime: Int,
     var image: String = ""
 ) : ScreenObject(), HasAlpha, HasColor {
-    override val posSetPoints = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
+    override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
 

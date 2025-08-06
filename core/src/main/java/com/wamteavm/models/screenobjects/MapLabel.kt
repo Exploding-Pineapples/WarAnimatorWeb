@@ -12,7 +12,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 class MapLabel(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasAlpha, HasColor {
-    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
+    override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     var text = ""
     override var color = AreaColor.RED

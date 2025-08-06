@@ -18,7 +18,7 @@ import kotlinx.serialization.Transient
 @Serializable
 class Image(override var position: Coordinate, override var initTime: Int, var path: String) : ScreenObject(),
     HasAlpha {
-    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
+    override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
     var scale: Float = 1f

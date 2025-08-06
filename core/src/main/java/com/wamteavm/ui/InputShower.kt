@@ -31,7 +31,7 @@ class InputShower(val skin: Skin) {
         val elements = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
         var alpha = elements.isNotEmpty()
         var color = elements.isNotEmpty()
-        var specificClass: Class<HasInputs>? = HasInputs::class.java
+        val classElementMap: MutableMap<Class<HasInputs>, MutableList<HasInputs>> = mutableMapOf()
 
         for (element in elements) {
             if (alpha && !HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
@@ -40,12 +40,10 @@ class InputShower(val skin: Skin) {
             if (color && !HasColor::class.java.isAssignableFrom(element.javaClass)) {
                 color = false
             }
-            if (specificClass != null) {
-                specificClass = if (specificClass.isAssignableFrom(element.javaClass)) {
-                    element.javaClass
-                } else {
-                    null
-                }
+            if (classElementMap.containsKey(element.javaClass)) {
+                classElementMap[element.javaClass]!!.add(element)
+            } else {
+                classElementMap[element.javaClass] = mutableListOf(element)
             }
         }
 
@@ -85,24 +83,24 @@ class InputShower(val skin: Skin) {
         }
 
         @Suppress("UNCHECKED_CAST")
-        if (specificClass != null) {
+        for (specificClass in classElementMap.keys) {
             if (specificClass == Arrow::class.java) {
-                inputElements.addAll(getArrowInputs(elements as List<Arrow>))
+                inputElements.addAll(getArrowInputs(classElementMap[specificClass] as List<Arrow>))
             }
             if (specificClass == Image::class.java) {
-                inputElements.addAll(getImageInputs(elements as List<Image>))
+                inputElements.addAll(getImageInputs(classElementMap[specificClass] as List<Image>))
             }
             if (specificClass == MapLabel::class.java) {
-                inputElements.addAll(getMapLabelInputs(elements as List<MapLabel>))
+                inputElements.addAll(getMapLabelInputs(classElementMap[specificClass] as List<MapLabel>))
             }
             if (specificClass == Unit::class.java) {
-                inputElements.addAll(getUnitInputs(elements as List<Unit>))
+                inputElements.addAll(getUnitInputs(classElementMap[specificClass] as List<Unit>))
             }
             if (specificClass == Node::class.java) {
-                inputElements.addAll(getNodeInputs(elements as List<Node>))
+                inputElements.addAll(getNodeInputs(classElementMap[specificClass] as List<Node>))
             }
             if (specificClass == NodeCollection::class.java) {
-                inputElements.addAll(getNodeCollectionInputs(elements as List<NodeCollection>))
+                inputElements.addAll(getNodeCollectionInputs(classElementMap[specificClass] as List<NodeCollection>))
             }
         }
 

@@ -15,8 +15,9 @@ import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
 import com.wamteavm.files.Assets;
 import com.wamteavm.files.FileHandler;
-import com.wamteavm.inputelements.SelectBoxInput;
+import com.wamteavm.ui.inputelements.SelectBoxInput;
 import com.wamteavm.models.*;
+import com.wamteavm.ui.InputShower;
 import com.wamteavm.utilities.input.Action;
 import com.wamteavm.utilities.input.Requirement;
 import com.wamteavm.utilities.input.TouchMode;
@@ -69,7 +70,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     Label keyOptions;
     Label selectedLabel;
     List<Action> actions;
-    UIVisitor uiVisitor;
+    InputShower uiShower;
     String newUnitCountry;
     SelectBoxInput<String> newUnitCountryInput;
     Integer newNodeCollectionID;
@@ -151,7 +152,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         selectedLabel = new Label("", game.skin);
         selectedGroup = new VerticalGroup();
-        uiVisitor = new UIVisitor(game.skin);
+        uiShower = new InputShower(game.skin);
         selectedInfoTable = new Table();
         stage.addActor(selectedInfoTable);
 
@@ -210,7 +211,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
             clearSelected();
             return null;
-        }, "Hold last defined position to this time", Input.Keys.H).requiresSelected(Requirement.REQUIRES).build());
+        }, "Hold last defined position to this time", Input.Keys.H).requiresSelected(Requirement.REQUIRES).requiredSelectedTypes(InterpolatedObject.class).build());
         // Does not care about selection
         actions.add(Action.createBuilder(() -> {
             updateTime((time / 200) * 200 + 200);
@@ -255,8 +256,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     }
                 }
                 return null;
-            }, "Insert", Input.Keys.I
-        ).build());
+            }, "Insert node into collection", Input.Keys.I
+        ).requiresSelected(Requirement.REQUIRES).requiredSelectedTypes(Node.class).build());
         //Key presses which require control pressed
         actions.add(Action.createBuilder(() -> {
             switchSelected(animation.camera());
@@ -351,11 +352,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void clearSelected() {
-        for (AnyObject selectedObject : selectedObjects) {
-            if (HasInputs.class.isAssignableFrom(selectedObject.getClass())) {
-                ((HasInputs) selectedObject).hideInputs(selectedGroup, uiVisitor);
-            }
-        }
+        uiShower.hideAll(selectedGroup);
         selectedObjects.clear();
     }
 
@@ -369,7 +366,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                         selectedObjects.add(collection);
 
                         if (collection != null) {
-                            collection.showInputs(selectedGroup, uiVisitor);
                             selectedObjects.add(collection);
                         } else {
                             System.out.println("Warning: Null node collection");
@@ -380,10 +376,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             if (newSelection.getClass() == Edge.class) {
                 NodeCollection collection = animation.getNodeCollection(((Edge) newSelection).getCollectionID());
                 if (!selectedObjects.contains(collection)) {
-                    selectedObjects.add(collection);
-
                     if (collection != null) {
-                        collection.showInputs(selectedGroup, uiVisitor);
                         selectedObjects.add(collection);
                     } else {
                         System.out.println("Warning: Null node collection");
@@ -391,11 +384,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 }
             }
 
-            if (HasInputs.class.isAssignableFrom(newSelection.getClass())) { // Show new selected object inputs
-                ((HasInputs) newSelection).showInputs(selectedGroup, uiVisitor);
-            }
             System.out.println("Selected: " + newSelection.getClass().getSimpleName());
         }
+        uiShower.update(selectedGroup, selectedObjects, time);
     }
 
     public <T extends AnyObject> void switchSelected(T newSelection) {
@@ -475,11 +466,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
                 selectedInfoTable.add(selectedLabel).expandX().pad(10).left();
                 selectedInfoTable.row().pad(10);
-                for (AnyObject selectedObject : selectedObjects) {
-                    if (HasInputs.class.isAssignableFrom(selectedObject.getClass())) {
-                        ((HasInputs) selectedObject).showInputs(selectedGroup, uiVisitor);
-                    }
-                }
+                uiShower.showAll(selectedGroup);
                 selectedInfoTable.add(selectedGroup);
 
                 UIDisplayed = true;
@@ -539,11 +526,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             selectedInfoTable.setPosition(DISPLAY_WIDTH - 30 - selectedInfoTable.getWidth(), DISPLAY_HEIGHT  - 30 - selectedInfoTable.getHeight());
         } else {
             if (UIDisplayed) {
-                for (AnyObject selectedObject : selectedObjects) {
-                    if (HasInputs.class.isAssignableFrom(selectedObject.getClass())) {
-                        ((HasInputs) selectedObject).hideInputs(selectedGroup, uiVisitor);
-                    }
-                }
+                uiShower.hideAll(selectedGroup);
                 leftPanel.clear();
                 selectedInfoTable.clear();
                 UIDisplayed = false;
@@ -636,7 +619,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
         }
 
-        return true;
+        return false;
     }
 
     @Override

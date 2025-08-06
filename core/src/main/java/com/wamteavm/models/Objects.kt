@@ -1,6 +1,6 @@
 package com.wamteavm.models
 
-import com.wamteavm.inputelements.TextInput
+import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator

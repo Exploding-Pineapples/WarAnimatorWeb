@@ -3,8 +3,8 @@ package com.wamteavm.models
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
-import com.wamteavm.inputelements.InputElement
-import com.wamteavm.inputelements.SelectBoxInput
+import com.wamteavm.ui.inputelements.InputElement
+import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.interpolator.NodeCollectionInterpolator
 import com.wamteavm.utilities.AreaColor
@@ -25,32 +25,12 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
         super<HasInputs>.buildInputs()
         super<HasAlpha>.buildInputs()
         super<HasColor>.buildInputs()
-
-        inputElements.add(
-            SelectBoxInput(null, { input ->
-                type = input?: "None"
-                if (type == "Line") {
-                    width = 5f
-                }
-            }, label@{
-                return@label type
-            }, String::class.java, "Set node collection type", Array<String>().apply { add("Area", "Line") })
-        )
     }
 
     override fun init() {
         alpha.updateInterpolationFunction()
         interpolator = NodeCollectionInterpolator()
         buildInputs()
-    }
-
-    override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
-        uiVisitor.show(verticalGroup, this)
-    }
-
-    override fun hideInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
-        super<HasInputs>.hideInputs(verticalGroup, uiVisitor)
-        super<HasAlpha>.hideInputs(verticalGroup, uiVisitor)
     }
 
     fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {

@@ -2,7 +2,7 @@ package com.wamteavm.models
 
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.WarAnimator
-import com.wamteavm.inputelements.InputElement
+import com.wamteavm.ui.inputelements.InputElement
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import kotlinx.serialization.Serializable
@@ -39,7 +39,5 @@ data class Camera(
         return zoomResult || positionResult // If either a zoom or position frame is removed it is a success
     }
 
-    override fun showInputs(verticalGroup: VerticalGroup, uiVisitor: UIVisitor) {
-        uiVisitor.show(verticalGroup, this)
-    }
+
 }

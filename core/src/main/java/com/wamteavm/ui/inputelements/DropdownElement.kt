@@ -1,4 +1,4 @@
-package com.wamteavm.inputelements
+package com.wamteavm.ui.inputelements
 
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin

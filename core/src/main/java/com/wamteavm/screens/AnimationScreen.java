@@ -158,6 +158,12 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel = new Table();
         stage.addActor(leftPanel);
 
+        int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.SPACE, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
+
+        for (int key : catchKeys) {
+            Gdx.input.setCatchKey(key, true);
+        }
+
         animation.init();
     }
 
@@ -248,7 +254,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ).build());
         //Key presses which require control pressed
         actions.add(Action.createBuilder(() -> {
-            //switchSelected(animation.camera());
+            switchSelected(animation.camera());
             return null;
         }, "Select the camera", Input.Keys.C).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {

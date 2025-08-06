@@ -1,11 +1,24 @@
 package com.wamteavm.files
 
 import com.wamteavm.models.Animation
+import com.wamteavm.models.AnyObject
+import com.wamteavm.models.screenobjects.Arrow
+import com.wamteavm.models.screenobjects.Unit
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 
 import java.io.File
 
+
+
 object FileHandler {
+    val module = SerializersModule {
+        polymorphic(AnyObject::class, AnyObject.serializer()) {
+            subclass(Unit::class, Unit.serializer())
+            subclass(Arrow::class, Arrow.serializer())
+        }
+    }
+
     val json = Json { ignoreUnknownKeys = true }
     val animations = mutableListOf<Animation>()
 

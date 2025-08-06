@@ -41,8 +41,8 @@ data class Node(
         return (x - screenPosition.x).absoluteValue <= 10 && (y - screenPosition.y).absoluteValue <= 10
     }
 
-    fun init() { // Initialize transient properties
-        edges.forEach { it.prepare() }
+    override fun init() { // Initialize transient properties
+        edges.forEach { it.init() }
 
         if (visitedBy == null) {
             visitedBy = mutableListOf()
@@ -58,7 +58,7 @@ data class Node(
         updateScreenPosition(camera.zoom, camera.position.x, camera.position.y)
         if (time == initTime) {
             edges.forEach {
-                it.prepare()
+                it.init()
             }
         }
     }

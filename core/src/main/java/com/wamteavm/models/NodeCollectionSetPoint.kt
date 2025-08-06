@@ -1,8 +1,8 @@
 package com.wamteavm.models
 
-import com.wamteavm.interpolator.interpfunction.InterpolationFunction
-import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
-import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
+import com.wamteavm.interpolators.interpfunction.InterpolationFunction
+import com.wamteavm.interpolators.interpfunction.LinearInterpolationFunction
+import com.wamteavm.interpolators.interpfunction.PCHIPInterpolationFunction
 import kotlin.math.hypot
 
 class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes: MutableList<Node> = mutableListOf()) {

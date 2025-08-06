@@ -6,6 +6,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
+import com.wamteavm.models.screenobjects.Arrow
+import com.wamteavm.models.screenobjects.Image
+import com.wamteavm.models.screenobjects.MapLabel
+import com.wamteavm.models.screenobjects.Unit
 import kotlinx.serialization.Serializable
 
 @Serializable

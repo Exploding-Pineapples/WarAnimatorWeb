@@ -1,4 +1,4 @@
-package com.wamteavm.interpolator.interpfunction
+package com.wamteavm.interpolators.interpfunction
 
 abstract class InterpolationFunction<I : Number, O>(i: Array<I>, o: Array<O>) {
     var i: Array<I>

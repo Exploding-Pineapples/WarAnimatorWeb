@@ -11,7 +11,7 @@ class NodeEdgeHandler(val animation: Animation) {
     fun addNode(node: Node)
     {
         animation.nodes.add(node)
-        animation.nodeId++
+        animation.nodeID++
     }
 
     fun removeNode(removeNode: Node, redirectEdge: Boolean): Boolean
@@ -155,12 +155,12 @@ class NodeEdgeHandler(val animation: Animation) {
                     }
                 }
 
-                val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID))
+                val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID), nodeCollectionSetPoint.time)
                 animation.nodeCollectionID++
                 println("Warning: Created node collection ${newNodeCollection.id.value}")
                 newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
                 animation.nodeCollections.add(newNodeCollection)
-                newNodeCollection.buildInputs()
+                newNodeCollection.init()
             } else {
                 existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }

@@ -6,7 +6,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Rectangle
-import com.wamteavm.models.Unit.Companion.sizePresets
+import com.wamteavm.models.screenobjects.Arrow
+import com.wamteavm.models.screenobjects.Image
+import com.wamteavm.models.screenobjects.Unit.Companion.sizePresets
+import com.wamteavm.models.screenobjects.MapLabel
+import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.utilities.Earcut
 import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.measureText
@@ -37,8 +41,7 @@ class Drawer(val font: BitmapFont,
 
         batcher.setColor(1f, 1f, 1f, 1f) // Reset to full transparency
 
-        animation.images.forEach { draw(it) }
-        animation.mapLabels.forEach { draw(it) }
+        animation.objects.forEach { if (Drawable::class.java.isAssignableFrom(it.javaClass)) { (it as Drawable).draw(this) }}
 
         for (nodeCollection in animation.nodeCollections) {
             if (nodeCollection.type == "Area") {
@@ -46,24 +49,20 @@ class Drawer(val font: BitmapFont,
             }
         }
 
-        //batcher.setColor(1f, 1f, 1f, 1f)
-        animation.units.forEach { draw(it) }
-
-        for (edgeCollection in animation.nodeCollections) {
-            if (edgeCollection.type == "Line") {
-                draw(edgeCollection)
+        for (nodeCollection in animation.nodeCollections) {
+            if (nodeCollection.type == "Line") {
+                draw(nodeCollection)
             }
         }
 
         if (animationMode) animation.nodes.forEach { draw(it) }
-        animation.arrows.forEach { draw(it) }
     }
 
     fun draw(nodeCollection: NodeCollection) {
         val coords = nodeCollection.interpolator.screenCoordinates
 
         if (coords.isNotEmpty()) {
-            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.color, nodeCollection.alpha.value))
+            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value, nodeCollection.alpha.value))
             if (nodeCollection.type == "Area") {
                 val earcut = Earcut.earcut(coords) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
 
@@ -99,7 +98,7 @@ class Drawer(val font: BitmapFont,
         } else {
             val padding = unit.width / 16
 
-            shapeDrawer.setColor(colorWithAlpha(unit.color.color, unit.alpha.value))
+            shapeDrawer.setColor(colorWithAlpha(unit.color.value, unit.alpha.value))
             shapeDrawer.filledRectangle(
                 unit.screenPosition.x - unit.width * 0.5f,
                 unit.screenPosition.y - unit.height * 0.5f,
@@ -134,7 +133,7 @@ class Drawer(val font: BitmapFont,
                 )
             }
 
-            prepareFont(Color.WHITE, unit.color.color, unit.alpha.value, 0.5f * zoomFactor * drawSize)
+            prepareFont(Color.WHITE, unit.color.value, unit.alpha.value, 0.5f * zoomFactor * drawSize)
 
             val sizeSize = measureText(font, unit.size)
             font.draw(
@@ -168,7 +167,7 @@ class Drawer(val font: BitmapFont,
     fun draw(arrow: Arrow) {
         var previous = projectToScreen(arrow.posSetPoints.evaluate(arrow.posSetPoints.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
 
-        shapeDrawer.setColor(colorWithAlpha(arrow.color.color, arrow.alpha.value))
+        shapeDrawer.setColor(colorWithAlpha(arrow.color.value, arrow.alpha.value))
 
         val endTime = min(time, arrow.posSetPoints.setPoints.keys.last())
 
@@ -208,12 +207,12 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(mapLabel: MapLabel) {
-        shapeDrawer.setColor(Color(mapLabel.color.color.r, mapLabel.color.color.g, mapLabel.color.color.b, mapLabel.alpha.value))
+        shapeDrawer.setColor(Color(mapLabel.color.value.r, mapLabel.color.value.g, mapLabel.color.value.b, mapLabel.alpha.value))
         shapeDrawer.filledCircle(mapLabel.screenPosition.x, mapLabel.screenPosition.y, mapLabel.size * 10)
 
         batcher.setColor(1f, 1f, 1f, mapLabel.alpha.value)
 
-        prepareFont(Color.WHITE, mapLabel.color.color, mapLabel.alpha.value, mapLabel.size)
+        prepareFont(Color.WHITE, mapLabel.color.value, mapLabel.alpha.value, mapLabel.size)
 
         val textSize = measureText(font, mapLabel.text)
         font.draw(batcher, mapLabel.text, mapLabel.screenPosition.x - textSize.width / 2, mapLabel.screenPosition.y + textSize.height * (3f / 2) + mapLabel.size * 5)

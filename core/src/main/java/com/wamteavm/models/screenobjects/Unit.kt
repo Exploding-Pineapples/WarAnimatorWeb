@@ -1,4 +1,4 @@
-package com.wamteavm.models
+package com.wamteavm.models.screenobjects
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
@@ -6,24 +6,24 @@ import com.wamteavm.files.Assets
 import com.wamteavm.inputelements.InputElement
 import com.wamteavm.inputelements.SelectBoxInput
 import com.wamteavm.inputelements.TextInput
-import com.wamteavm.interpolator.CoordinateSetPoints
-import com.wamteavm.interpolator.FloatSetPoints
+import com.wamteavm.interpolators.ColorSetPointInterpolator
+import com.wamteavm.interpolators.CoordinateSetPointInterpolator
+import com.wamteavm.models.*
 import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.AreaColor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+
 data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
     var image: String = ""
-) : ScreenObject(), HasAlpha, HasColor {
-    override val posSetPoints = CoordinateSetPoints().apply { newSetPoint(initTime, position) }
-    override val alpha = FloatSetPoints().apply { newSetPoint(initTime, 1f) }
+) : ScreenObjectWithAlpha(), HasColor {
     @Transient override var inputElements: MutableList<InputElement<*>> = mutableListOf()
-
-    override var color: AreaColor = AreaColor.BLUE
+    override val posSetPoints: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
+    override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, AreaColor.DARK_GRAY) }
     var name: String = ""
     var type: String = "infantry.png"
     var size: String = "XX"
@@ -37,9 +37,19 @@ data class Unit(
         uiVisitor.show(verticalGroup ,this)
     }
 
+    override fun init() {
+        buildInputs()
+        countryTexture()
+        typeTexture()
+        color.updateInterpolationFunction()
+    }
+
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
+    }
+
     override fun buildInputs() {
-        super<ScreenObject>.buildInputs()
-        super<HasAlpha>.buildInputs()
+        super<ScreenObjectWithAlpha>.buildInputs()
         super<HasColor>.buildInputs()
 
         inputElements.add(TextInput(null, { input ->
@@ -80,11 +90,6 @@ data class Unit(
 
     override fun clicked(x: Float, y: Float): Boolean {
         return ((x in (screenPosition.x - width * 0.5f)..(screenPosition.x + width * 0.5f)) && (y in (screenPosition.y - height * 0.5f)..(screenPosition.y + height * 0.5f)))
-    }
-
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
-        if (!paused) { alpha.evaluate(time) }
-        return super.goToTime(time, zoom, cx, cy)
     }
 
     fun updateCountryTexture() {

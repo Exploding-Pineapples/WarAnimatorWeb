@@ -1,6 +1,6 @@
-package com.wamteavm.interpolator
+package com.wamteavm.interpolators
 
-interface HasSetPoints<I : Number, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
+interface SetPointInterpolator<I : Number, O, V> { // I : Number to interpolate over, O type of set point, V actual output type (usually the same as O)
     var setPoints: MutableMap<I, O>
     var value: V
 
@@ -81,5 +81,5 @@ interface HasSetPoints<I : Number, O, V> { // Number to interpolate over, set po
         updateInterpolationFunction()
     }
 
-    fun evaluate(at: I): V
+    fun evaluate(at: I): V // Can only be called after at least one key frame has been added
 }

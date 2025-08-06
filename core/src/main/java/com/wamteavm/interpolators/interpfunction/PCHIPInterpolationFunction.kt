@@ -1,4 +1,4 @@
-package com.wamteavm.interpolator.interpfunction
+package com.wamteavm.interpolators.interpfunction
 
 // this is a java number which isn't rly the saME AS KOTLIN number, uu should converr this class  to kotlin first of all
 class PCHIPInterpolationFunction<I : Number>(i: Array<I>, o: DoubleArray) : InterpolationFunction<I, Double>(i, o.toTypedArray()) {

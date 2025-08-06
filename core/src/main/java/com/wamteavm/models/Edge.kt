@@ -12,27 +12,28 @@ class Edge(
     var segment: Pair<NodeID, NodeID>,
     @Transient var screenCoords: MutableList<Coordinate> = mutableListOf(),
 ) : AnyObject, Clickable {
-
     override fun clicked(x: Float, y: Float): Boolean {
         return clickedCoordinates(x, y, screenCoords.toTypedArray())
     }
 
-    override fun toString(): String {
-        return "Edge of collection ${collectionID.value} from node ${segment.first.value} to node ${segment.second.value}"
-    }
-    fun contains(nodeID: NodeID): Boolean {
-        return  (nodeID.value == segment.first.value || nodeID.value == segment.second.value)
-    }
-    fun prepare() {
+    override fun init() {
         if (screenCoords == null) {
             screenCoords = mutableListOf()
         }
+    }
+
+    fun contains(nodeID: NodeID): Boolean {
+        return  (nodeID.value == segment.first.value || nodeID.value == segment.second.value)
     }
 
     fun updateScreenCoords(animation: Animation) {
         screenCoords.clear()
         screenCoords.add(animation.getNodeByID(segment.first)!!.screenPosition)
         screenCoords.add(animation.getNodeByID(segment.second)!!.screenPosition)
+    }
+
+    override fun toString(): String {
+        return "Edge of collection ${collectionID.value} from node ${segment.first.value} to node ${segment.second.value}"
     }
 }
 

@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.interpolator.NodeCollectionInterpolator
 import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.clickedCoordinates
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 

@@ -1,4 +1,4 @@
-package com.wamteavm.utilities.input
+package com.wamteavm.ui.input
 
 import com.wamteavm.models.AnyObject
 

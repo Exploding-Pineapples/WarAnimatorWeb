@@ -18,9 +18,9 @@ import com.wamteavm.files.FileHandler;
 import com.wamteavm.ui.inputelements.SelectBoxInput;
 import com.wamteavm.models.*;
 import com.wamteavm.ui.InputShower;
-import com.wamteavm.utilities.input.Action;
-import com.wamteavm.utilities.input.Requirement;
-import com.wamteavm.utilities.input.TouchMode;
+import com.wamteavm.ui.input.Action;
+import com.wamteavm.ui.input.Requirement;
+import com.wamteavm.ui.input.TouchMode;
 
 import java.util.ArrayList;
 import java.util.List;

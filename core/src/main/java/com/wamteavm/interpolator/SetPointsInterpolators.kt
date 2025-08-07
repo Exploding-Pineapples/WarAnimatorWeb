@@ -157,8 +157,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                 }
             }
 
-
-            num = (num * zoom).toInt().coerceIn(0..AnimationScreen.MAX_LINES)
+            num = (num * zoom).toInt().coerceIn(0..AnimationScreen.MAX_LINES_PER_LENGTH * setPoint!!.length.toInt())
 
             value = FloatArray(num * 2)
             var parameter = 0.0
@@ -191,7 +190,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                 value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
                 value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
 
-                parameter = setPoint!!.distanceInterpolator.evaluate(((i + 1.0) / num) * setPoint.length)
+                parameter = setPoint.distanceInterpolator.evaluate(((i + 1.0) / num) * setPoint.length)
                 //print("$parameter ")
             }
             //println()

@@ -33,7 +33,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     public static final int DEFAULT_UNIT_WIDTH = 75;
     public static final int DEFAULT_UNIT_HEIGHT = 75;
     public static final double LINE_RESOLUTION = 10; // Distance per straight line
-    public static final int MAX_LINES = 5000;
+    public static final int MAX_LINES_PER_LENGTH = 5;
 
     public Animation animation;
     public WarAnimator game;
@@ -719,7 +719,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public boolean scrolled(float amountX, float amountY) {
         if (paused) {
-            float zoomMultiplier = 1 - 0.05f * amountY;;
+            float zoomMultiplier = 1 - 0.05f * amountY;
             orthographicCamera.zoom *= zoomMultiplier;
             orthographicCamera.position.x -= (mouseX - orthographicCamera.position.x) * (1 - zoomMultiplier);
             orthographicCamera.position.y -= (mouseY - orthographicCamera.position.y) * (1 - zoomMultiplier);

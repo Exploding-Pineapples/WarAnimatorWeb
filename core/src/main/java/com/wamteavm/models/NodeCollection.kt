@@ -27,6 +27,7 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
             //interpolator.updateInterpolationFunction()
         }
         interpolator.evaluate(time)
+        interpolator.prepare(camera.zoom)
         interpolator.updateScreenCoordinates(camera)
     }
 

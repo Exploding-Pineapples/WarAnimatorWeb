@@ -6,13 +6,10 @@ import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import kotlin.math.hypot
 
 class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes: MutableList<Node> = mutableListOf()) {
-    var tInterpolator: InterpolationFunction<Int, Double> =
-        LinearInterpolationFunction(
-            arrayOf(0),
-            doubleArrayOf(0.0)
-        )
+    var tInterpolator: InterpolationFunction<Int, Double> = LinearInterpolationFunction(arrayOf(0), doubleArrayOf(0.0))
     var xInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
     var yInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
+    var distanceInterpolator: InterpolationFunction<Double, Double> = LinearInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
     var length: Double = 0.0
 
     init {
@@ -21,27 +18,35 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
 
     fun updateInterpolators() {
         val tSetPoints: LinkedHashMap<Int, Double> = linkedMapOf() //LinkedHashMap instead of SortedMap is ok because t values will always be inserted in order
-        val distances = mutableListOf<Double>()
+        val distanceMap: LinkedHashMap<Double, Double> = linkedMapOf()
+        var distances = DoubleArray(0)
         var totalDistance = 0.0
 
         if (nodes.isNotEmpty()) {
+            distances = DoubleArray(nodes.size)
+
             if (nodes.first().tSetPoint == null) {
                 tSetPoints[0] = 0.0
             }
 
             for (index in 0..<nodes.size - 1) {
                 val node = nodes[index]
+
                 if (node.tSetPoint != null) {
                     tSetPoints[index] = node.tSetPoint!!
                 }
+
+                distances[index] = totalDistance
 
                 val nextNode = nodes[index + 1]
                 totalDistance += hypot(
                     nextNode.position.x - node.position.x,
                     nextNode.position.y - node.position.y
                 ).toDouble()
-                distances.add(totalDistance)
             }
+
+            distances[nodes.size - 1] = totalDistance
+            length = totalDistance
 
             if (nodes.last().tSetPoint == null) {
                 tSetPoints[nodes.size - 1] = 1.0
@@ -50,7 +55,13 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
 
         tInterpolator.i = tSetPoints.keys.toTypedArray()
         tInterpolator.o = tSetPoints.values.toTypedArray()
-        length = totalDistance
+
+        for ((index, distance) in distances.withIndex()) {
+            distanceMap[distance] = tInterpolator.evaluate(index)
+        }
+
+        distanceInterpolator.i = distanceMap.keys.toTypedArray()
+        distanceInterpolator.o = distanceMap.values.toTypedArray()
 
         val tVals = mutableListOf<Double>()
         val xVals = mutableListOf<Double>()

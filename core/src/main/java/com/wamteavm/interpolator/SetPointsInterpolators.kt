@@ -190,8 +190,11 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                 }
                 value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
                 value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
-                parameter = (i + 1.0) / num
+
+                parameter = setPoint!!.distanceInterpolator.evaluate(((i + 1.0) / num) * setPoint.length)
+                //print("$parameter ")
             }
+            //println()
         }
 
         return value

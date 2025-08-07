@@ -363,8 +363,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             if (newSelection.getClass() == Node.class) { // Show new selection's parent's inputs if it has parents
                 for (NodeCollection collection : animation.getParents((Node) newSelection)) {
                     if (!selectedObjects.contains(collection)) {
-                        selectedObjects.add(collection);
-
                         if (collection != null) {
                             selectedObjects.add(collection);
                         } else {

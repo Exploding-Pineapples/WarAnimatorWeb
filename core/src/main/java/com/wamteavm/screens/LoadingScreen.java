@@ -36,12 +36,10 @@ public class LoadingScreen extends ScreenAdapter implements InputProcessor {
         game.batch.setShader(null);
         game.batch.end();
 
-        if (loading) {
-            game.setScreen(new AnimationScreen(game, animation));
-            System.out.println("Loaded screen");
-        }
+        game.setScreen(new AnimationScreen(game, animation));
+        System.out.println("Loaded screen");
 
-        loading = true;
+        dispose();
     }
 
     @Override

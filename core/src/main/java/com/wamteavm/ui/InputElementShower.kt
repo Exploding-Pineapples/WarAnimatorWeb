@@ -14,7 +14,7 @@ import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.AreaColor
 
-class InputShower(val skin: Skin, val animation: Animation) {
+class InputElementShower(val skin: Skin, val animation: Animation) {
     val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {

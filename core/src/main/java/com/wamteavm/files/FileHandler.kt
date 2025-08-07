@@ -40,9 +40,8 @@ object FileHandler {
                 x.printStackTrace()
                 println("couldnt save ${it.name} rip")
             }
-
-            println("saved")
         }
+        println("saved")
     }
 
     fun addAnimation(animation: Animation) {

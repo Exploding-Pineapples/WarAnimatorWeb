@@ -17,7 +17,7 @@ import com.wamteavm.files.Assets;
 import com.wamteavm.files.FileHandler;
 import com.wamteavm.ui.inputelements.SelectBoxInput;
 import com.wamteavm.models.*;
-import com.wamteavm.ui.InputShower;
+import com.wamteavm.ui.InputElementShower;
 import com.wamteavm.ui.input.Action;
 import com.wamteavm.ui.input.Requirement;
 import com.wamteavm.ui.input.TouchMode;
@@ -38,29 +38,29 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     public Animation animation;
     public WarAnimator game;
 
-    OrthographicCamera orthographicCamera; // Camera whose properties directly draw the screen
+    OrthographicCamera orthographicCamera; // Camera actually used when running, animation.camera only updates this
 
-    float mouseX; // Mouse real X position
-    float mouseY; // Mouse real Y position
+    // Mouse position in unprojected units
+    float mouseX;
+    float mouseY;
 
     Integer time;
+    boolean paused;
 
     ArrayList<AnyObject> selectedObjects;
 
-    boolean shiftPressed;
-    boolean ctrlPressed;
-
-    boolean paused;
-    boolean animationMode;
-    boolean UIDisplayed;
-
-    TouchMode touchMode;
-    String createClass;
-    SelectBoxInput<String> createSelectBoxInput;
-
     Drawer drawer;
 
-    //UI
+    // Actions
+    TouchMode touchMode;
+    List<Action> actions;
+    boolean shiftPressed;
+    boolean ctrlPressed;
+    long commaLastUnpressed = 0;
+    long periodLastUnpressed = 0;
+    boolean keysCaught = false;
+
+    // UI
     Stage stage;
     Table selectedInfoTable;
     VerticalGroup selectedGroup;
@@ -69,16 +69,17 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     Label timeAndFPS;
     Label keyOptions;
     Label selectedLabel;
-    List<Action> actions;
-    InputShower uiShower;
+    InputElementShower uiShower;
     String newUnitCountry;
     SelectBoxInput<String> newUnitCountryInput;
     Integer newNodeCollectionID;
     SelectBoxInput<Integer> newNodeCollectionIDInput;
+    String createClass;
+    SelectBoxInput<String> createSelectBoxInput;
+    boolean animationMode;
+    boolean UIDisplayed;
     boolean newEdgeInputsDisplayed;
     boolean newUnitInputsDisplayed;
-    long commaLastUnpressed = 0;
-    long periodLastUnpressed = 0;
 
     public AnimationScreen(WarAnimator game, Animation animation) {
         this.animation = animation;
@@ -87,14 +88,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-        // Camera
-        orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-        orthographicCamera.position.set(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT / 2f, 0);
-        animation.camera();
-        // Graphics init
-        drawer = new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, animation.getInitTime());
-
-        // Animation init
         time = animation.getInitTime();
         paused = true;
         animationMode = true;
@@ -152,7 +145,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         selectedLabel = new Label("", game.skin);
         selectedGroup = new VerticalGroup();
-        uiShower = new InputShower(game.skin, animation);
+        uiShower = new InputElementShower(game.skin, animation);
         selectedInfoTable = new Table();
         stage.addActor(selectedInfoTable);
 
@@ -165,11 +158,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             Gdx.input.setCatchKey(key, true);
         }
 
-        for (int key = Input.Keys.A; key <= Input.Keys.Z; key++) {
-            Gdx.input.setCatchKey(key, true);
-        }
-
         animation.init();
+        orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        drawer = new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time);
         updateCam();
     }
 
@@ -186,15 +177,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             game.setScreen(game.menuScreen);
             return null;
         }, "Return to the main menu", Input.Keys.ESCAPE).requiresSelected(Requirement.ANY).requiresShift(true).build());
-        actions.add(Action.createBuilder(() -> {
-            for (AnyObject selectedObject : selectedObjects) {
-                if (HasAlpha.class.isAssignableFrom(selectedObject.getClass())) {
-                    ((HasAlpha) selectedObject).getAlpha().newSetPoint(time, ((HasAlpha) selectedObject).getAlpha().getValue());
-                    System.out.println("Set a new alpha set point, set points: " + ((HasAlpha) selectedObject).getAlpha().getSetPoints());
-                }
-            }
-            return null;
-        }, "Set alpha set point", Input.Keys.A).build());
         actions.add(Action.createBuilder(() -> {
             animationMode = !animationMode;
             return null;
@@ -528,6 +510,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 leftPanel.clear();
                 selectedInfoTable.clear();
                 UIDisplayed = false;
+            }
+        }
+
+        if (ctrlPressed) {
+            if (!keysCaught) {
+                for (int key = Input.Keys.A; key <= Input.Keys.Z; key++) {
+                    Gdx.input.setCatchKey(key, true);
+                }
+                keysCaught = true;
+            }
+        } else {
+            if (keysCaught) {
+                for (int key = Input.Keys.A; key <= Input.Keys.Z; key++) {
+                    Gdx.input.setCatchKey(key, false);
+                }
+                keysCaught = false;
             }
         }
     }

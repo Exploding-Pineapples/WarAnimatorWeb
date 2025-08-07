@@ -14,7 +14,7 @@ import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.AreaColor
 
-class InputShower(val skin: Skin) {
+class InputShower(val skin: Skin, val animation: Animation) {
     val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {
@@ -51,7 +51,6 @@ class InputShower(val skin: Skin) {
             }
         }
 
-        println(hasAlphas)
         if (alpha) {
             val alphaInput = TextInput(null, { input ->
                 if (input != null) {
@@ -226,6 +225,7 @@ class InputShower(val skin: Skin) {
                 for (node in nodes) {
                     node.tSetPoint = input
                 }
+                animation.nodeEdgeHandler.updateNodeCollections()
             }, label@{
                 return@label returnIfSame(nodes.map { it.tSetPoint.toString() })
             }, Double::class.java, "Set t set point")

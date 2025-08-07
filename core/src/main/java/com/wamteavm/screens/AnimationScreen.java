@@ -32,7 +32,7 @@ import static java.lang.Math.round;
 public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     public static final int DEFAULT_UNIT_WIDTH = 75;
     public static final int DEFAULT_UNIT_HEIGHT = 75;
-    public static final double LINE_RESOLUTION = 2.5; // Pixels per straight line
+    public static final double LINE_RESOLUTION = 10; // Distance per straight line
     public static final int MAX_LINES = 5000;
 
     public Animation animation;
@@ -152,7 +152,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         selectedLabel = new Label("", game.skin);
         selectedGroup = new VerticalGroup();
-        uiShower = new InputShower(game.skin);
+        uiShower = new InputShower(game.skin, animation);
         selectedInfoTable = new Table();
         stage.addActor(selectedInfoTable);
 

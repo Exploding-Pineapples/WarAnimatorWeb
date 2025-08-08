@@ -31,9 +31,10 @@ fun distanceFromPointToSegment(p: Coordinate, a: Coordinate, b: Coordinate): Flo
 
 fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Coordinate>): Boolean {
     if (coordinates.isNotEmpty()) {
+        val point = Coordinate(x, y)
         for (i in 1..coordinates.lastIndex) {
             val dist = distanceFromPointToSegment(
-                Coordinate(x, y),
+                point,
                 Coordinate(coordinates[i - 1].x, coordinates[i - 1].y),
                 Coordinate(coordinates[i].x, coordinates[i].y),
             )
@@ -47,9 +48,10 @@ fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Coordinate>): Bool
 
 fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Float>): Boolean {
     if (coordinates.isNotEmpty()) {
-        for (i in 4..coordinates.lastIndex step 2) {
+        val point = Coordinate(x, y)
+        for (i in 3..coordinates.lastIndex step 2) {
             val dist = distanceFromPointToSegment(
-                Coordinate(x, y),
+                point,
                 Coordinate(coordinates[i - 3], coordinates[i - 2]),
                 Coordinate(coordinates[i - 1], coordinates[i]),
             )

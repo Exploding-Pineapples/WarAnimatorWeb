@@ -131,7 +131,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                 setPoint = setPoints[at]!!
                 num = round((setPoint.length) / AnimationScreen.LINE_RESOLUTION).toInt()
             } else {
-                if (setPoints.size < 2) {
+                if (setPoints.size < 2 || at < setPoints.keys.first()) {
                     setPoint = setPoints.values.first()
                     num = round((setPoint.length / AnimationScreen.LINE_RESOLUTION)).toInt()
                 } else {

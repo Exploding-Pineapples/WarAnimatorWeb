@@ -120,6 +120,11 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
     }
 
     @Override
+    public void hide() {
+        dispose();
+    }
+
+    @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
     }

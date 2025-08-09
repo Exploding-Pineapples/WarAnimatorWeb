@@ -26,7 +26,6 @@ import java.util.*
 
 object Assets {
     private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
-    private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
 
     var countryNames: Array<String> = Array()
     var images: Array<String> = Array()
@@ -37,16 +36,11 @@ object Assets {
     fun mapsPath(file: String): String { return "maps/$file" }
 
     fun loadSkin(file: String): Skin? {
-        if (LOADED_SKINS.containsKey(file)) {
-            return LOADED_SKINS[file]
-        }
-
         println("skin: " + Gdx.files.internal(file).exists())
 
         try {
             val skin = Skin(Gdx.files.internal(file))
             println("skin loaded")
-            LOADED_SKINS[file] = skin
             return skin
         } catch (e: Exception) {
             Gdx.app.error("UI", "Failed to load skin", e)

@@ -53,9 +53,9 @@ class Drawer(val font: BitmapFont,
         //batcher.setColor(1f, 1f, 1f, 1f)
         animation.units.forEach { draw(it) }
 
-        for (edgeCollection in animation.nodeCollections) {
-            if (edgeCollection.type == "Line") {
-                draw(edgeCollection)
+        for (nodeCollection in animation.nodeCollections) {
+            if (nodeCollection.type == "Line") {
+                draw(nodeCollection)
             }
         }
 

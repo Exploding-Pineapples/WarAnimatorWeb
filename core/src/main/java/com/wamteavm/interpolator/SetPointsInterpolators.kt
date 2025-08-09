@@ -100,8 +100,8 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
     override var setPoints: MutableMap<Int, NodeCollectionSetPoint> = sortedMapOf()
     override var value: FloatArray = floatArrayOf()
     var screenCoordinates: FloatArray = floatArrayOf()
-    var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
-    var zoom: Float = 1f
+    private var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
+    private var zoom: Float = 1f
 
     override fun updateInterpolationFunction() {
         super.updateInterpolationFunction()
@@ -170,6 +170,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
                     xInterpolatorTime = cachedInterpolators.first
                     yInterpolatorTime = cachedInterpolators.second
                 } else {
+                    //println("creating new")
                     val xInTime = DoubleArray(setPoints.size)
                     val yInTime = DoubleArray(setPoints.size)
 

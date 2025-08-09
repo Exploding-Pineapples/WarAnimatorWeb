@@ -22,7 +22,7 @@ public class WarAnimator extends Game {
 
     @Override
     public void create() {
-        skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
+        skin = Assets.INSTANCE.loadSkin("skin/glassy-ui.json");
         bitmapFont = Assets.INSTANCE.loadFont();
         fontShader = Assets.INSTANCE.loadFontShader();
         batch = new SpriteBatch();

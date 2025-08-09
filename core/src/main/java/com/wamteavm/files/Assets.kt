@@ -26,6 +26,7 @@ import java.util.*
 
 object Assets {
     private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
+    private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
 
     var countryNames: Array<String> = Array()
     var images: Array<String> = Array()
@@ -36,7 +37,10 @@ object Assets {
     fun mapsPath(file: String): String { return "maps/$file" }
 
     fun loadSkin(file: String): Skin? {
-        println("skin: " + Gdx.files.internal(file).exists())
+        val cached = LOADED_SKINS[file]
+        if (cached != null) {
+            return cached
+        }
 
         try {
             val skin = Skin(Gdx.files.internal(file))
@@ -50,8 +54,9 @@ object Assets {
     }
 
     fun loadTexture(internalPath: String): Texture? {
-        if (LOADED_TEXTURES.containsKey(internalPath)) {
-            return LOADED_TEXTURES[internalPath]
+        val cached = LOADED_TEXTURES[internalPath]
+        if (cached != null) {
+            return cached
         }
 
         try {

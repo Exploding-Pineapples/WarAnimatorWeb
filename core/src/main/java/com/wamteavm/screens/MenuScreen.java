@@ -18,6 +18,9 @@ import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
@@ -28,15 +31,24 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
     Table table = new Table();
 
     public MenuScreen(WarAnimator game) {
-        table.clear();
-
         skin = game.skin;
         this.game = game;
         table.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT/2f);
 
+        TextButton logout = new TextButton("Logout", skin, "small");
+        logout.setPosition(100f, 100f);
+        logout.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new LoginScreen(game));
+                dispose();
+            }
+        });
+        stage.addActor(logout);
+
         Table titleTable = new Table();
         titleTable.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
-        Label titleLabel = new Label("War Animation Maker", skin);
+        Label titleLabel = new Label("War Animator", skin);
         titleLabel.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
         titleTable.add(titleLabel);
         stage.addActor(titleTable);
@@ -46,18 +58,25 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new EditAnimationScreen(game, new Animation(), true));
+                dispose();
             }
         });
         table.add(newAnimationButton).colspan(4);
         table.row().pad(10);
 
         FileHandler.INSTANCE.load();
+        List<Animation> animations = FileHandler.INSTANCE.getAnimations();
 
-        Label title = new Label("Animations", skin);
+        Label title = new Label("", skin);
+        if (animations.isEmpty()) {
+            title.setText("You have no animations.");
+        } else {
+            title.setText("Animations:");
+        }
         table.add(title).colspan(4);
         table.row().pad(10).height(40);
 
-        for (Animation animation : FileHandler.INSTANCE.getAnimations()) {
+        for (Animation animation : animations) {
             Label nameLabel = new Label(animation.getName(), skin);
 
             table.add(getDeleteButton(animation));
@@ -73,7 +92,6 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.act();

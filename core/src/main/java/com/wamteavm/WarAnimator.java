@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.wamteavm.files.Assets;
 import com.wamteavm.files.FileHandler;
+import com.wamteavm.screens.LoginScreen;
 import com.wamteavm.screens.MenuScreen;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -33,8 +34,7 @@ public class WarAnimator extends Game {
             Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
         }
 
-        menuScreen = new MenuScreen(this);
-        setScreen(menuScreen);
+        setScreen(new LoginScreen(this));
     }
 
     @Override

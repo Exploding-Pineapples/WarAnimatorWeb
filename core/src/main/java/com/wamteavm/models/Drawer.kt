@@ -36,7 +36,6 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(animation: Animation) {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 0f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         batcher.setColor(1f, 1f, 1f, 1f) // Reset to full transparency

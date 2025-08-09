@@ -87,7 +87,7 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
             }
         });
 
-        table.add(submitButton).height(40);
+        table.add(submitButton).height(50);
         table.row().pad(10);
 
         warningLabel = new Label("", game.skin);
@@ -130,7 +130,6 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
     }
     @Override
     public void render(float delta) {
-        gl.glClearColor(0, 0, 0, 1);
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.act();

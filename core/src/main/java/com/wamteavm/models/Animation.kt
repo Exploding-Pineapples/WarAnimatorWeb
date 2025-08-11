@@ -75,53 +75,52 @@ data class Animation @JvmOverloads constructor(
 
     fun getNodeByID(id: NodeID): Node? = nodes.firstOrNull { it.id.value == id.value }
 
-    fun newNode(x: Float, y: Float, time: Int): Node {
+    private fun newNode(x: Float, y: Float, time: Int): Node {
         val node = Node(Coordinate(x, y), time, NodeID(nodeId))
-        node.init()
         nodeEdgeHandler.addNode(node)
         return node
     }
 
-    fun newArrow(x: Float, y: Float, time: Int): Arrow {
+    private fun newArrow(x: Float, y: Float, time: Int): Arrow {
         val new = Arrow(Coordinate(x, y), time)
-        new.init()
         arrows.add(new)
         return new
     }
 
-    fun newMapLabel(x: Float, y: Float, time: Int): MapLabel {
+    private fun newMapLabel(x: Float, y: Float, time: Int): MapLabel {
         val new = MapLabel(Coordinate(x, y), time)
-        new.init()
         mapLabels.add(new)
         return new
     }
 
-    fun newImage(x: Float, y: Float, time: Int): Image {
+    private fun newImage(x: Float, y: Float, time: Int): Image {
         val new = Image(Coordinate(x, y), time, "")
-        new.init()
         images.add(new)
         return new
     }
 
-    fun newUnit(x: Float, y: Float, time: Int, image: String = ""): Unit {
+    private fun newUnit(x: Float, y: Float, time: Int, image: String = ""): Unit {
         val new = Unit(Coordinate(x, y), time, image)
-        new.init()
         units.add(new)
         return new
     }
 
     fun createObjectAtPosition(time: Int, x: Float, y: Float, type: String, country: String = ""): AnyObject? {
+        val new: AnyObject?
         if (type == "Unit") {
-            return newUnit(x, y, time, country)
+            new = newUnit(x, y, time, country)
+        } else {
+            val objectDictionary = mapOf(
+                "Node" to ::newNode,
+                "Arrow" to ::newArrow,
+                "Map Label" to ::newMapLabel,
+                "Image" to ::newImage
+            )
+            new = objectDictionary[type]?.invoke(x, y, time)
         }
+        new?.init()
 
-        val objectDictionary = mapOf(
-            "Node" to ::newNode,
-            "Arrow" to ::newArrow,
-            "Map Label" to ::newMapLabel,
-            "Image" to ::newImage
-        )
-        return objectDictionary[type]?.invoke(x, y, time)
+        return new
     }
 
     @Suppress("UNCHECKED_CAST")

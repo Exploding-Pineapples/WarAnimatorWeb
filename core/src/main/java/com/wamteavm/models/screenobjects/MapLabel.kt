@@ -7,7 +7,8 @@ import com.wamteavm.utilities.AreaColor
 import kotlinx.serialization.Serializable
 
 @Serializable
-class MapLabel(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasAlpha, HasColor {
+class MapLabel(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasAlpha, HasColor, Drawable {
+    override var order = "b"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     var text = ""
@@ -19,8 +20,12 @@ class MapLabel(override var position: Coordinate, override var initTime: Int) : 
         alpha.updateInterpolationFunction()
     }
 
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
+    }
+
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
         if (!paused) { alpha.evaluate(time) }
-        return super.goToTime(time, zoom, cx, cy)
+        super.goToTime(time, zoom, cx, cy)
     }
 }

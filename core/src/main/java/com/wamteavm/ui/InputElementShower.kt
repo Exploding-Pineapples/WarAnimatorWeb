@@ -1,5 +1,6 @@
 package com.wamteavm.ui
 
+import com.badlogic.gdx.Gdx.input
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
@@ -31,18 +32,18 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         val hasInputs = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
         val hasAlphas: MutableList<HasAlpha> = mutableListOf()
         val hasColors: MutableList<HasColor> = mutableListOf()
-        var alpha = false
-        var color = false
+        val drawables: MutableList<Drawable> = mutableListOf()
         val classElementMap: MutableMap<Class<HasInputs>, MutableList<HasInputs>> = mutableMapOf()
 
         for (element in hasInputs) {
             if (HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
-                alpha = true
                 hasAlphas.add(element as HasAlpha)
             }
             if (HasColor::class.java.isAssignableFrom(element.javaClass)) {
-                color = true
                 hasColors.add(element as HasColor)
+            }
+            if (Drawable::class.java.isAssignableFrom(element.javaClass)) {
+                drawables.add(element as Drawable)
             }
             if (classElementMap.containsKey(element.javaClass)) {
                 classElementMap[element.javaClass]!!.add(element)
@@ -51,7 +52,18 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             }
         }
 
-        if (alpha) {
+        if (drawables.isNotEmpty()) {
+            val layerInput = TextInput(null, { input ->
+                for (drawable in drawables) {
+                    drawable.order = input ?: ""
+                }
+            }, label@{
+                return@label returnIfSame(drawables.map { it.order })
+            }, String::class.java, "Set layer/draw order")
+            inputElements.add(layerInput)
+        }
+
+        if (hasAlphas.isNotEmpty()) {
             val alphaInput = TextInput(null, { input ->
                 if (input != null) {
                     for (element in hasAlphas) {
@@ -69,7 +81,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             inputElements.add(alphaInput)
         }
 
-        if (color) {
+        if (hasColors.isNotEmpty()) {
             val colorInput = TextInput(null, { input ->
                 if (input != null) {
                     for (areaColor in AreaColor.entries) {
@@ -239,6 +251,9 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     nodeCollection.type = input ?: "None"
                     if (nodeCollection.type == "Line") {
                         nodeCollection.width = 5f
+                        nodeCollection.order = "c"
+                    } else {
+                        nodeCollection.order = "e"
                     }
                 }
             }, label@{

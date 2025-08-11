@@ -10,7 +10,8 @@ import kotlinx.serialization.Transient
 
 @Serializable
 open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInputs, HasID, HasAlpha, HasColor,
-    Clickable {
+    Clickable, Drawable {
+    override var order = "e"
     override var alpha: FloatSetPointInterpolator = FloatSetPointInterpolator()
     @Transient var interpolator: NodeCollectionInterpolator = NodeCollectionInterpolator()
     override var color: AreaColor = AreaColor.RED
@@ -20,6 +21,10 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     override fun init() {
         alpha.updateInterpolationFunction()
         interpolator = NodeCollectionInterpolator()
+    }
+
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
     }
 
     fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {

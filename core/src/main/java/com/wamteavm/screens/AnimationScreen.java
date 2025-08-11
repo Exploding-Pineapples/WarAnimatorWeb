@@ -232,7 +232,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 ArrayList<AnyObject> selectedObjectsCopy = new ArrayList<>(selectedObjects);
                 for (AnyObject selectedObject : selectedObjectsCopy) {
                     if (selectedObject.getClass() == Node.class) {
-                        Node newNode = animation.newNode(mouseX, mouseY, time);
+                        Node newNode = (Node) animation.createObjectAtPosition(time, mouseX, mouseY, "Node", "");
                         animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode);
                         switchSelected(newNode);
                     }
@@ -569,7 +569,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         if (!paused) { //don't update camera when paused to allow for movement when paused
             updateCam();
         }
-        drawer.update(time, animationMode);
+        drawer.update(time, animationMode, animation);
 
         updateUI();
 

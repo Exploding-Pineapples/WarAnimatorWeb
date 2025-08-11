@@ -7,7 +7,8 @@ import com.wamteavm.utilities.AreaColor
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObject(), HasAlpha, HasColor {
+class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObject(), HasAlpha, HasColor, Drawable {
+    override var order = "f"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator()
     override var color = AreaColor.RED
@@ -18,12 +19,12 @@ class Arrow(override var position: Coordinate, override var initTime: Int): Scre
         alpha.updateInterpolationFunction()
     }
 
-    override fun shouldDraw(time: Int): Boolean {
-        return true
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
     }
 
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
         if (!paused) { alpha.evaluate(time) }
-        return super.goToTime(time, zoom, cx, cy)
+        super.goToTime(time, zoom, cx, cy)
     }
 }

@@ -28,38 +28,44 @@ class Drawer(val font: BitmapFont,
 ) {
     private var zoomFactor: Float = 1f
     var animationMode = false
+    private val drawOrder = sortedMapOf<String, MutableList<Drawable>>()
 
-    fun update(time: Int, animationMode: Boolean) {
+    fun updateDrawOrder(animation: Animation) {
+        drawOrder.clear()
+        animation.images.forEach { addToDrawOrder(it) }
+        animation.arrows.forEach { addToDrawOrder(it) }
+        animation.units.forEach { addToDrawOrder(it) }
+        animation.mapLabels.forEach { addToDrawOrder(it) }
+        animation.nodeCollections.forEach { addToDrawOrder(it) }
+    }
+
+    fun addToDrawOrder(it: Drawable) {
+        if (drawOrder.containsKey(it.order)) {
+            drawOrder[it.order]!!.add(it)
+        } else {
+            drawOrder[it.order] = mutableListOf(it)
+        }
+    }
+
+    fun update(time: Int, animationMode: Boolean, animation: Animation) {
         this.time = time
         this.animationMode = animationMode
+        updateDrawOrder(animation)
         zoomFactor = 1f
     }
 
     fun draw(animation: Animation) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
         batcher.setColor(1f, 1f, 1f, 1f) // Reset to full transparency
 
-        animation.images.forEach { draw(it) }
-        animation.mapLabels.forEach { draw(it) }
-
-        for (nodeCollection in animation.nodeCollections) {
-            if (nodeCollection.type == "Area") {
-                draw(nodeCollection)
+        for (frame in drawOrder) {
+            frame.value.forEach {
+                it.draw(this)
             }
         }
-
-        //batcher.setColor(1f, 1f, 1f, 1f)
-        animation.units.forEach { draw(it) }
-
-        for (nodeCollection in animation.nodeCollections) {
-            if (nodeCollection.type == "Line") {
-                draw(nodeCollection)
-            }
+        if (animationMode) {
+            animation.nodes.forEach { draw(it) }
         }
-
-        if (animationMode) animation.nodes.forEach { draw(it) }
-        animation.arrows.forEach { draw(it) }
     }
 
     fun draw(nodeCollection: NodeCollection) {

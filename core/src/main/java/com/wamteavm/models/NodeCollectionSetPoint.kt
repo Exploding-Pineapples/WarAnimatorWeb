@@ -104,7 +104,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         // TODO this will not work with multiple NCs sharing one node because duplication will create new nodes for each one
         val newSetPoint = NodeCollectionSetPoint(time, NodeCollectionID(id.value))
         for (node in nodes) {
-            newSetPoint.nodes.add(animation.newNode(node.position.x, node.position.y, time).apply { tSetPoint = node.tSetPoint })
+            newSetPoint.nodes.add((animation.createObjectAtPosition(time, node.position.x, node.position.y, "Node", "") as Node).apply { tSetPoint = node.tSetPoint })
         }
         for (index in 0..<newSetPoint.nodes.size - 1) {
             val node = newSetPoint.nodes[index]

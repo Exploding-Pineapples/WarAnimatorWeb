@@ -11,6 +11,12 @@ interface AnyObject {
     fun init()
 }
 
+interface Drawable {
+    var order: String
+
+    fun draw(drawer: Drawer)
+}
+
 interface HasPosition {
     var position: Coordinate
 }
@@ -36,9 +42,8 @@ interface InterpolatedObject : AnyObject, HasPosition {
         posInterpolator.updateInterpolationFunction()
     }
 
-    fun goToTime(time: Int): Boolean { // Can only be called after at least one key frame has been added
+    fun goToTime(time: Int) { // Can only be called after at least one key frame has been added
         position = posInterpolator.evaluate(time)
-        return true
     }
 
     fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
@@ -52,8 +57,6 @@ interface InterpolatedObject : AnyObject, HasPosition {
     fun newSetPoint(time: Int, x: Float, y: Float) {
         posInterpolator.newSetPoint(time, Coordinate(x, y))
     }
-
-    fun shouldDraw(time: Int): Boolean
 }
 
 abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable {
@@ -64,14 +67,9 @@ abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable {
         return (x - screenPosition.x).absoluteValue <= 10 && (y - screenPosition.y).absoluteValue <= 10
     }
 
-    protected open fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float): Boolean {
+    protected open fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float) {
         super.goToTime(time)
         updateScreenPosition(zoom, cx, cy)
-        return shouldDraw(time)
-    }
-
-    override fun shouldDraw(time: Int): Boolean {
-        return time >= posInterpolator.setPoints.keys.first()
     }
 
     override fun toString(): String {

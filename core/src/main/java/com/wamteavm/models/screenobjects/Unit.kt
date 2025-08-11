@@ -15,7 +15,8 @@ data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
     var image: String = ""
-) : ScreenObject(), HasAlpha, HasColor {
+) : ScreenObject(), HasAlpha, HasColor, Drawable {
+    override var order = "d"
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
@@ -40,9 +41,13 @@ data class Unit(
         return ((x in (screenPosition.x - width * 0.5f)..(screenPosition.x + width * 0.5f)) && (y in (screenPosition.y - height * 0.5f)..(screenPosition.y + height * 0.5f)))
     }
 
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
         if (!paused) { alpha.evaluate(time) }
-        return super.goToTime(time, zoom, cx, cy)
+        super.goToTime(time, zoom, cx, cy)
+    }
+
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
     }
 
     fun updateCountryTexture() {

@@ -4,15 +4,14 @@ import com.badlogic.gdx.graphics.Texture
 import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
-import com.wamteavm.models.Coordinate
-import com.wamteavm.models.HasAlpha
-import com.wamteavm.models.ScreenObject
+import com.wamteavm.models.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
 class Image(override var position: Coordinate, override var initTime: Int, var path: String) : ScreenObject(),
-    HasAlpha {
+    HasAlpha, Drawable {
+    override var order = "a"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     var scale: Float = 1f
@@ -23,6 +22,10 @@ class Image(override var position: Coordinate, override var initTime: Int, var p
         super.init()
         loadTexture()
         alpha.updateInterpolationFunction()
+    }
+
+    override fun draw(drawer: Drawer) {
+        drawer.draw(this)
     }
 
     fun loadTexture() {
@@ -38,8 +41,8 @@ class Image(override var position: Coordinate, override var initTime: Int, var p
         loadTexture()
     }
 
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean): Boolean {
+    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
         if (!paused) { alpha.evaluate(time) }
-        return super.goToTime(time, zoom, cx, cy)
+        super.goToTime(time, zoom, cx, cy)
     }
 }

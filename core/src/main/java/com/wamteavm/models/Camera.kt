@@ -18,10 +18,9 @@ data class Camera(
         zoomInterpolator.updateInterpolationFunction()
     }
 
-    override fun goToTime(time: Int): Boolean {
+    override fun goToTime(time: Int) {
         zoomInterpolator.evaluate(time)
         super.goToTime(time, zoomInterpolator.value, position.x, position.y)
-        return true
     }
 
     override fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time

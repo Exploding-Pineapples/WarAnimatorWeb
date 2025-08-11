@@ -26,7 +26,7 @@ public class WarAnimator extends Game {
     public MenuScreen menuScreen;
     public InputMultiplexer multiplexer;
     public AbstractExternalLoader animationLoader;
-    private Screen firstScreen;
+    private final Screen firstScreen;
 
     public WarAnimator(boolean web) {
         animationLoader = web ? APIExternalLoader.INSTANCE : FileExternalLoader.INSTANCE;

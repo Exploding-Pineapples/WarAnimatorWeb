@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Rectangle
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
-import com.wamteavm.models.screenobjects.MapLabel
+import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.models.screenobjects.Unit.Companion.sizePresets
 import com.wamteavm.utilities.Earcut
@@ -35,7 +35,7 @@ class Drawer(val font: BitmapFont,
         animation.images.forEach { addToDrawOrder(it) }
         animation.arrows.forEach { addToDrawOrder(it) }
         animation.units.forEach { addToDrawOrder(it) }
-        animation.mapLabels.forEach { addToDrawOrder(it) }
+        animation.labels.forEach { addToDrawOrder(it) }
         animation.nodeCollections.forEach { addToDrawOrder(it) }
     }
 
@@ -47,10 +47,9 @@ class Drawer(val font: BitmapFont,
         }
     }
 
-    fun update(time: Int, animationMode: Boolean, animation: Animation) {
+    fun update(time: Int, animationMode: Boolean) {
         this.time = time
         this.animationMode = animationMode
-        updateDrawOrder(animation)
         zoomFactor = 1f
     }
 
@@ -216,16 +215,16 @@ class Drawer(val font: BitmapFont,
         }
     }
 
-    fun draw(mapLabel: MapLabel) {
-        shapeDrawer.setColor(Color(mapLabel.color.color.r, mapLabel.color.color.g, mapLabel.color.color.b, mapLabel.alpha.value))
-        shapeDrawer.filledCircle(mapLabel.screenPosition.x, mapLabel.screenPosition.y, mapLabel.size * 10)
+    fun draw(label: Label) {
+        shapeDrawer.setColor(Color(label.color.color.r, label.color.color.g, label.color.color.b, label.alpha.value))
+        shapeDrawer.filledCircle(label.screenPosition.x, label.screenPosition.y, label.size * 10)
 
-        batcher.setColor(1f, 1f, 1f, mapLabel.alpha.value)
+        batcher.setColor(1f, 1f, 1f, label.alpha.value)
 
-        prepareFont(Color.WHITE, mapLabel.color.color, mapLabel.alpha.value, mapLabel.size)
+        prepareFont(Color.WHITE, label.color.color, label.alpha.value, label.size)
 
-        val textSize = measureText(font, mapLabel.text)
-        font.draw(batcher, mapLabel.text, mapLabel.screenPosition.x - textSize.width / 2, mapLabel.screenPosition.y + textSize.height * (3f / 2) + mapLabel.size * 5)
+        val textSize = measureText(font, label.text)
+        font.draw(batcher, label.text, label.screenPosition.x - textSize.width / 2, label.screenPosition.y + textSize.height * (3f / 2) + label.size * 5)
 
         batcher.shader = null
     }

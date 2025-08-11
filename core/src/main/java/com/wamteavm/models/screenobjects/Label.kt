@@ -7,7 +7,7 @@ import com.wamteavm.utilities.AreaColor
 import kotlinx.serialization.Serializable
 
 @Serializable
-class MapLabel(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasAlpha, HasColor, Drawable {
+class Label(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasAlpha, HasColor, Drawable {
     override var order = "b"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }

@@ -14,13 +14,13 @@ import kotlinx.serialization.Transient
 data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
-    var image: String = ""
 ) : ScreenObject(), HasAlpha, HasColor, Drawable {
     override var order = "d"
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
     override var color: AreaColor = AreaColor.BLUE
+    var country: String = ""
     var name: String = ""
     var type: String = "infantry.png"
     var size: String = "XX"
@@ -51,7 +51,7 @@ data class Unit(
     }
 
     fun updateCountryTexture() {
-        countryTexture = InternalLoader.loadTexture(image)
+        countryTexture = InternalLoader.loadTexture(country)
     }
 
     fun countryTexture(): Texture? {

@@ -9,9 +9,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class Image(override var position: Coordinate, override var initTime: Int, var path: String) : ScreenObject(),
+class Image(override var position: Coordinate, override var initTime: Int) : ScreenObject(),
     HasAlpha, Drawable {
     override var order = "a"
+    var path: String = ""
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     var scale: Float = 1f

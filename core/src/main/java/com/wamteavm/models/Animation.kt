@@ -1,10 +1,9 @@
 package com.wamteavm.models
 
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.WarAnimator
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
-import com.wamteavm.models.screenobjects.MapLabel
+import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -18,7 +17,7 @@ data class Animation @JvmOverloads constructor(
     val nodes: MutableList<Node> = mutableListOf(),
     val nodeCollections: MutableList<NodeCollection> = mutableListOf(),
     val arrows: MutableList<Arrow> = mutableListOf(),
-    val mapLabels: MutableList<MapLabel> = mutableListOf(),
+    val labels: MutableList<Label> = mutableListOf(),
     var images: MutableList<Image> = mutableListOf(),
     var nodeCollectionID: Int = 0,
     var nodeId: Int = 0,
@@ -26,12 +25,15 @@ data class Animation @JvmOverloads constructor(
 )
 {
     @Transient var nodeEdgeHandler = NodeEdgeHandler(this)
+    @Transient lateinit var drawer: Drawer // Given by AnimationScreen
 
-    fun init() {
+    fun init(drawer: Drawer) {
+        this.drawer = drawer
+        drawer.updateDrawOrder(this)
         nodeEdgeHandler = NodeEdgeHandler(this)
         nodeEdgeHandler.init()
         units.forEach { it.init() }
-        mapLabels.forEach { it.init() }
+        labels.forEach { it.init() }
         arrows.forEach { it.init() }
         images.forEach { it.init() }
         camera().init()
@@ -48,25 +50,27 @@ data class Animation @JvmOverloads constructor(
     }
 
     fun deleteObject(obj: AnyObject): Boolean {
+        var result = false
         if (obj.javaClass == Node::class.java) {
-            return nodeEdgeHandler.removeNode(obj as Node)
+            result = nodeEdgeHandler.removeNode(obj as Node)
         }
         if (obj.javaClass == Image::class.java) {
-            return images.remove(obj as Image)
+            result = images.remove(obj as Image)
         }
-        if (obj.javaClass == MapLabel::class.java) {
-            return mapLabels.remove(obj as MapLabel)
+        if (obj.javaClass == Label::class.java) {
+            result = labels.remove(obj as Label)
         }
         if (obj.javaClass == Arrow::class.java) {
-            return arrows.remove(obj as Arrow)
+            result = arrows.remove(obj as Arrow)
         }
         if (obj.javaClass == Unit::class.java) {
-            return units.remove(obj as Unit)
+            result = units.remove(obj as Unit)
         }
         if (obj.javaClass == Edge::class.java) {
-            return nodeEdgeHandler.removeEdge(obj as Edge)
+            result = nodeEdgeHandler.removeEdge(obj as Edge)
         }
-        return false
+        drawer.updateDrawOrder(this)
+        return result
     }
 
     fun getNodeCollection(id: NodeCollectionID): NodeCollection? {
@@ -75,52 +79,29 @@ data class Animation @JvmOverloads constructor(
 
     fun getNodeByID(id: NodeID): Node? = nodes.firstOrNull { it.id.value == id.value }
 
-    private fun newNode(x: Float, y: Float, time: Int): Node {
-        val node = Node(Coordinate(x, y), time, NodeID(nodeId))
-        nodeEdgeHandler.addNode(node)
-        return node
-    }
-
-    private fun newArrow(x: Float, y: Float, time: Int): Arrow {
-        val new = Arrow(Coordinate(x, y), time)
-        arrows.add(new)
-        return new
-    }
-
-    private fun newMapLabel(x: Float, y: Float, time: Int): MapLabel {
-        val new = MapLabel(Coordinate(x, y), time)
-        mapLabels.add(new)
-        return new
-    }
-
-    private fun newImage(x: Float, y: Float, time: Int): Image {
-        val new = Image(Coordinate(x, y), time, "")
-        images.add(new)
-        return new
-    }
-
-    private fun newUnit(x: Float, y: Float, time: Int, image: String = ""): Unit {
-        val new = Unit(Coordinate(x, y), time, image)
-        units.add(new)
-        return new
-    }
-
-    fun createObjectAtPosition(time: Int, x: Float, y: Float, type: String, country: String = ""): AnyObject? {
-        val new: AnyObject?
-        if (type == "Unit") {
-            new = newUnit(x, y, time, country)
-        } else {
-            val objectDictionary = mapOf(
-                "Node" to ::newNode,
-                "Arrow" to ::newArrow,
-                "Map Label" to ::newMapLabel,
-                "Image" to ::newImage
-            )
-            new = objectDictionary[type]?.invoke(x, y, time)
+    // May the coding gods forgive me for I have sinned
+    fun <T : AnyObject>createObjectAtPosition(time: Int, x: Float, y: Float, clazz: Class<T>): T {
+        val new = when (clazz) {
+            Arrow::class.java -> Arrow(Coordinate(x, y), time)
+            Image::class.java -> Image(Coordinate(x, y), time)
+            Label::class.java -> Label(Coordinate(x, y), time)
+            Unit::class.java -> Unit(Coordinate(x, y), time)
+            Node::class.java -> Node(Coordinate(x, y), time, NodeID(nodeId))
+            else -> throw IllegalStateException("Unexpected create class")
         }
-        new?.init()
+        when (clazz) {
+            Arrow::class.java -> arrows.add(new as Arrow)
+            Image::class.java -> images.add(new as Image)
+            Label::class.java -> labels.add(new as Label)
+            Unit::class.java -> units.add(new as Unit)
+            Node::class.java -> nodes.add(new as Node)
+        }
+        new.init()
+        if (Drawable::class.java.isAssignableFrom(clazz)) {
+            drawer.addToDrawOrder(new as Drawable)
+        }
 
-        return new
+        return new as T
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -141,8 +122,8 @@ data class Animation @JvmOverloads constructor(
             objects.addAll(arrows.filter { it.clicked(x, y) }.map {it as T} )
         }
 
-        if (type.isAssignableFrom(MapLabel::class.java)) {
-            objects.addAll(mapLabels.filter { it.clicked(x, y) }.map {it as T} )
+        if (type.isAssignableFrom(Label::class.java)) {
+            objects.addAll(labels.filter { it.clicked(x, y) }.map {it as T} )
         }
 
         if (type.isAssignableFrom(Image::class.java)) {
@@ -166,12 +147,18 @@ data class Animation @JvmOverloads constructor(
         }
     }
 
-    fun update(time: Int, orthographicCamera: OrthographicCamera, paused: Boolean) {
+    fun update(time: Int, animationMode: Boolean, paused: Boolean) {
         camera().goToTime(time)
+        drawer.update(time, animationMode)
+        val orthographicCamera = drawer.camera
         nodeEdgeHandler.update(time, orthographicCamera, paused)
         units.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
         images.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
         arrows.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
-        mapLabels.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
+        labels.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
+    }
+
+    fun draw() {
+        drawer.draw(this)
     }
 }

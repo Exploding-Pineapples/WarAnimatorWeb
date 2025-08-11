@@ -13,7 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
-import com.wamteavm.loaders.InternalLoader;
+import com.wamteavm.models.screenobjects.Arrow;
+import com.wamteavm.models.screenobjects.Image;
+import com.wamteavm.models.screenobjects.Unit;
 import com.wamteavm.ui.inputelements.SelectBoxInput;
 import com.wamteavm.models.*;
 import com.wamteavm.ui.InputElementShower;
@@ -48,8 +50,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     ArrayList<AnyObject> selectedObjects;
 
-    Drawer drawer;
-
     // Actions
     TouchMode touchMode;
     List<Action> actions;
@@ -69,16 +69,13 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     Label keyOptions;
     Label selectedLabel;
     InputElementShower uiShower;
-    String newUnitCountry;
-    SelectBoxInput<String> newUnitCountryInput;
     Integer newNodeCollectionID;
     SelectBoxInput<Integer> newNodeCollectionIDInput;
-    String createClass;
+    Class<? extends AnyObject> createClass;
     SelectBoxInput<String> createSelectBoxInput;
     boolean animationMode;
     boolean UIDisplayed;
     boolean newEdgeInputsDisplayed;
-    boolean newUnitInputsDisplayed;
 
     public AnimationScreen(WarAnimator game, Animation animation) {
         this.animation = animation;
@@ -104,28 +101,27 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         keyOptions = new Label("", game.skin);
         leftGroup = new VerticalGroup();
 
-        newUnitCountryInput = new SelectBoxInput<>(game.skin, (String input) -> {newUnitCountry = input; return null;}, () -> null, String.class, "New Unit Country", InternalLoader.INSTANCE.countryNames(), null);
-        if (!InternalLoader.INSTANCE.countryNames().isEmpty()) {
-            newUnitCountry = InternalLoader.INSTANCE.countryNames().first();
-        } else {
-            newUnitCountry = "";
-        }
-        newUnitInputsDisplayed = false;
-
         Array<String> createChoices = new Array<>();
-        createChoices.addAll("Unit", "Node", "Map Label", "Arrow", "Image");
+        createChoices.addAll("Unit", "Node", "MapLabel", "Arrow", "Image");
 
         createSelectBoxInput = new SelectBoxInput<>(
             game.skin,
-            (String input) -> {
-                createClass = input;
+            (String in) -> {
+                createClass = switch (in) {
+                    case "Unit" -> Unit.class;
+                    case "Node" -> Node.class;
+                    case "MapLabel" -> com.wamteavm.models.screenobjects.Label.class;
+                    case "Arrow" -> Arrow.class;
+                    case "Image" -> Image.class;
+                    default -> AnyObject.class;
+                };
                 return null;
             },
-            () -> createClass,
+            () -> createClass.getSimpleName(),
             String.class,
             "Create Mode Input",
             createChoices, null);
-        createClass = "Unit";
+        createClass = Unit.class;
 
         newNodeCollectionID = 0;
         Array<Integer> idChoices = new Array<>();
@@ -157,9 +153,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             Gdx.input.setCatchKey(key, true);
         }
 
-        animation.init();
         orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-        drawer = new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time);
+        animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time));
         updateCam();
     }
 
@@ -232,7 +227,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 ArrayList<AnyObject> selectedObjectsCopy = new ArrayList<>(selectedObjects);
                 for (AnyObject selectedObject : selectedObjectsCopy) {
                     if (selectedObject.getClass() == Node.class) {
-                        Node newNode = (Node) animation.createObjectAtPosition(time, mouseX, mouseY, "Node", "");
+                        Node newNode = animation.createObjectAtPosition(time, mouseX, mouseY, Node.class);
                         animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode);
                         switchSelected(newNode);
                     }
@@ -301,7 +296,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     private void updateTime(int newTime) {
         time = newTime;
-        animation.update(time, orthographicCamera, false);
+        animation.update(time, false, paused);
         animation.camera().goToTime(time);
         updateCam();
     }
@@ -424,7 +419,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                             NodeCollectionSetPoint setPoint = parent.getInterpolator().getSetPoints().get(time);
                             if (setPoint != null) {
                                 selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
-                                    .append(Math.round(setPoint.tOfNode(node) * 10000) / 10000.0).append("\n");
+                                    .append(round(setPoint.tOfNode(node) * 10000) / 10000.0).append("\n");
                             }
                         }
                         selectedInfo.append("Edges: ").append(toNodes).append("\n");
@@ -472,17 +467,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
 
             if (touchMode == TouchMode.CREATE) {
-                if (createClass.equals("Unit")) {
-                    if (!newUnitInputsDisplayed) {
-                        newUnitCountryInput.show(leftGroup, game.skin);
-                        newUnitInputsDisplayed = true;
-                    }
-                } else {
-                    if (newUnitInputsDisplayed) {
-                        newUnitCountryInput.hide(leftGroup);
-                        newUnitInputsDisplayed = false;
-                    }
-                }
                 if (!createSelectBoxInput.getDisplayed()) {
                     createSelectBoxInput.show(leftGroup, game.skin);
                     createSelectBoxInput.setDisplayed(true);
@@ -491,10 +475,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 if (createSelectBoxInput.getDisplayed()) {
                     createSelectBoxInput.hide(leftGroup);
                     createSelectBoxInput.setDisplayed(false);
-                }
-                if (newUnitInputsDisplayed) {
-                    newUnitCountryInput.hide(leftGroup);
-                    newUnitInputsDisplayed = false;
                 }
             }
 
@@ -536,7 +516,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ctrlPressed = (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT));
         shiftPressed = (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT));
 
-        animation.update(time, orthographicCamera, paused);
+        animation.update(time, animationMode, paused);
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             orthographicCamera.position.y += 10 / orthographicCamera.zoom;
@@ -569,7 +549,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         if (!paused) { //don't update camera when paused to allow for movement when paused
             updateCam();
         }
-        drawer.update(time, animationMode, animation);
 
         updateUI();
 
@@ -581,7 +560,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         update();
 
         game.batch.begin();
-        drawer.draw(animation);
+        animation.draw();
 
         if (animationMode) {
             // Draw contrast backgrounds for UI
@@ -592,7 +571,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
             //Draw the selected objects
             for (AnyObject selectedObject : selectedObjects) {
-                drawer.drawAsSelected(selectedObject);
+                animation.drawer.drawAsSelected(selectedObject);
             }
         }
         game.batch.end();
@@ -667,7 +646,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
 
             if (touchMode == TouchMode.CREATE) {
-                switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass, InternalLoader.INSTANCE.flagsPath(newUnitCountry)));
+                switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass));
             }
 
             if (touchMode == TouchMode.NEW_EDGE) {

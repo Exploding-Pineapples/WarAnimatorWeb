@@ -1,6 +1,5 @@
 package com.wamteavm.ui
 
-import com.badlogic.gdx.Gdx.input
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
@@ -10,7 +9,7 @@ import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.models.*
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
-import com.wamteavm.models.screenobjects.MapLabel
+import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.AreaColor
@@ -106,8 +105,8 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             if (specificClass == Image::class.java) {
                 inputElements.addAll(getImageInputs(classElementMap[specificClass] as List<Image>))
             }
-            if (specificClass == MapLabel::class.java) {
-                inputElements.addAll(getMapLabelInputs(classElementMap[specificClass] as List<MapLabel>))
+            if (specificClass == Label::class.java) {
+                inputElements.addAll(getMapLabelInputs(classElementMap[specificClass] as List<Label>))
             }
             if (specificClass == Unit::class.java) {
                 inputElements.addAll(getUnitInputs(classElementMap[specificClass] as List<Unit>))
@@ -160,25 +159,25 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             )
     }
 
-    fun getMapLabelInputs(mapLabels: List<MapLabel>) : List<InputElement<*>> {
+    fun getMapLabelInputs(labels: List<Label>) : List<InputElement<*>> {
         return listOf(
             TextInput(null, { input ->
                 if (input != null) {
                     if (input > 0) {
-                        for (mapLabel in mapLabels) {
+                        for (mapLabel in labels) {
                             mapLabel.size = input
                         }
                     }
                 }
             }, label@{
-                return@label returnIfSame(mapLabels.map { it.size.toString() })
+                return@label returnIfSame(labels.map { it.size.toString() })
             }, Float::class.java, "Set size"),
             TextInput(null, { input ->
-                for (mapLabel in mapLabels) {
+                for (mapLabel in labels) {
                     mapLabel.text = input ?: ""
                 }
             }, label@{
-                return@label returnIfSame(mapLabels.map { it.text })
+                return@label returnIfSame(labels.map { it.text })
             }, String::class.java, "Set text")
         )
     }
@@ -215,11 +214,11 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             }, String::class.java, "Set type", InternalLoader.unitTypes()),
             SelectBoxInput(null, { input ->
                 for (unit in units) {
-                    unit.image = InternalLoader.flagsPath(input ?: "")
+                    unit.country = InternalLoader.flagsPath(input ?: "")
                     unit.updateCountryTexture()
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.image.substringAfter("assets/flags/") })
+                return@label returnIfSame(units.map { it.country.substringAfter("assets/flags/") })
             }, String::class.java, "Set country", InternalLoader.countryNames),
             TextInput(null, { input ->
                 for (unit in units) {

@@ -30,7 +30,7 @@ public class WarAnimator extends Game {
 
     public WarAnimator(boolean web) {
         animationLoader = web ? APIExternalLoader.INSTANCE : FileExternalLoader.INSTANCE;
-        firstScreen = new LoginScreen(this);
+        firstScreen = web ? new LoginScreen(this) : new MenuScreen(this);
     }
 
     public WarAnimator(AuthResult authResult, Animation animation) { // Skip login, go directly to AnimationScreen.

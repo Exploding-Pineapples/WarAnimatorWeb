@@ -10,7 +10,7 @@ import com.wamteavm.models.Animation
 import com.wamteavm.models.Coordinate
 import com.wamteavm.models.NodeCollectionSetPoint
 import com.wamteavm.screens.AnimationScreen
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.math.round
@@ -59,8 +59,8 @@ class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
 }
 
 @Serializable
-class ColorSetPointInterpolator : SetPointInterpolator<Int, AreaColor, Color> {
-    override var setPoints: MutableMap<Int, AreaColor> = sortedMapOf()
+class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color> {
+    override var setPoints: MutableMap<Int, ColorWrapper> = sortedMapOf()
     @Transient override var value: Color = Color.BLACK
     @Transient var rInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var gInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())

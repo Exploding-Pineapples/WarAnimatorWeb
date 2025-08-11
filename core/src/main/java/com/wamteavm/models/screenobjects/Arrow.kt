@@ -3,7 +3,7 @@ package com.wamteavm.models.screenobjects
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.*
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,7 +11,7 @@ class Arrow(override var position: Coordinate, override var initTime: Int): Scre
     override var order = "f"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator()
-    override var color = AreaColor.RED
+    override var color: ColorWrapper = ColorWrapper(1f, 0f, 0f, 1f)
     var thickness = 10f
 
     override fun init() {

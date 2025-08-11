@@ -12,7 +12,7 @@ import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.SelectBoxInput
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 
 class InputElementShower(val skin: Skin, val animation: Animation) {
     val inputElements: MutableList<InputElement<*>> = mutableListOf()
@@ -29,6 +29,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         inputElements.forEach { it.hide(verticalGroup) }
         inputElements.clear()
         val hasInputs = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
+
         val hasAlphas: MutableList<HasAlpha> = mutableListOf()
         val hasColors: MutableList<HasColor> = mutableListOf()
         val drawables: MutableList<Drawable> = mutableListOf()
@@ -83,16 +84,15 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         if (hasColors.isNotEmpty()) {
             val colorInput = TextInput(null, { input ->
                 if (input != null) {
-                    for (areaColor in AreaColor.entries) {
-                        if (input == areaColor.name) {
-                            for (element in hasColors) {
-                                element.color = areaColor
-                            }
+                    for (element in hasColors) {
+                        val color = ColorWrapper.parseString(input)
+                        if (color != null) {
+                            element.color = color
                         }
                     }
                 }
             }, label@{
-                return@label returnIfSame(hasColors.map { it.color.toString() })
+                return@label returnIfSame(hasColors.map { it.color.color.toString() })
             }, String::class.java, "Set color")
             inputElements.add(colorInput)
         }

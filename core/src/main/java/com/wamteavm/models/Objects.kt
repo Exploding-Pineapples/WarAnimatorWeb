@@ -4,7 +4,7 @@ import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
 import com.wamteavm.WarAnimator.DISPLAY_WIDTH
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 import kotlin.math.absoluteValue
 
 interface AnyObject {
@@ -91,7 +91,7 @@ interface HasAlpha : HasInputs {
 }
 
 interface HasColor : HasInputs {
-    var color: AreaColor
+    var color: ColorWrapper
 }
 
 interface Clickable {

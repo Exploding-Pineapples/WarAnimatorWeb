@@ -6,7 +6,7 @@ import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.*
 import com.wamteavm.screens.AnimationScreen
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -19,7 +19,7 @@ data class Unit(
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
-    override var color: AreaColor = AreaColor.BLUE
+    override var color: ColorWrapper = ColorWrapper(1f, 0f, 0f, 1f)
     var country: String = ""
     var name: String = ""
     var type: String = "infantry.png"

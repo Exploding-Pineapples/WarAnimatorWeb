@@ -3,7 +3,7 @@ package com.wamteavm.models
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.interpolator.NodeCollectionInterpolator
-import com.wamteavm.utilities.AreaColor
+import com.wamteavm.utilities.ColorWrapper
 import com.wamteavm.utilities.clickedCoordinates
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -14,7 +14,7 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     override var order = "e"
     override var alpha: FloatSetPointInterpolator = FloatSetPointInterpolator()
     @Transient var interpolator: NodeCollectionInterpolator = NodeCollectionInterpolator()
-    override var color: AreaColor = AreaColor.RED
+    override var color: ColorWrapper = ColorWrapper(1f, 0f, 0f, 1f)
     var type: String = "None"
     var width: Float? = null
 

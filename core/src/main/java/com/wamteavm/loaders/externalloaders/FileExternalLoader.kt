@@ -1,13 +1,14 @@
-package com.wamteavm.files
+package com.wamteavm.loaders.externalloaders
 
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.wamteavm.models.Animation
 import kotlinx.serialization.json.Json
-
 import java.io.File
 
-object FileHandler {
-    val json = Json { ignoreUnknownKeys = true }
-    val animations = mutableListOf<Animation>()
+object FileExternalLoader : AbstractExternalLoader {
+    override val animations = mutableListOf<Animation>()
+    override val images: MutableList<Image> = mutableListOf()
+    val json: Json = Json { ignoreUnknownKeys = true }
 
     private val animationsFolder by lazy {
         val file = File("animations")
@@ -17,16 +18,7 @@ object FileHandler {
         file
     }
 
-    fun deleteAnimation(animation: Animation) {
-        animations.remove(animation)
-        println(animation.name)
-        val file = File(animationsFolder.toString(), "${animation.name}.json")
-        if (file.exists()) {
-            println("deleted: ${file.delete()}")
-        }
-    }
-
-    fun save() {
+    override fun save() {
         animations.forEach {
             val file = File("$animationsFolder","${it.name}.json")
 
@@ -41,17 +33,11 @@ object FileHandler {
                 println("couldnt save ${it.name} rip")
             }
         }
-        println("saved")
     }
 
-    fun addAnimation(animation: Animation) {
-        animations.add(animation)
-    }
-
-    fun load() {
+    override fun load() {
         animationsFolder.list()?.forEach { name ->
-            if (!animations.any { animation -> animation.name == name.removeSuffix(".json") })
-            {
+            if (!animations.any { animation -> animation.name == name.removeSuffix(".json") }) {
                 val content = File(animationsFolder.toString(), name).readText()
                 kotlin.runCatching {
                     animations += json.decodeFromString<Animation>(content)
@@ -60,6 +46,22 @@ object FileHandler {
                 }
             }
         }
-        println("animations loaded")
+    }
+
+    override fun addAnimation(animation: Animation) {
+        animations.add(animation)
+        save()
+    }
+
+    override fun deleteAnimation(animation: Animation) {
+        animations.remove(animation)
+        println(animationsFolder.toString())
+        val file = File(animationsFolder, "${animation.name}.json")
+        if (file.exists()) {
+            println(file.delete())
+        }
+    }
+
+    override fun exit() {
     }
 }

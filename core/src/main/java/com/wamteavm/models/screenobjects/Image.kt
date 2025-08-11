@@ -1,7 +1,7 @@
 package com.wamteavm.models.screenobjects
 
 import com.badlogic.gdx.graphics.Texture
-import com.wamteavm.files.Assets
+import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.Coordinate
@@ -17,7 +17,7 @@ class Image(override var position: Coordinate, override var initTime: Int, var p
     override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     var scale: Float = 1f
 
-    @Transient var texture: Texture? = Assets.loadTexture(path)
+    @Transient var texture: Texture? = InternalLoader.loadTexture(path)
 
     override fun init() {
         super.init()
@@ -29,7 +29,7 @@ class Image(override var position: Coordinate, override var initTime: Int, var p
         if (path == "") {
             println("Image path is empty")
         }
-        texture = Assets.loadTexture(path)
+        texture = InternalLoader.loadTexture(path)
         println("updated image path to $texture")
     }
 

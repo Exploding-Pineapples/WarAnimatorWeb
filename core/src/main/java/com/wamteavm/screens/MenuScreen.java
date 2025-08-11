@@ -14,11 +14,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.wamteavm.WarAnimator;
-import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
@@ -41,6 +39,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new LoginScreen(game));
+                game.animationLoader.exit();
                 dispose();
             }
         });
@@ -64,8 +63,8 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         table.add(newAnimationButton).colspan(4);
         table.row().pad(10);
 
-        FileHandler.INSTANCE.load();
-        List<Animation> animations = FileHandler.INSTANCE.getAnimations();
+        game.animationLoader.load();
+        List<Animation> animations = game.animationLoader.getAnimations();
 
         Label title = new Label("", skin);
         if (animations.isEmpty()) {
@@ -115,7 +114,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                FileHandler.INSTANCE.deleteAnimation(animation);
+                game.animationLoader.deleteAnimation(animation);
                 game.menuScreen = new MenuScreen(game);
                 game.setScreen(game.menuScreen);
             }

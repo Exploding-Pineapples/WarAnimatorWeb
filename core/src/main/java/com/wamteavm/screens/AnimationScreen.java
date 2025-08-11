@@ -13,8 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
-import com.wamteavm.files.Assets;
-import com.wamteavm.files.FileHandler;
+import com.wamteavm.loaders.InternalLoader;
 import com.wamteavm.ui.inputelements.SelectBoxInput;
 import com.wamteavm.models.*;
 import com.wamteavm.ui.InputElementShower;
@@ -105,9 +104,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         keyOptions = new Label("", game.skin);
         leftGroup = new VerticalGroup();
 
-        newUnitCountryInput = new SelectBoxInput<>(game.skin, (String input) -> {newUnitCountry = input; return null;}, () -> null, String.class, "New Unit Country", Assets.INSTANCE.countryNames(), null);
-        if (!Assets.INSTANCE.countryNames().isEmpty()) {
-            newUnitCountry = Assets.INSTANCE.countryNames().first();
+        newUnitCountryInput = new SelectBoxInput<>(game.skin, (String input) -> {newUnitCountry = input; return null;}, () -> null, String.class, "New Unit Country", InternalLoader.INSTANCE.countryNames(), null);
+        if (!InternalLoader.INSTANCE.countryNames().isEmpty()) {
+            newUnitCountry = InternalLoader.INSTANCE.countryNames().first();
         } else {
             newUnitCountry = "";
         }
@@ -173,6 +172,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }, "Pause/Unpause the game", Input.Keys.SPACE).requiresSelected(Requirement.ANY).build());
         // Shift required
         actions.add(Action.createBuilder(() -> {
+            game.animationLoader.save();
             game.menuScreen = new MenuScreen(game);
             game.setScreen(game.menuScreen);
             return null;
@@ -255,7 +255,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             return null;
         }, "Toggle new edge mode", Input.Keys.E).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {
-            FileHandler.INSTANCE.save();
+            game.animationLoader.save();
             System.out.println("saved");
             return null;
         }, "Save project", Input.Keys.S).requiresControl(true).build());
@@ -667,7 +667,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
 
             if (touchMode == TouchMode.CREATE) {
-                switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass, Assets.INSTANCE.flagsPath(newUnitCountry)));
+                switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass, InternalLoader.INSTANCE.flagsPath(newUnitCountry)));
             }
 
             if (touchMode == TouchMode.NEW_EDGE) {

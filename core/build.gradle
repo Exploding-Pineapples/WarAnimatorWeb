@@ -17,10 +17,15 @@ dependencies {
   }
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
+  implementation("com.waranimator.api.client:war-animator-api-client:1.7.0")
+  implementation "org.teavm:teavm-jso-apis:$teaVMVersion"
+  implementation "org.teavm:teavm-jso:$teaVMVersion"
 }
 repositories {
   mavenCentral()
+  maven { url "https://repo.liftgate.io/artifactory/liftgate-oss/" }
 }
 kotlin {
-  jvmToolchain(11)
+  jvmToolchain(17)
 }

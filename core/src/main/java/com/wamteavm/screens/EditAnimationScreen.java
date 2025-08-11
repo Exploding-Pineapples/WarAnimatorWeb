@@ -15,7 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.wamteavm.WarAnimator;
-import com.wamteavm.files.FileHandler;
 import com.wamteavm.models.Animation;
 import kotlin.Pair;
 
@@ -78,7 +77,7 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
                 if (inputCheck.getFirst()) {
                     animation.setName(nameField.getText());
                     if (newAnimation) {
-                        FileHandler.INSTANCE.addAnimation(animation);
+                        game.animationLoader.addAnimation(animation);
                     }
                     game.setScreen(new LoadingScreen(game, animation));
                 } else {
@@ -102,7 +101,7 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
             return new Pair<>(false, "Name cannot be empty");
         }
         if (newAnimation) {
-            for (Animation existing : FileHandler.INSTANCE.getAnimations()) {
+            for (Animation existing : game.animationLoader.getAnimations()) {
                 if (existing.getName().equals(name)) {
                     return new Pair<>(false, "Animation already exists");
                 }

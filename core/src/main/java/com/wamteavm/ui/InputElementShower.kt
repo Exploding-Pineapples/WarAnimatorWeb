@@ -3,7 +3,7 @@ package com.wamteavm.ui
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
-import com.wamteavm.files.Assets
+import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.ui.inputelements.InputElement
 import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.models.*
@@ -129,11 +129,11 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         return listOf(
             SelectBoxInput(null, { input ->
                 for (image in images) {
-                    image.updateTexture(Assets.mapsPath(input ?: ""))
+                    image.updateTexture(InternalLoader.mapsPath(input ?: ""))
                 }
             }, label@{
                 return@label returnIfSame(images.map { it.path.substringAfter("assets/maps/") })
-            }, String::class.java, "Image", Assets.images()),
+            }, String::class.java, "Image", InternalLoader.images()),
             TextInput(null, { input ->
                 if (input != null) {
                     if (input >= 0) {
@@ -200,15 +200,15 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                 }
             }, label@{
                 return@label returnIfSame(units.map { it.type })
-            }, String::class.java, "Set type", Assets.unitTypes()),
+            }, String::class.java, "Set type", InternalLoader.unitTypes()),
             SelectBoxInput(null, { input ->
                 for (unit in units) {
-                    unit.image = Assets.flagsPath(input ?: "")
+                    unit.image = InternalLoader.flagsPath(input ?: "")
                     unit.updateCountryTexture()
                 }
             }, label@{
                 return@label returnIfSame(units.map { it.image.substringAfter("assets/flags/") })
-            }, String::class.java, "Set country", Assets.countryNames),
+            }, String::class.java, "Set country", InternalLoader.countryNames),
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""

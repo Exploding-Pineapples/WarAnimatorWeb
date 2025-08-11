@@ -19,6 +19,6 @@ public class TeaVMLauncher {
         //// If width and height are both -1, then the app will fill the canvas size.
         config.width = WarAnimator.DISPLAY_WIDTH;
         config.height = WarAnimator.DISPLAY_HEIGHT;
-        new TeaApplication(new WarAnimator(), config);
+        new TeaApplication(new WarAnimator(true), config);
     }
 }

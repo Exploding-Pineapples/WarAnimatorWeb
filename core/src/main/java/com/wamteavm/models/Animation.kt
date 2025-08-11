@@ -12,7 +12,7 @@ import kotlinx.serialization.Transient
 @Serializable
 data class Animation @JvmOverloads constructor(
     var name: String = "My Animation",
-    var countries: List<String> = mutableListOf(),
+    var id: String = "",
     val units: MutableList<Unit> = mutableListOf(),
     private var camera: Camera? = null,
     val nodes: MutableList<Node> = mutableListOf(),
@@ -22,7 +22,6 @@ data class Animation @JvmOverloads constructor(
     var images: MutableList<Image> = mutableListOf(),
     var nodeCollectionID: Int = 0,
     var nodeId: Int = 0,
-    val linesPerNode: Int = 12,
     var initTime: Int = 0
 )
 {

@@ -5,10 +5,15 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.wamteavm.files.Assets;
-import com.wamteavm.files.FileHandler;
+import com.wamteavm.loaders.externalloaders.AbstractExternalLoader;
+import com.wamteavm.loaders.InternalLoader;
+import com.wamteavm.loaders.externalloaders.APIExternalLoader;
+import com.wamteavm.loaders.externalloaders.FileExternalLoader;
+import com.wamteavm.models.Animation;
+import com.wamteavm.screens.AnimationScreen;
 import com.wamteavm.screens.LoginScreen;
 import com.wamteavm.screens.MenuScreen;
+import com.waranimator.api.client.models.AuthResult;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -20,27 +25,41 @@ public class WarAnimator extends Game {
     public ShapeDrawer shapeDrawer;
     public MenuScreen menuScreen;
     public InputMultiplexer multiplexer;
+    public AbstractExternalLoader animationLoader;
+    private Screen firstScreen;
+
+    public WarAnimator(boolean web) {
+        animationLoader = web ? APIExternalLoader.INSTANCE : FileExternalLoader.INSTANCE;
+        firstScreen = new LoginScreen(this);
+    }
+
+    public WarAnimator(AuthResult authResult, Animation animation) { // Skip login, go directly to AnimationScreen.
+        APIExternalLoader.INSTANCE.getApi().setAuthToken(authResult.getToken());
+        animationLoader = APIExternalLoader.INSTANCE;
+        firstScreen = new AnimationScreen(this, animation);
+    }
 
     @Override
     public void create() {
-        skin = Assets.INSTANCE.loadSkin("skin/glassy-ui.json");
-        bitmapFont = Assets.INSTANCE.loadFont();
-        fontShader = Assets.INSTANCE.loadFontShader();
+        skin = InternalLoader.INSTANCE.loadSkin("skin/glassy-ui.json");
+        bitmapFont = InternalLoader.INSTANCE.loadFont();
+        fontShader = InternalLoader.INSTANCE.loadFontShader();
         batch = new SpriteBatch();
-        shapeDrawer = new ShapeDrawer(batch, Assets.INSTANCE.whitePixel());
+        shapeDrawer = new ShapeDrawer(batch, InternalLoader.INSTANCE.whitePixel());
         multiplexer = new InputMultiplexer();
 
         if (!fontShader.isCompiled()) {
             Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
         }
 
-        setScreen(new LoginScreen(this));
+        setScreen(firstScreen);
     }
 
     @Override
     public void dispose() {
+        animationLoader.exit();
         batch.dispose();
-        FileHandler.INSTANCE.save();
+        animationLoader.save();
     }
 
     public static final int DISPLAY_WIDTH = 1920;

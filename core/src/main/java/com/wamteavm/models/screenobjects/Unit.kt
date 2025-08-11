@@ -1,7 +1,7 @@
 package com.wamteavm.models.screenobjects
 
 import com.badlogic.gdx.graphics.Texture
-import com.wamteavm.files.Assets
+import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.*
@@ -46,7 +46,7 @@ data class Unit(
     }
 
     fun updateCountryTexture() {
-        countryTexture = Assets.loadTexture(image)
+        countryTexture = InternalLoader.loadTexture(image)
     }
 
     fun countryTexture(): Texture? {
@@ -57,7 +57,7 @@ data class Unit(
     }
 
     fun updateTypeTexture() {
-        typeTexture = Assets.loadTexture(Assets.unitKindsPath(type))
+        typeTexture = InternalLoader.loadTexture(InternalLoader.unitKindsPath(type))
     }
 
     fun typeTexture(): Texture? {

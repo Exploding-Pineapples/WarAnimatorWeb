@@ -382,6 +382,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             timeAndFPS.setText(Gdx.graphics.getFramesPerSecond() + " FPS \n" + "Time: " + time);
 
             StringBuilder options = new StringBuilder();
+            options.append("Zoom: ").append(orthographicCamera.zoom).append("\n");
             options.append("Touch mode: ").append(touchMode.name()).append("\n");
             options.append("Control pressed: ").append(ctrlPressed).append(" ").append("Shift pressed: ").append(shiftPressed).append("\n");
             for (Action action : actions) {
@@ -629,19 +630,17 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
-        y = DISPLAY_HEIGHT - y;
-
         System.out.println("Clicked " + mouseX + " " + mouseY + " touch mode " + touchMode);
 
-        animation.selectObjectWithType(x, y, orthographicCamera.zoom, time, Node.class);
+        animation.selectObjectWithType(mouseX, mouseY, orthographicCamera.zoom, time, Node.class);
 
         if (paused) {
             if (touchMode == TouchMode.DEFAULT) { // Default behavior: select an object to show info about it
-                selectDefault(x, y);
+                selectDefault(mouseX, mouseY);
             }
             if (touchMode == TouchMode.MOVE) { // Selects an object to move. If a node is selected to be moved into another node, it will be merged
                 if (selectedObjects.isEmpty()) {
-                    selectDefault(x, y);
+                    selectDefault(mouseX, mouseY);
                 } else {
                     clearSelected();
                 }
@@ -654,7 +653,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             }
 
             if (touchMode == TouchMode.NEW_EDGE) {
-                Node newSelection = selectNewObject(x, y, selectedObjects, Node.class);
+                Node newSelection = selectNewObject(mouseX, mouseY, selectedObjects, Node.class);
                 if (newSelection != null) {
                     for (AnyObject selectedObject : selectedObjects) { // Add edge from already selected Nodes to new selected node
                         if (selectedObject.getClass() == Node.class) {

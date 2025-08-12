@@ -58,6 +58,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                 for (drawable in drawables) {
                     drawable.order = input ?: ""
                 }
+                animation.drawer.updateDrawOrder(animation)
             }, label@{
                 return@label returnPropertyIfSame(drawables) { it.order }
             }, String::class.java, "Set layer/draw order")

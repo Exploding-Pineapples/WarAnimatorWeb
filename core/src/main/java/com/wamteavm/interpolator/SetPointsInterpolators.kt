@@ -1,9 +1,6 @@
 package com.wamteavm.interpolator
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.OrthographicCamera
-import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
-import com.wamteavm.WarAnimator.DISPLAY_WIDTH
 import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import com.wamteavm.models.Animation

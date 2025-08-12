@@ -177,11 +177,13 @@ class NodeEdgeHandler(val animation: Animation) {
                 existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }
         }
+
+        animation.drawer.updateDrawOrder(animation)
     }
 
     fun update(time: Int) {
         animation.nodes.forEach { it.update(time) }
-        animation.nodeCollections.forEach { it.update(time) }
+        animation.nodeCollections.forEach { it.update(time, animation.camera().zoomInterpolator.value) }
     }
 
     fun insert(at: Node, node: Node) {

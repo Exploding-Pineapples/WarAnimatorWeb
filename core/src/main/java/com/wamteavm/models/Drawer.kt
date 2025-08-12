@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Rectangle
+import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
+import com.wamteavm.WarAnimator.DISPLAY_WIDTH
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
@@ -69,28 +71,33 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(nodeCollection: NodeCollection) {
-        val coords = nodeCollection.interpolator.screenCoordinates
+        val screenCoordinates = FloatArray(nodeCollection.interpolator.value.size)
+        for (i in nodeCollection.interpolator.value.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
+            screenCoordinates[i] = nodeCollection.interpolator.value[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
+            screenCoordinates[i + 1] = nodeCollection.interpolator.value[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
+        }
 
-        if (coords.isNotEmpty()) {
+        if (screenCoordinates.isNotEmpty()) {
             shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value, nodeCollection.alpha.value))
             if (nodeCollection.type == "Area") {
-                val earcut = Earcut.earcut(coords) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
+                val earcut =
+                    Earcut.earcut(screenCoordinates) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
 
                 var j = 0
                 while (j < earcut.size) {
                     shapeDrawer.filledTriangle(
-                        coords[earcut[j] * 2],
-                        coords[earcut[j] * 2 + 1],
-                        coords[earcut[j + 1] * 2],
-                        coords[earcut[j + 1] * 2 + 1],
-                        coords[earcut[j + 2] * 2],
-                        coords[earcut[j + 2] * 2 + 1]
+                        screenCoordinates[earcut[j] * 2],
+                        screenCoordinates[earcut[j] * 2 + 1],
+                        screenCoordinates[earcut[j + 1] * 2],
+                        screenCoordinates[earcut[j + 1] * 2 + 1],
+                        screenCoordinates[earcut[j + 2] * 2],
+                        screenCoordinates[earcut[j + 2] * 2 + 1]
                     )
                     j += 3
                 }
             }
             if (nodeCollection.type == "Line") {
-                shapeDrawer.path(coords, nodeCollection.width?: 5f, JoinType.NONE, true)
+                shapeDrawer.path(screenCoordinates, nodeCollection.width ?: 5f, JoinType.NONE, true)
             }
         }
     }

@@ -103,7 +103,6 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
     override var setPoints: MutableMap<Int, NodeCollectionSetPoint> = sortedMapOf()
     override var value: FloatArray = floatArrayOf()
     override var interpolated: Boolean = true
-    var screenCoordinates: FloatArray = floatArrayOf()
     private var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
     private var zoom: Float = 1f
 
@@ -112,14 +111,6 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
 
         setPoints.values.forEach { it.updateInterpolators() }
         cachedInterpolators.clear()
-    }
-
-    fun updateScreenCoordinates(camera: OrthographicCamera) {
-        screenCoordinates = FloatArray(value.size)
-        for (i in value.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
-            screenCoordinates[i] = value[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
-            screenCoordinates[i + 1] = value[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
-        }
     }
 
     fun prepare(zoom: Float) {

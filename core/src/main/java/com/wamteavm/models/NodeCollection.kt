@@ -27,20 +27,19 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     override fun update(time: Int) {
         super<HasAlpha>.update(time)
         super<HasColor>.update(time)
+        interpolator.evaluate(time)
+    }
+
+    fun update(time: Int, zoom: Float) {
+        update(time)
+        interpolator.prepare(zoom)
     }
 
     override fun draw(drawer: Drawer) {
         drawer.draw(this)
     }
 
-    fun update(time: Int, camera: OrthographicCamera) {
-        update(time)
-        interpolator.evaluate(time)
-        interpolator.prepare(camera.zoom)
-        interpolator.updateScreenCoordinates(camera)
-    }
-
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
-        return clickedCoordinates(x, y, zoom, interpolator.screenCoordinates.toTypedArray())
+        return clickedCoordinates(x, y, zoom, interpolator.value)
     }
 }

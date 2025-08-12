@@ -46,7 +46,7 @@ fun clickedCoordinates(x: Float, y: Float, zoom: Float, coordinates: Array<Coord
     return false
 }
 
-fun clickedCoordinates(x: Float, y: Float, zoom: Float, coordinates: Array<Float>): Boolean {
+fun clickedCoordinates(x: Float, y: Float, zoom: Float, coordinates: FloatArray): Boolean {
     if (coordinates.isNotEmpty()) {
         val point = Coordinate(x, y)
         for (i in 3..coordinates.lastIndex step 2) {

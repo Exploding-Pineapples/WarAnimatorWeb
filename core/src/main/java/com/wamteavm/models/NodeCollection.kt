@@ -1,6 +1,5 @@
 package com.wamteavm.models
 
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.interpolator.ColorSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.interpolator.NodeCollectionInterpolator
@@ -20,8 +19,8 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     var width: Float? = null
 
     override fun init() {
-        alpha.updateInterpolationFunction()
-        interpolator = NodeCollectionInterpolator()
+        super<HasAlpha>.init()
+        super<HasColor>.init()
     }
 
     override fun update(time: Int) {

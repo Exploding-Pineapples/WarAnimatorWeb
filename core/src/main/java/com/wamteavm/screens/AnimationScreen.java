@@ -702,7 +702,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     public boolean scrolled(float amountX, float amountY) {
         if (paused) {
             zoomLevel -= (int) amountY;
-            float zoomMultiplier = (float) Math.pow(1.05, amountY);
+            float zoomMultiplier = (float) Math.pow(1.05, -amountY);
             orthographicCamera.zoom = (float) Math.pow(1.05, zoomLevel);
             orthographicCamera.position.x -= (mouseX - orthographicCamera.position.x) * (1 - zoomMultiplier);
             orthographicCamera.position.y -= (mouseY - orthographicCamera.position.y) * (1 - zoomMultiplier);

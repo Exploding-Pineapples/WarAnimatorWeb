@@ -41,6 +41,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     OrthographicCamera orthographicCamera; // Camera actually used when running, animation.camera only updates this
 
+    int zoomLevel = 0;
+
     // Mouse position in unprojected units
     float mouseX;
     float mouseY;
@@ -699,8 +701,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public boolean scrolled(float amountX, float amountY) {
         if (paused) {
-            float zoomMultiplier = 1 - 0.05f * amountY;
-            orthographicCamera.zoom *= zoomMultiplier;
+            zoomLevel -= (int) amountY;
+            float zoomMultiplier = (float) Math.pow(1.05, amountY);
+            orthographicCamera.zoom = (float) Math.pow(1.05, zoomLevel);
             orthographicCamera.position.x -= (mouseX - orthographicCamera.position.x) * (1 - zoomMultiplier);
             orthographicCamera.position.y -= (mouseY - orthographicCamera.position.y) * (1 - zoomMultiplier);
         }

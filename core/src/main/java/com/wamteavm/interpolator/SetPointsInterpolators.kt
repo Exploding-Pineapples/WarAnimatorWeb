@@ -1,6 +1,5 @@
 package com.wamteavm.interpolator
 
-import com.badlogic.gdx.graphics.Color
 import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import com.wamteavm.models.Animation
@@ -8,20 +7,20 @@ import com.wamteavm.models.Coordinate
 import com.wamteavm.models.NodeCollectionSetPoint
 import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.ColorWrapper
+import com.wamteavm.utilities.SerializableTreeMap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.math.round
 
 @Serializable
 class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coordinate> {
-    override var setPoints: MutableMap<Int, Coordinate> = mutableMapOf()
+    override var setPoints: SerializableTreeMap<Int, Coordinate> = SerializableTreeMap()
     @Transient var xInterpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var yInterpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient override var value = Coordinate(0f, 0f)
     override var interpolated: Boolean = true
 
     override fun updateInterpolationFunction() {
-        super.updateInterpolationFunction()
         val ts = setPoints.keys.toTypedArray()
         val xs = DoubleArray(setPoints.size)
         val ys = DoubleArray(setPoints.size)
@@ -41,14 +40,13 @@ class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coo
 
 @Serializable
 class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
-    override var setPoints: MutableMap<Int, Float> = sortedMapOf()
+    override var setPoints: SerializableTreeMap<Int, Float> = SerializableTreeMap()
     override var value: Float = 1f
     @Transient var interpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     override var interpolated: Boolean = true
 
     override fun updateInterpolationFunction() {
-        super.updateInterpolationFunction()
-        interpolationFunction = PCHIPInterpolationFunction(setPoints.keys.toTypedArray(), setPoints.values.toTypedArray().map { it.toDouble() }.toDoubleArray())
+                interpolationFunction = PCHIPInterpolationFunction(setPoints.keys.toTypedArray(), setPoints.values.toTypedArray().map { it.toDouble() }.toDoubleArray())
     }
 
     override fun evaluateWithInterpolator(at: Int): Float {
@@ -58,17 +56,15 @@ class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
 }
 
 @Serializable
-class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color> {
-    override var setPoints: MutableMap<Int, ColorWrapper> = sortedMapOf()
-    @Transient override var value: Color = Color.BLACK
+class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, ColorWrapper> {
+    override var setPoints: SerializableTreeMap<Int, ColorWrapper> = SerializableTreeMap()
+    override var value: ColorWrapper = ColorWrapper.parseString("red")!!
     override var interpolated: Boolean = true
     @Transient var rInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var gInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var bInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
 
     override fun updateInterpolationFunction() {
-        super.updateInterpolationFunction()
-
         val ts = setPoints.keys.toTypedArray()
         val rs = DoubleArray(setPoints.keys.size)
         val gs = DoubleArray(setPoints.keys.size)
@@ -85,8 +81,8 @@ class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color>
         bInterpolationFunction = LinearInterpolationFunction(ts, bs)
     }
 
-    override fun evaluateWithInterpolator(at: Int): Color {
-        value = Color(
+    override fun evaluateWithInterpolator(at: Int): ColorWrapper {
+        value = ColorWrapper(
             rInterpolationFunction.evaluate(at).toFloat(),
             gInterpolationFunction.evaluate(at).toFloat(),
             bInterpolationFunction.evaluate(at).toFloat(),
@@ -97,15 +93,13 @@ class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color>
 }
 
 class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPoint, FloatArray> {
-    override var setPoints: MutableMap<Int, NodeCollectionSetPoint> = sortedMapOf()
+    override var setPoints: SerializableTreeMap<Int, NodeCollectionSetPoint> = SerializableTreeMap()
     override var value: FloatArray = floatArrayOf()
     override var interpolated: Boolean = true
     private var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
     private var zoom: Float = 1f
 
     override fun updateInterpolationFunction() {
-        super.updateInterpolationFunction()
-
         setPoints.values.forEach { it.updateInterpolators() }
         cachedInterpolators.clear()
     }

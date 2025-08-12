@@ -1,13 +1,13 @@
 package com.wamteavm.interpolator
 
-interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
-    var setPoints: MutableMap<I, O>
+import com.wamteavm.utilities.SerializableTreeMap
+
+interface SetPointInterpolator<I : Comparable<I>, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
+    var setPoints: SerializableTreeMap<I, O>
     var value: V
     var interpolated: Boolean
 
-    fun updateInterpolationFunction() {
-        setPoints.putAll(setPoints.toSortedMap(compareBy { it.toDouble() }))
-    }
+    fun updateInterpolationFunction()
 
     fun removeFrame(x: I): Boolean {
         if (setPoints.size > 1) {
@@ -30,7 +30,7 @@ interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over
         if (removeDuplicates) { // Remove all set points after the new set point that have the same value in a row
             var found = false
             for (definedTime in setPoints.keys) {
-                if (definedTime.toDouble() >= time.toDouble()) {
+                if (definedTime >= time) {
                     if (found) { // If the last set point already exists
                         if (setPoints[definedTime] == value) {
                             setPoints.remove(definedTime)
@@ -58,11 +58,11 @@ interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over
         for (i in frameTimes.indices) {
             val definedTime = frameTimes[i]
 
-            if (definedTime.toDouble() == time.toDouble()) { // If the time is already defined, don't do anything
+            if (definedTime == time) { // If the time is already defined, don't do anything
                 return
             }
 
-            if ((definedTime.toDouble() > time.toDouble()) && (prevTime != null)) { // If the input time is not defined but is in the defined period, modify the movement to stay at the position just before the input time until the input time
+            if ((definedTime > time) && (prevTime != null)) { // If the input time is not defined but is in the defined period, modify the movement to stay at the position just before the input time until the input time
                 setPoints[time] = prevValue!!
                 updateInterpolationFunction()
 

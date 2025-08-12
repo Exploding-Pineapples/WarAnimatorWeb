@@ -78,7 +78,7 @@ class Drawer(val font: BitmapFont,
         }
 
         if (screenCoordinates.isNotEmpty()) {
-            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value, nodeCollection.alpha.value))
+            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value.color, nodeCollection.alpha.value))
             if (nodeCollection.type == "Area") {
                 val earcut =
                     Earcut.earcut(screenCoordinates) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
@@ -116,7 +116,7 @@ class Drawer(val font: BitmapFont,
         } else {
             val padding = unit.width / 16
 
-            shapeDrawer.setColor(colorWithAlpha(unit.color.value, unit.alpha.value)) // Outline
+            shapeDrawer.setColor(colorWithAlpha(unit.color.value.color, unit.alpha.value)) // Outline
             shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, unit.width, unit.height))
 
             shapeDrawer.setColor(colorWithAlpha(Color.LIGHT_GRAY, unit.alpha.value)) // Center light gray contrast area
@@ -135,7 +135,7 @@ class Drawer(val font: BitmapFont,
                 )
             }
 
-            prepareFont(Color.WHITE, unit.color.value, unit.alpha.value, 0.5f * zoomFactor * drawSize)
+            prepareFont(Color.WHITE, unit.color.value.color, unit.alpha.value, 0.5f * zoomFactor * drawSize)
 
             val sizeSize = measureText(font, unit.size)
             font.draw(
@@ -170,7 +170,7 @@ class Drawer(val font: BitmapFont,
     fun draw(arrow: Arrow) {
         var previous = projectToScreen(arrow.posInterpolator.evaluate(arrow.posInterpolator.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
 
-        shapeDrawer.setColor(colorWithAlpha(arrow.color.value, arrow.alpha.value))
+        shapeDrawer.setColor(colorWithAlpha(arrow.color.value.color, arrow.alpha.value))
 
         val endTime = min(time, arrow.posInterpolator.setPoints.keys.last())
 
@@ -213,12 +213,12 @@ class Drawer(val font: BitmapFont,
     fun draw(label: Label) {
         val screenPosition = projectToScreen(label.position, camera.zoom, camera.position.x, camera.position.y)
 
-        shapeDrawer.setColor(Color(label.color.value.r, label.color.value.g, label.color.value.b, label.alpha.value))
+        shapeDrawer.setColor(Color(label.color.value.red, label.color.value.green, label.color.value.blue, label.alpha.value))
         shapeDrawer.filledCircle(screenPosition.x, screenPosition.y, label.size * 10)
 
         batcher.setColor(1f, 1f, 1f, label.alpha.value)
 
-        prepareFont(Color.WHITE, label.color.value, label.alpha.value, label.size)
+        prepareFont(Color.WHITE, label.color.value.color, label.alpha.value, label.size)
 
         val textSize = measureText(font, label.text)
         font.draw(batcher, label.text, screenPosition.x - textSize.width / 2, screenPosition.y + textSize.height * (3f / 2) + label.size * 5)

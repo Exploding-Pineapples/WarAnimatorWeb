@@ -91,11 +91,12 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         if (hasColors.isNotEmpty()) {
             inputElements.add(TextInput(null, { input ->
                 if (input != null && input != "") {
+                    println(input)
                     val colorWrapper = ColorWrapper.parseString(input)
                     if (colorWrapper != null) {
                         for (element in hasColors) {
+                            element.color.value = colorWrapper
                             element.color.newSetPoint(time, colorWrapper)
-                            element.color.value = colorWrapper.color
                         }
                     }
                 } else {
@@ -104,7 +105,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnPropertyIfSame(hasColors) { it.color.value }.toString().dropLast(2) // remove unused a from rgba string
+                return@label returnPropertyIfSame(hasColors) { it.color.value.color }.toString().dropLast(2) // remove unused a from rgba string
             }, String::class.java, "Set color"))
             inputElements.add(CheckBoxInput(null, { input ->
                 for (element in hasColors) {

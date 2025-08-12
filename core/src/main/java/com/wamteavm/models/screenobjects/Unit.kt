@@ -1,6 +1,7 @@
 package com.wamteavm.models.screenobjects
 
 import com.badlogic.gdx.graphics.Texture
+import com.wamteavm.interpolator.ColorSetPointInterpolator
 import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
@@ -14,36 +15,38 @@ import kotlinx.serialization.Transient
 data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
-) : ScreenObject(), HasAlpha, HasColor, Drawable {
+) : ScreenObjectWithAlpha(), HasColor, Drawable {
     override var order = "d"
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
+    override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("red")!!) }
 
-    override var color: ColorWrapper = ColorWrapper(1f, 0f, 0f, 1f)
     var country: String = ""
     var name: String = ""
     var type: String = "infantry.png"
     var size: String = "XX"
     var drawSize: Float? = 1.0f
     @Transient private var typeTexture: Texture? = null
-    @Transient var countryTexture: Texture? = null
+    @Transient private var countryTexture: Texture? = null
     @Transient var width: Float = AnimationScreen.DEFAULT_UNIT_WIDTH.toFloat()
     @Transient var height: Float = AnimationScreen.DEFAULT_UNIT_HEIGHT.toFloat()
 
     override fun init() {
-        super.init()
+        super<ScreenObjectWithAlpha>.init()
+        super<HasColor>.init()
         countryTexture()
         typeTexture()
-        alpha.updateInterpolationFunction()
     }
 
-    override fun clicked(x: Float, y: Float): Boolean {
-        return ((x in (screenPosition.x - width * 0.5f)..(screenPosition.x + width * 0.5f)) && (y in (screenPosition.y - height * 0.5f)..(screenPosition.y + height * 0.5f)))
+    override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
+        val halfWidth = width * 0.5 / zoom
+        val halfHeight = height * 0.5 / zoom
+        return (x in (position.x - halfWidth)..(position.x + halfWidth)) && (y in (position.y - halfHeight)..(position.y + halfHeight))
     }
 
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
-        if (!paused) { alpha.evaluate(time) }
-        super.goToTime(time, zoom, cx, cy)
+    override fun update(time: Int) {
+        super<ScreenObjectWithAlpha>.update(time)
+        super<HasColor>.update(time)
     }
 
     override fun draw(drawer: Drawer) {

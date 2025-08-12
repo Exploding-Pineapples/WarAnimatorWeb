@@ -21,6 +21,7 @@ class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coo
     @Transient var xInterpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var yInterpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient override var value = Coordinate(0f, 0f)
+    override var interpolated: Boolean = true
 
     override fun updateInterpolationFunction() {
         super.updateInterpolationFunction()
@@ -35,7 +36,7 @@ class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coo
         yInterpolationFunction = PCHIPInterpolationFunction(ts, ys)
     }
 
-    override fun evaluate(at: Int): Coordinate {
+    override fun evaluateWithInterpolator(at: Int): Coordinate {
         value = Coordinate(xInterpolationFunction.evaluate(at).toFloat(), yInterpolationFunction.evaluate(at).toFloat())
         return value
     }
@@ -46,13 +47,14 @@ class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
     override var setPoints: MutableMap<Int, Float> = sortedMapOf()
     override var value: Float = 1f
     @Transient var interpolationFunction = PCHIPInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
+    override var interpolated: Boolean = true
 
     override fun updateInterpolationFunction() {
         super.updateInterpolationFunction()
         interpolationFunction = PCHIPInterpolationFunction(setPoints.keys.toTypedArray(), setPoints.values.toTypedArray().map { it.toDouble() }.toDoubleArray())
     }
 
-    override fun evaluate(at: Int): Float {
+    override fun evaluateWithInterpolator(at: Int): Float {
         value = interpolationFunction.evaluate(at).toFloat()
         return value
     }
@@ -62,6 +64,7 @@ class FloatSetPointInterpolator : SetPointInterpolator<Int, Float, Float> {
 class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color> {
     override var setPoints: MutableMap<Int, ColorWrapper> = sortedMapOf()
     @Transient override var value: Color = Color.BLACK
+    override var interpolated: Boolean = true
     @Transient var rInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var gInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
     @Transient var bInterpolationFunction = LinearInterpolationFunction<Int>(arrayOf(), doubleArrayOf())
@@ -85,7 +88,7 @@ class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color>
         bInterpolationFunction = LinearInterpolationFunction(ts, bs)
     }
 
-    override fun evaluate(at: Int): Color {
+    override fun evaluateWithInterpolator(at: Int): Color {
         value = Color(
             rInterpolationFunction.evaluate(at).toFloat(),
             gInterpolationFunction.evaluate(at).toFloat(),
@@ -99,6 +102,7 @@ class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, Color>
 class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPoint, FloatArray> {
     override var setPoints: MutableMap<Int, NodeCollectionSetPoint> = sortedMapOf()
     override var value: FloatArray = floatArrayOf()
+    override var interpolated: Boolean = true
     var screenCoordinates: FloatArray = floatArrayOf()
     private var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
     private var zoom: Float = 1f
@@ -122,7 +126,7 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
         this.zoom = zoom
     }
 
-    override fun evaluate(at: Int): FloatArray {
+    override fun evaluateWithInterpolator(at: Int): FloatArray {
         var num = 0
         var setPoint: NodeCollectionSetPoint? = null
 

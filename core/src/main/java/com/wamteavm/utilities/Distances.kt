@@ -29,7 +29,7 @@ fun distanceFromPointToSegment(p: Coordinate, a: Coordinate, b: Coordinate): Flo
     return hypot(p.x - closestX, p.y - closestY)
 }
 
-fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Coordinate>): Boolean {
+fun clickedCoordinates(x: Float, y: Float, zoom: Float, coordinates: Array<Coordinate>): Boolean {
     if (coordinates.isNotEmpty()) {
         val point = Coordinate(x, y)
         for (i in 1..coordinates.lastIndex) {
@@ -38,7 +38,7 @@ fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Coordinate>): Bool
                 Coordinate(coordinates[i - 1].x, coordinates[i - 1].y),
                 Coordinate(coordinates[i].x, coordinates[i].y),
             )
-            if (dist <= 10) {
+            if (dist <= 10 / zoom) {
                 return true
             }
         }
@@ -46,7 +46,7 @@ fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Coordinate>): Bool
     return false
 }
 
-fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Float>): Boolean {
+fun clickedCoordinates(x: Float, y: Float, zoom: Float, coordinates: Array<Float>): Boolean {
     if (coordinates.isNotEmpty()) {
         val point = Coordinate(x, y)
         for (i in 3..coordinates.lastIndex step 2) {
@@ -55,7 +55,7 @@ fun clickedCoordinates(x: Float, y: Float, coordinates: Array<Float>): Boolean {
                 Coordinate(coordinates[i - 3], coordinates[i - 2]),
                 Coordinate(coordinates[i - 1], coordinates[i]),
             )
-            if (dist <= 10) {
+            if (dist <= 10 / zoom) {
                 return true
             }
         }

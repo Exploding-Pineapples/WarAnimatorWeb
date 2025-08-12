@@ -1,6 +1,7 @@
 package com.wamteavm.models
 
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.wamteavm.utilities.ColorWrapper
 
 class NodeEdgeHandler(val animation: Animation) {
 
@@ -8,7 +9,7 @@ class NodeEdgeHandler(val animation: Animation) {
         animation.nodes.forEach { node ->
             node.init()
             node.edges.forEach {
-                it.updateScreenCoords(animation)
+                it.updateCoords(animation)
             }
         }
         animation.nodeCollections.forEach { it.init() }
@@ -20,6 +21,7 @@ class NodeEdgeHandler(val animation: Animation) {
         animation.nodeCollectionID++
         newNodeCollection.alpha.newSetPoint(nodeCollectionSetPoint.time, 1f)
         newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
+        newNodeCollection.color.newSetPoint(nodeCollectionSetPoint.time, ColorWrapper.parseString("red")!!)
         newNodeCollection.init()
         return newNodeCollection
     }
@@ -178,9 +180,9 @@ class NodeEdgeHandler(val animation: Animation) {
         }
     }
 
-    fun update(time: Int, camera: OrthographicCamera, paused: Boolean) {
-        animation.nodes.forEach { it.update(time, camera) }
-        animation.nodeCollections.forEach { it.update(time, camera, paused) }
+    fun update(time: Int) {
+        animation.nodes.forEach { it.update(time) }
+        animation.nodeCollections.forEach { it.update(time) }
     }
 
     fun insert(at: Node, node: Node) {

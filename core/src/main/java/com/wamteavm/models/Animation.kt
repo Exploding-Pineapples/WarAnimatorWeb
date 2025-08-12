@@ -105,37 +105,37 @@ data class Animation @JvmOverloads constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : AnyObject> selectObjectWithType(x: Float, y: Float, time: Int, type: Class<out AnyObject>): ArrayList<T> {
+    fun <T : AnyObject> selectObjectWithType(x: Float, y: Float, zoom: Float, time: Int, type: Class<out AnyObject>): ArrayList<T> {
         val objects = ArrayList<T>()
 
         if (type.isAssignableFrom(Node::class.java)) {
-            objects.addAll(nodes.filter { time == it.initTime && it.clicked(x, y) }.map {it as T})
+            objects.addAll(nodes.filter { time == it.initTime && it.clicked(x, y, zoom) }.map {it as T})
         }
 
         if (type.isAssignableFrom(Edge::class.java)) {
             nodes.filter { time == it.initTime }.forEach { node ->
-                objects.addAll(node.edges.filter { it.clicked(x, y) }.map { it as T} )
+                objects.addAll(node.edges.filter { it.clicked(x, y, zoom) }.map { it as T} )
             }
         }
 
         if (type.isAssignableFrom(Arrow::class.java)) {
-            objects.addAll(arrows.filter { it.clicked(x, y) }.map {it as T} )
+            objects.addAll(arrows.filter { it.clicked(x, y, zoom) }.map {it as T} )
         }
 
         if (type.isAssignableFrom(Label::class.java)) {
-            objects.addAll(labels.filter { it.clicked(x, y) }.map {it as T} )
+            objects.addAll(labels.filter { it.clicked(x, y, zoom) }.map {it as T} )
         }
 
         if (type.isAssignableFrom(Image::class.java)) {
-            objects.addAll(images.filter { it.clicked(x, y) }.map {it as T} )
+            objects.addAll(images.filter { it.clicked(x, y, zoom) }.map {it as T} )
         }
 
         if (type.isAssignableFrom(Unit::class.java)) {
-            objects.addAll(units.filter { it.clicked(x, y) }.map { it as T} )
+            objects.addAll(units.filter { it.clicked(x, y, zoom) }.map { it as T} )
         }
 
         if (type.isAssignableFrom(NodeCollection::class.java)) {
-            objects.addAll(nodeCollections.filter { it.clicked(x, y) }.map {it as T} )
+            objects.addAll(nodeCollections.filter { it.clicked(x, y, zoom) }.map {it as T} )
         }
 
         return objects
@@ -147,15 +147,14 @@ data class Animation @JvmOverloads constructor(
         }
     }
 
-    fun update(time: Int, animationMode: Boolean, paused: Boolean) {
-        camera().goToTime(time)
+    fun update(time: Int, animationMode: Boolean) {
+        camera().update(time)
         drawer.update(time, animationMode)
-        val orthographicCamera = drawer.camera
-        nodeEdgeHandler.update(time, orthographicCamera, paused)
-        units.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
-        images.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
-        arrows.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
-        labels.forEach { it.goToTime(time, orthographicCamera.zoom, orthographicCamera.position.x, orthographicCamera.position.y, paused) }
+        nodeEdgeHandler.update(time)
+        units.forEach { it.update(time) }
+        images.forEach { it.update(time) }
+        arrows.forEach { it.update(time) }
+        labels.forEach { it.update(time) }
     }
 
     fun draw() {

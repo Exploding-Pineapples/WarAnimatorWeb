@@ -11,6 +11,7 @@ import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
+import com.wamteavm.ui.inputelements.CheckBoxInput
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.ColorWrapper
 
@@ -58,13 +59,13 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     drawable.order = input ?: ""
                 }
             }, label@{
-                return@label returnIfSame(drawables.map { it.order })
+                return@label returnPropertyIfSame(drawables) { it.order }
             }, String::class.java, "Set layer/draw order")
             inputElements.add(layerInput)
         }
 
         if (hasAlphas.isNotEmpty()) {
-            val alphaInput = TextInput(null, { input ->
+            inputElements.add(TextInput(null, { input ->
                 if (input != null) {
                     for (element in hasAlphas) {
                         element.alpha.newSetPoint(time, input)
@@ -76,25 +77,42 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(hasAlphas.map { it.alpha.value.toString() })
-            }, Float::class.java, "Set alpha set point")
-            inputElements.add(alphaInput)
+                return@label returnPropertyIfSame(hasAlphas) { it.alpha.value }.toString()
+            }, Float::class.java, "Set alpha set point"))
+            inputElements.add(CheckBoxInput(null, { input ->
+                for (element in hasAlphas) {
+                    element.alpha.interpolated = input!!
+                }
+            },
+                label@{ return@label returnPropertyIfSame(hasAlphas) { it.alpha.interpolated } ?: false },
+                "Interpolate Alpha"))
         }
 
         if (hasColors.isNotEmpty()) {
-            val colorInput = TextInput(null, { input ->
-                if (input != null) {
-                    for (element in hasColors) {
-                        val color = ColorWrapper.parseString(input)
-                        if (color != null) {
-                            element.color = color
+            inputElements.add(TextInput(null, { input ->
+                if (input != null && input != "") {
+                    val colorWrapper = ColorWrapper.parseString(input)
+                    if (colorWrapper != null) {
+                        for (element in hasColors) {
+                            element.color.newSetPoint(time, colorWrapper)
+                            element.color.value = colorWrapper.color
                         }
+                    }
+                } else {
+                    for (element in hasColors) {
+                        element.color.removeFrame(time)
                     }
                 }
             }, label@{
-                return@label returnIfSame(hasColors.map { it.color.color.toString() })
-            }, String::class.java, "Set color")
-            inputElements.add(colorInput)
+                return@label returnPropertyIfSame(hasColors) { it.color.value }.toString().dropLast(2) // remove unused a from rgba string
+            }, String::class.java, "Set color"))
+            inputElements.add(CheckBoxInput(null, { input ->
+                for (element in hasColors) {
+                    element.color.interpolated = input!!
+                }
+            },
+                label@{ return@label returnPropertyIfSame(hasColors) { it.color.interpolated } ?: false },
+                "Interpolate Color"))
         }
 
         @Suppress("UNCHECKED_CAST")
@@ -131,7 +149,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(arrows.map { it.thickness.toString() })
+                return@label returnPropertyIfSame(arrows) { it.thickness }.toString()
             }, Float::class.java, "Set thickness")
         )
     }
@@ -143,7 +161,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     image.updateTexture(InternalLoader.mapsPath(input ?: ""))
                 }
             }, label@{
-                return@label returnIfSame(images.map { it.path.substringAfter("assets/maps/") })
+                return@label returnPropertyIfSame(images) { it.path.substringAfter("assets/maps/") }
             }, String::class.java, "Image", InternalLoader.images()),
             TextInput(null, { input ->
                 if (input != null) {
@@ -154,7 +172,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(images.map { it.scale.toString() })
+                return@label returnPropertyIfSame(images) { it.scale }.toString()
             }, Float::class.java, "Set scale")
             )
     }
@@ -170,14 +188,14 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(labels.map { it.size.toString() })
+                return@label returnPropertyIfSame(labels) { it.size }.toString()
             }, Float::class.java, "Set size"),
             TextInput(null, { input ->
                 for (mapLabel in labels) {
                     mapLabel.text = input ?: ""
                 }
             }, label@{
-                return@label returnIfSame(labels.map { it.text })
+                return@label returnPropertyIfSame(labels) { it.text }
             }, String::class.java, "Set text")
         )
     }
@@ -189,7 +207,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     unit.size = input?: ""
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.size })
+                return@label returnPropertyIfSame(units) { it.size }
             }, String::class.java, "Set size"),
             TextInput(null, { input ->
                 for (unit in units) {
@@ -200,7 +218,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.drawSize.toString() })
+                return@label returnPropertyIfSame(units) { it.drawSize }.toString()
             }, Float::class.java, "Set draw size"),
             SelectBoxInput(null, { input ->
                 if (input != null) {
@@ -210,7 +228,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.type })
+                return@label returnPropertyIfSame(units) { it.type }
             }, String::class.java, "Set type", InternalLoader.unitTypes()),
             SelectBoxInput(null, { input ->
                 for (unit in units) {
@@ -218,14 +236,14 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     unit.updateCountryTexture()
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.country.substringAfter("assets/flags/") })
+                return@label returnPropertyIfSame(units) { it.country }?.substringAfter("assets/flags/")
             }, String::class.java, "Set country", InternalLoader.countryNames),
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""
                 }
             }, label@{
-                return@label returnIfSame(units.map { it.name })
+                return@label returnPropertyIfSame(units) { it.name }
             }, String::class.java, "Set name")
         )
     }
@@ -238,7 +256,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                 }
                 animation.nodeEdgeHandler.updateNodeCollections()
             }, label@{
-                return@label returnIfSame(nodes.map { it.tSetPoint.toString() })
+                return@label returnPropertyIfSame(nodes) { it.tSetPoint }.toString()
             }, Double::class.java, "Set t set point")
         )
     }
@@ -256,19 +274,19 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     }
                 }
             }, label@{
-                return@label returnIfSame(nodeCollections.map { it.type })
+                return@label returnPropertyIfSame(nodeCollections) { it.type }
             }, String::class.java, "Set node collection type", Array<String>().apply { add("Area", "Line") })
         )
     }
 
-    private fun returnIfSame(strings : List<String>) : String {
-        if (strings.isEmpty()) {
-            return ""
+    private fun <I, O>returnPropertyIfSame(things : List<I>, getProperty : ((I) -> O)) : O? {
+        if (things.isEmpty()) {
+            return null
         }
-        val first = strings.first()
-        for (string in strings) {
-            if (first != string) {
-                return ""
+        val first = getProperty(things.first())
+        for (thing in things) {
+            if (first != getProperty(thing)) {
+                return null
             }
         }
         return first

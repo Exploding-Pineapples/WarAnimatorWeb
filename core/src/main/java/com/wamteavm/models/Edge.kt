@@ -7,33 +7,23 @@ import kotlinx.serialization.Transient
 class Edge(
     var collectionID: NodeCollectionID,
     var segment: Pair<NodeID, NodeID>,
-    @Transient var screenCoords: MutableList<Coordinate> = mutableListOf(),
+    @Transient var coords: MutableList<Coordinate> = mutableListOf(),
 ) : AnyObject, Clickable {
 
     override fun init() {
-        prepare()
+        coords = mutableListOf()
     }
 
-    override fun clicked(x: Float, y: Float): Boolean {
-        return clickedCoordinates(x, y, screenCoords.toTypedArray())
+    override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
+        return clickedCoordinates(x, y, zoom, coords.toTypedArray())
+    }
+
+    fun updateCoords(animation: Animation) {
+        coords = mutableListOf(animation.getNodeByID(segment.first)!!.position, animation.getNodeByID(segment.second)!!.position)
     }
 
     override fun toString(): String {
         return "Edge of collection ${collectionID.value} from node ${segment.first.value} to node ${segment.second.value}"
-    }
-    fun contains(nodeID: NodeID): Boolean {
-        return  (nodeID.value == segment.first.value || nodeID.value == segment.second.value)
-    }
-    fun prepare() {
-        if (screenCoords == null) {
-            screenCoords = mutableListOf()
-        }
-    }
-
-    fun updateScreenCoords(animation: Animation) {
-        screenCoords.clear()
-        screenCoords.add(animation.getNodeByID(segment.first)!!.screenPosition)
-        screenCoords.add(animation.getNodeByID(segment.second)!!.screenPosition)
     }
 }
 

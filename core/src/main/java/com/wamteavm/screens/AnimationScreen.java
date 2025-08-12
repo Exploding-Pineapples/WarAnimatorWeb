@@ -179,8 +179,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         // Selection required
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
-                if (InterpolatedObject.class.isAssignableFrom(selectedObject.getClass())) {
-                    ((InterpolatedObject) selectedObject).getPosInterpolator().holdValueUntil(time);
+                if (HasPosition.class.isAssignableFrom(selectedObject.getClass())) {
+                    ((HasPosition) selectedObject).holdPositionUntil(time);
                 }
                 if (selectedObject.getClass() == NodeCollection.class) {
                     ((NodeCollection) selectedObject).getInterpolator().holdValueUntil(time, animation);
@@ -274,8 +274,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }, "Delete selected object", Input.Keys.FORWARD_DEL).requiresSelected(Requirement.REQUIRES).build());
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
-                if (InterpolatedObject.class.isAssignableFrom(selectedObject.getClass())) {
-                    if (((InterpolatedObject) selectedObject).getPosInterpolator().removeFrame(time)) {
+                if (HasPosition.class.isAssignableFrom(selectedObject.getClass())) {
+                    if (((HasPosition) selectedObject).getPosInterpolator().removeFrame(time)) {
                         System.out.println("Deleted last frame");
                     } else {
                         System.out.println("Cannot delete frame on object with less than 2 frames");
@@ -285,7 +285,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             clearSelected();
             touchMode = TouchMode.DEFAULT;
             return null;
-        }, "Delete last frame of selected object", Input.Keys.ESCAPE).build());
+        }, "Delete last frame of selected object", Input.Keys.DEL).build());
     }
 
     public void updateCam() {
@@ -296,8 +296,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     private void updateTime(int newTime) {
         time = newTime;
-        animation.update(time, false, paused);
-        animation.camera().goToTime(time);
+        animation.update(time, animationMode);
         updateCam();
     }
 
@@ -316,13 +315,16 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     private void moveObjects(ArrayList<AnyObject> objects) {
         for (AnyObject object : objects) {
-            if (InterpolatedObject.class.isAssignableFrom(object.getClass())) {
-                ((InterpolatedObject) object).getPosInterpolator().newSetPoint(time, new Coordinate(mouseX, mouseY));
-            }
-            if (object.getClass() == Node.class) {
-                ((Node) object).setPosition(new Coordinate(mouseX, mouseY));
-                for (NodeCollection parent : animation.getParents((Node) object)) {
-                    parent.getInterpolator().updateInterpolationFunction();
+            if (HasPosition.class.isAssignableFrom(object.getClass())) {
+                Coordinate mouseCoords = new Coordinate(mouseX, mouseY);
+
+                ((HasPosition) object).setPosition(mouseCoords);
+                ((HasPosition) object).getPosInterpolator().newSetPoint(time, mouseCoords);
+
+                if (object.getClass() == Node.class) {
+                    for (NodeCollection parent : animation.getParents((Node) object)) {
+                        parent.getInterpolator().updateInterpolationFunction();
+                    }
                 }
             }
         }
@@ -516,7 +518,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ctrlPressed = (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT));
         shiftPressed = (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT));
 
-        animation.update(time, animationMode, paused);
+        animation.update(time, animationMode);
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             orthographicCamera.position.y += 10 / orthographicCamera.zoom;
@@ -607,7 +609,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @SuppressWarnings("unchecked")
     public <T extends AnyObject> T selectNewObject(float x, float y, ArrayList<AnyObject> selected, Class<T> type) { // Returns first selected object not already selected
-        for (AnyObject selectedObject : animation.selectObjectWithType(x, y, time, type)) {
+        for (AnyObject selectedObject : animation.selectObjectWithType(x, y, orthographicCamera.zoom, time, type)) {
             if (!selected.contains(selectedObject)) {
                 return (T) selectedObject;
             }
@@ -629,7 +631,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
         System.out.println("Clicked " + mouseX + " " + mouseY + " touch mode " + touchMode);
 
-        animation.selectObjectWithType(x, y, time, Node.class);
+        animation.selectObjectWithType(x, y, orthographicCamera.zoom, time, Node.class);
 
         if (paused) {
             if (touchMode == TouchMode.DEFAULT) { // Default behavior: select an object to show info about it

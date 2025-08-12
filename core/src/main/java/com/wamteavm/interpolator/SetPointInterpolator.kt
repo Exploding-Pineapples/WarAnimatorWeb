@@ -3,6 +3,7 @@ package com.wamteavm.interpolator
 interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
     var setPoints: MutableMap<I, O>
     var value: V
+    var interpolated: Boolean
 
     fun updateInterpolationFunction() {
         setPoints.putAll(setPoints.toSortedMap(compareBy { it.toDouble() }))
@@ -13,12 +14,9 @@ interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over
             if (setPoints.remove(x) != null) { // Remove was successful or not
                 updateInterpolationFunction()
                 return true
-            } else {
-                return false
             }
-        } else {
-            return false
         }
+        return false
     }
 
     fun newSetPoint(time: I, value: O) {
@@ -81,5 +79,10 @@ interface SetPointInterpolator<I : Number, O, V> { // Number to interpolate over
         updateInterpolationFunction()
     }
 
-    fun evaluate(at: I): V
+    fun evaluateWithInterpolator(at: I): V
+
+    fun evaluate(at: I): V {
+        if (interpolated) { value = evaluateWithInterpolator(at) }
+        return value
+    }
 }

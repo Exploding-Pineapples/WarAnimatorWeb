@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class ColorWrapper(var red: Float, var green: Float, var blue: Float, var alpha: Float) {
+class ColorWrapper(var red: Float, var green: Float, var blue: Float, var alpha: Float) { // This class needed to allow colors to be serialized
     @Transient val color: Color = Color(red, green, blue, alpha)
 
     companion object {
@@ -38,4 +38,8 @@ class ColorWrapper(var red: Float, var green: Float, var blue: Float, var alpha:
             }
         }
     }
+}
+
+fun colorWithAlpha(color: Color, alpha: Float): Color {
+    return Color(color.r, color.g, color.b, alpha)
 }

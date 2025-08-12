@@ -9,8 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class Image(override var position: Coordinate, override var initTime: Int) : ScreenObject(),
-    HasAlpha, Drawable {
+class Image(override var position: Coordinate, override var initTime: Int) : ScreenObjectWithAlpha(), Drawable {
     override var order = "a"
     var path: String = ""
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
@@ -22,7 +21,10 @@ class Image(override var position: Coordinate, override var initTime: Int) : Scr
     override fun init() {
         super.init()
         loadTexture()
-        alpha.updateInterpolationFunction()
+    }
+
+    override fun update(time: Int) {
+        super.update(time)
     }
 
     override fun draw(drawer: Drawer) {
@@ -40,10 +42,5 @@ class Image(override var position: Coordinate, override var initTime: Int) : Scr
     fun updateTexture(newPath: String) {
         path = newPath
         loadTexture()
-    }
-
-    fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float, paused: Boolean) {
-        if (!paused) { alpha.evaluate(time) }
-        super.goToTime(time, zoom, cx, cy)
     }
 }

@@ -1,11 +1,9 @@
 package com.wamteavm.models
 
-import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
-import com.wamteavm.WarAnimator.DISPLAY_WIDTH
+import com.wamteavm.interpolator.ColorSetPointInterpolator
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
-import com.wamteavm.utilities.ColorWrapper
-import kotlin.math.absoluteValue
+import kotlin.math.hypot
 
 interface AnyObject {
     fun init()
@@ -17,32 +15,21 @@ interface Drawable {
     fun draw(drawer: Drawer)
 }
 
-interface HasPosition {
-    var position: Coordinate
-}
-
-interface HasScreenPosition : HasPosition {
-    var screenPosition: Coordinate
-
-    fun updateScreenPosition(zoom: Float, cx: Float, cy: Float) {
-        if (screenPosition == null) { // Is null when animation is first opened because screenPosition is @Transient
-            screenPosition = Coordinate(0f, 0f)
-        }
-
-        screenPosition.x = position.x * zoom - cx * (zoom - 1) + (DISPLAY_WIDTH / 2 - cx)
-        screenPosition.y = position.y * zoom - cy * (zoom - 1) + (DISPLAY_HEIGHT / 2 - cy)
-    }
-}
-
-interface InterpolatedObject : AnyObject, HasPosition {
+interface InterpolatedObject : AnyObject {
     val initTime: Int
+
+    fun update(time: Int)
+}
+
+interface HasPosition : InterpolatedObject {
+    var position: Coordinate
     val posInterpolator: CoordinateSetPointInterpolator
 
     override fun init() {
         posInterpolator.updateInterpolationFunction()
     }
 
-    fun goToTime(time: Int) { // Can only be called after at least one key frame has been added
+    override fun update(time: Int) {
         position = posInterpolator.evaluate(time)
     }
 
@@ -53,23 +40,12 @@ interface InterpolatedObject : AnyObject, HasPosition {
     fun removeFrame(time: Int): Boolean {
         return posInterpolator.removeFrame(time)
     }
-
-    fun newSetPoint(time: Int, x: Float, y: Float) {
-        posInterpolator.newSetPoint(time, Coordinate(x, y))
-    }
 }
 
-abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable {
-    @Transient override var screenPosition: Coordinate = Coordinate(0f, 0f)
-
-    override fun clicked(x: Float, y: Float): Boolean
+abstract class ScreenObject : HasPosition, Clickable {
+    override fun clicked(x: Float, y: Float, zoom: Float): Boolean
     {
-        return (x - screenPosition.x).absoluteValue <= 10 && (y - screenPosition.y).absoluteValue <= 10
-    }
-
-    protected open fun goToTime(time: Int, zoom: Float, cx: Float, cy: Float) {
-        super.goToTime(time)
-        updateScreenPosition(zoom, cx, cy)
+        return hypot(x - position.x, y - position.y) <= (10 / zoom)
     }
 
     override fun toString(): String {
@@ -78,23 +54,58 @@ abstract class ScreenObject : InterpolatedObject, HasScreenPosition, Clickable {
     }
 }
 
+abstract class ScreenObjectWithAlpha : ScreenObject(), HasAlpha {
+    override fun init() {
+        super<ScreenObject>.init()
+        super<HasAlpha>.init()
+    }
+
+    override fun update(time: Int) {
+        super<ScreenObject>.update(time)
+        super<HasAlpha>.update(time)
+    }
+}
+
 interface HasID {
     val id: ID
 }
 
-interface HasZoom {
+interface HasZoom : HasInputs {
     var zoomInterpolator: FloatSetPointInterpolator
+
+    fun init() {
+        zoomInterpolator.updateInterpolationFunction()
+    }
+
+    fun update(time: Int) {
+        zoomInterpolator.evaluate(time)
+    }
 }
 
 interface HasAlpha : HasInputs {
     val alpha: FloatSetPointInterpolator
+
+    fun init() {
+        alpha.updateInterpolationFunction()
+    }
+
+    fun update(time: Int) {
+        alpha.evaluate(time)
+    }
 }
 
 interface HasColor : HasInputs {
-    var color: ColorWrapper
+    var color: ColorSetPointInterpolator
+
+    fun init() {
+        color.updateInterpolationFunction()
+    }
+
+    fun update(time: Int) {
+        color.evaluate(time)
+    }
 }
 
 interface Clickable {
-    fun clicked(x: Float, y: Float) : Boolean
+    fun clicked(x: Float, y: Float, zoom: Float) : Boolean
 }
-

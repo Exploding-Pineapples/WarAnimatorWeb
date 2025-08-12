@@ -13,6 +13,7 @@ import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.models.screenobjects.Unit.Companion.sizePresets
 import com.wamteavm.utilities.Earcut
 import com.wamteavm.screens.AnimationScreen
+import com.wamteavm.utilities.colorWithAlpha
 import com.wamteavm.utilities.measureText
 import space.earlygrey.shapedrawer.JoinType
 import space.earlygrey.shapedrawer.ShapeDrawer
@@ -20,14 +21,14 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 class Drawer(val font: BitmapFont,
-             val fontShader: ShaderProgram,
-             val batcher: SpriteBatch,
-             val shapeDrawer: ShapeDrawer,
-             var camera: OrthographicCamera,
+             private val fontShader: ShaderProgram,
+             private val batcher: SpriteBatch,
+             private val shapeDrawer: ShapeDrawer,
+             private var camera: OrthographicCamera,
              var time: Int = 0
 ) {
     private var zoomFactor: Float = 1f
-    var animationMode = false
+    private var animationMode = false
     private val drawOrder = sortedMapOf<String, MutableList<Drawable>>()
 
     fun updateDrawOrder(animation: Animation) {
@@ -71,7 +72,7 @@ class Drawer(val font: BitmapFont,
         val coords = nodeCollection.interpolator.screenCoordinates
 
         if (coords.isNotEmpty()) {
-            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.color, nodeCollection.alpha.value))
+            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value, nodeCollection.alpha.value))
             if (nodeCollection.type == "Area") {
                 val earcut = Earcut.earcut(coords) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
 
@@ -98,58 +99,43 @@ class Drawer(val font: BitmapFont,
         val drawSize = (unit.drawSize ?: sizePresets[unit.size]) ?: 1.0f
         unit.width = AnimationScreen.DEFAULT_UNIT_WIDTH * zoomFactor * drawSize
         unit.height = AnimationScreen.DEFAULT_UNIT_HEIGHT * zoomFactor * drawSize
+        val screenPosition = projectToScreen(unit.position, camera.zoom, camera.position.x, camera.position.y)
 
         if (unit.alpha.value == 0f) {
             if (animationMode) {
                 shapeDrawer.setColor(colorWithAlpha(Color.BLACK, 0.5f))
-                shapeDrawer.filledRectangle(unit.screenPosition.x - unit.width / 2, unit.screenPosition.y - unit.width / 2, unit.width, unit.height)
+                shapeDrawer.filledRectangle(screenPosition.x - unit.width / 2, screenPosition.y - unit.width / 2, unit.width, unit.height)
             }
         } else {
             val padding = unit.width / 16
 
-            shapeDrawer.setColor(colorWithAlpha(unit.color.color, unit.alpha.value))
-            shapeDrawer.filledRectangle(
-                unit.screenPosition.x - unit.width * 0.5f,
-                unit.screenPosition.y - unit.height * 0.5f,
-                unit.width,
-                unit.height
-            )
+            shapeDrawer.setColor(colorWithAlpha(unit.color.value, unit.alpha.value)) // Outline
+            shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, unit.width, unit.height))
 
-            shapeDrawer.setColor(colorWithAlpha(Color.LIGHT_GRAY, unit.alpha.value))
-            shapeDrawer.filledRectangle(
-                unit.screenPosition.x - unit.width * 0.5f + padding,
-                unit.screenPosition.y - unit.height * 0.5f + padding,
-                unit.width - 2 * padding,
-                unit.height - 2 * padding
-            )
+            shapeDrawer.setColor(colorWithAlpha(Color.LIGHT_GRAY, unit.alpha.value)) // Center light gray contrast area
+            shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, unit.width - 2 * padding, unit.height - 2 * padding))
 
             batcher.setColor(1f, 1f, 1f, unit.alpha.value)
             if (unit.typeTexture() != null) {
-                batcher.draw(
-                    unit.typeTexture(),
-                    unit.screenPosition.x - unit.width / 3f,
-                    unit.screenPosition.y - unit.height / 3f,
-                    unit.width / 1.5f,
-                    unit.height / 1.5f
-                )
+                drawTexture(unit.typeTexture()!!, centerRect(screenPosition.x, screenPosition.y, unit.width / 1.5f, unit.height / 1.5f))
             }
             if (unit.countryTexture() != null) {
                 batcher.draw(
-                    unit.countryTexture,
-                    unit.screenPosition.x - unit.width / 2f + padding,
-                    unit.screenPosition.y + unit.height / 2f - unit.height / 4f - padding,
+                    unit.countryTexture(),
+                    screenPosition.x - unit.width / 2f + padding,
+                    screenPosition.y + unit.height / 2f - unit.height / 4f - padding,
                     unit.width / 4.0f, unit.height / 4.0f
                 )
             }
 
-            prepareFont(Color.WHITE, unit.color.color, unit.alpha.value, 0.5f * zoomFactor * drawSize)
+            prepareFont(Color.WHITE, unit.color.value, unit.alpha.value, 0.5f * zoomFactor * drawSize)
 
             val sizeSize = measureText(font, unit.size)
             font.draw(
                 batcher,
                 unit.size,
-                unit.screenPosition.x + unit.width / 2 - sizeSize.width - padding - sizeSize.height * 0.1f,
-                unit.screenPosition.y + unit.height / 2 - padding
+                screenPosition.x + unit.width / 2 - sizeSize.width - padding - sizeSize.height * 0.1f,
+                screenPosition.y + unit.height / 2 - padding
             )
 
             if (unit.name != "") {
@@ -157,8 +143,8 @@ class Drawer(val font: BitmapFont,
                 font.draw(
                     batcher,
                     unit.name,
-                    unit.screenPosition.x - nameSize.width / 2,
-                    unit.screenPosition.y - unit.height / 2 + nameSize.height + padding
+                    screenPosition.x - nameSize.width / 2,
+                    screenPosition.y - unit.height / 2 + nameSize.height + padding
                 )
             }
 
@@ -167,16 +153,17 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(node: Node) {
+        val screenPosition = projectToScreen(node.position, camera.zoom, camera.position.x, camera.position.y)
         if (time == node.initTime) {
             shapeDrawer.setColor(Color.GREEN)
-            shapeDrawer.filledCircle(node.screenPosition.x, node.screenPosition.y, 7.0f)
+            shapeDrawer.filledCircle(screenPosition.x, screenPosition.y, 7.0f)
         }
     }
 
     fun draw(arrow: Arrow) {
         var previous = projectToScreen(arrow.posInterpolator.evaluate(arrow.posInterpolator.setPoints.keys.first()), camera.zoom, camera.position.x, camera.position.y)
 
-        shapeDrawer.setColor(colorWithAlpha(arrow.color.color, arrow.alpha.value))
+        shapeDrawer.setColor(colorWithAlpha(arrow.color.value, arrow.alpha.value))
 
         val endTime = min(time, arrow.posInterpolator.setPoints.keys.last())
 
@@ -200,6 +187,7 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(image: Image) {
+        val screenPosition = projectToScreen(image.position, camera.zoom, camera.position.x, camera.position.y)
         if (animationMode) {
             drawAsSelected(image)
         }
@@ -207,8 +195,8 @@ class Drawer(val font: BitmapFont,
             batcher.color = colorWithAlpha(Color.WHITE, image.alpha.value)
             batcher.draw(
                 image.texture,
-                image.screenPosition.x,
-                image.screenPosition.y,
+                screenPosition.x,
+                screenPosition.y,
                 image.texture!!.width.toFloat() * camera.zoom * image.scale,
                 image.texture!!.height.toFloat() * camera.zoom * image.scale
             )
@@ -216,68 +204,77 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(label: Label) {
-        shapeDrawer.setColor(Color(label.color.color.r, label.color.color.g, label.color.color.b, label.alpha.value))
-        shapeDrawer.filledCircle(label.screenPosition.x, label.screenPosition.y, label.size * 10)
+        val screenPosition = projectToScreen(label.position, camera.zoom, camera.position.x, camera.position.y)
+
+        shapeDrawer.setColor(Color(label.color.value.r, label.color.value.g, label.color.value.b, label.alpha.value))
+        shapeDrawer.filledCircle(screenPosition.x, screenPosition.y, label.size * 10)
 
         batcher.setColor(1f, 1f, 1f, label.alpha.value)
 
-        prepareFont(Color.WHITE, label.color.color, label.alpha.value, label.size)
+        prepareFont(Color.WHITE, label.color.value, label.alpha.value, label.size)
 
         val textSize = measureText(font, label.text)
-        font.draw(batcher, label.text, label.screenPosition.x - textSize.width / 2, label.screenPosition.y + textSize.height * (3f / 2) + label.size * 5)
+        font.draw(batcher, label.text, screenPosition.x - textSize.width / 2, screenPosition.y + textSize.height * (3f / 2) + label.size * 5)
 
         batcher.shader = null
     }
 
-    fun drawTexture(texture: Texture, rect: Rectangle) {
+    private fun drawTexture(texture: Texture, rect: Rectangle) {
         batcher.draw(texture, rect.x, rect.y, rect.width, rect.height)
     }
 
     fun drawAsSelected(anyObject: AnyObject) {
-        if (InterpolatedObject::class.java.isAssignableFrom(anyObject.javaClass)) {
-            val screenObject = anyObject as InterpolatedObject
-            val posInterpolator = screenObject.posInterpolator
+        if (HasPosition::class.java.isAssignableFrom(anyObject.javaClass)) {
+            val hasPosition = anyObject as HasPosition
+            val posInterpolator = hasPosition.posInterpolator
 
-            shapeDrawer.setColor(Color.SKY)
-            for (time in posInterpolator.setPoints.keys.first().toInt()..posInterpolator.setPoints.keys.last()
-                .toInt() step 4) { // Draws entire path of the selected object over time
-                val position = projectToScreen(posInterpolator.evaluate(time), camera.zoom, camera.position.x, camera.position.y)
-                shapeDrawer.filledCircle(position.x, position.y, 2f)
+            if (posInterpolator.interpolated && posInterpolator.setPoints.size > 1) {
+                shapeDrawer.setColor(Color.SKY)
+                for (time in posInterpolator.setPoints.keys.first().toInt()..posInterpolator.setPoints.keys.last()
+                    .toInt() step 4) { // Draws entire path of the selected object over time
+                    val position = projectToScreen(
+                        posInterpolator.evaluate(time),
+                        camera.zoom,
+                        camera.position.x,
+                        camera.position.y
+                    )
+                    shapeDrawer.filledCircle(position.x, position.y, 2f)
+                }
+                shapeDrawer.setColor(Color.PURPLE)
+                for (time in posInterpolator.setPoints.keys) { // Draws all set points of the selected object
+                    val position = projectToScreen(
+                        posInterpolator.evaluate(time),
+                        camera.zoom,
+                        camera.position.x,
+                        camera.position.y
+                    )
+                    shapeDrawer.filledCircle(position.x, position.y, 4f)
+                }
             }
-            shapeDrawer.setColor(Color.PURPLE)
-            for (time in posInterpolator.setPoints.keys) { // Draws all set points of the selected object
-                val position = projectToScreen(posInterpolator.evaluate(time), camera.zoom, camera.position.x, camera.position.y)
-                shapeDrawer.filledCircle(position.x, position.y, 4f)
-            }
+
+            val screenPosition = projectToScreen(hasPosition.position, camera.zoom, camera.position.x, camera.position.y)
 
             if (anyObject.javaClass == Unit::class.java) {
                 val unit = anyObject as Unit
+
                 shapeDrawer.setColor(colorWithAlpha(Color.BLACK, 0.5f))
-                shapeDrawer.filledRectangle(
-                    unit.screenPosition.x - unit.width / 2,
-                    unit.screenPosition.y - unit.width / 2,
-                    unit.width,
-                    unit.height
-                )
+                shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, unit.width, unit.height))
             }
-            if (anyObject.javaClass.isAssignableFrom(HasScreenPosition::class.java)) {
-                shapeDrawer.setColor(Color.ORANGE)
-                shapeDrawer.filledRectangle(
-                    (anyObject as HasScreenPosition).screenPosition.x - 6.0f,
-                    anyObject.screenPosition.y - 6.0f,
-                    12f,
-                    12f
-                ) // Draws an orange square to symbolize being selected
+
+            if (anyObject.javaClass == Image::class.java) {
+                shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, 6f, 6f))
             }
         }
+
         if (anyObject.javaClass.isAssignableFrom(Edge::class.java)) {
-            val screenCoords = (anyObject as Edge).screenCoords
+            val screenCoords = (anyObject as Edge).coords.map { projectToScreen(it, camera.zoom, camera.position.x, camera.position.y) }
             for (i in 0..<screenCoords.size - 1) {
                 shapeDrawer.line(screenCoords[i].x, screenCoords[i].y, screenCoords[i + 1].x, screenCoords[i + 1].y, 5f)
             }
         }
+
         if (anyObject.javaClass.isAssignableFrom(Node::class.java)) {
-            val screenCoords = (anyObject as Node).screenPosition
+            val screenCoords = projectToScreen((anyObject as Node).position, camera.zoom, camera.position.x, camera.position.y)
             shapeDrawer.filledCircle(screenCoords.x, screenCoords.y, 7.0f)
         }
     }
@@ -312,10 +309,6 @@ class Drawer(val font: BitmapFont,
 
         return arrayOf(p1, p2, tip)
     }
-}
-
-fun colorWithAlpha(color: Color, alpha: Float): Color {
-    return Color(color.r, color.g, color.b, alpha)
 }
 
 fun centerRect(x: Float, y: Float, width: Float, height: Float): Rectangle {

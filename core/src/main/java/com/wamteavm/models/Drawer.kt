@@ -1,7 +1,10 @@
 package com.wamteavm.models
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -13,8 +16,8 @@ import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.models.screenobjects.Unit.Companion.sizePresets
-import com.wamteavm.utilities.Earcut
 import com.wamteavm.screens.AnimationScreen
+import com.wamteavm.utilities.Earcut
 import com.wamteavm.utilities.colorWithAlpha
 import com.wamteavm.utilities.measureText
 import space.earlygrey.shapedrawer.JoinType
@@ -32,6 +35,13 @@ class Drawer(val font: BitmapFont,
     private var zoomFactor: Float = 1f
     private var animationMode = false
     private val drawOrder = sortedMapOf<String, MutableList<Drawable>>()
+
+    fun init(animation: Animation) {
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        updateDrawOrder(animation)
+    }
 
     fun updateDrawOrder(animation: Animation) {
         drawOrder.clear()

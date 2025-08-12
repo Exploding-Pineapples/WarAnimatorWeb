@@ -16,7 +16,7 @@ import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.ColorWrapper
 
 class InputElementShower(val skin: Skin, val animation: Animation) {
-    val inputElements: MutableList<InputElement<*>> = mutableListOf()
+    private val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {
         inputElements.forEach { it.hide(verticalGroup) }
@@ -29,27 +29,28 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
     fun update(verticalGroup: VerticalGroup, objects: List<AnyObject>, time: Int) {
         inputElements.forEach { it.hide(verticalGroup) }
         inputElements.clear()
-        val hasInputs = objects.filter { HasInputs::class.java.isAssignableFrom(it.javaClass) } as List<HasInputs>
 
         val hasAlphas: MutableList<HasAlpha> = mutableListOf()
         val hasColors: MutableList<HasColor> = mutableListOf()
         val drawables: MutableList<Drawable> = mutableListOf()
         val classElementMap: MutableMap<Class<HasInputs>, MutableList<HasInputs>> = mutableMapOf()
 
-        for (element in hasInputs) {
-            if (HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
-                hasAlphas.add(element as HasAlpha)
-            }
-            if (HasColor::class.java.isAssignableFrom(element.javaClass)) {
-                hasColors.add(element as HasColor)
-            }
-            if (Drawable::class.java.isAssignableFrom(element.javaClass)) {
-                drawables.add(element as Drawable)
-            }
-            if (classElementMap.containsKey(element.javaClass)) {
-                classElementMap[element.javaClass]!!.add(element)
-            } else {
-                classElementMap[element.javaClass] = mutableListOf(element)
+        for (element in objects) {
+            if (HasInputs::class.java.isAssignableFrom(element.javaClass)) {
+                if (HasAlpha::class.java.isAssignableFrom(element.javaClass)) {
+                    hasAlphas.add(element as HasAlpha)
+                }
+                if (HasColor::class.java.isAssignableFrom(element.javaClass)) {
+                    hasColors.add(element as HasColor)
+                }
+                if (Drawable::class.java.isAssignableFrom(element.javaClass)) {
+                    drawables.add(element as Drawable)
+                }
+                if (classElementMap.containsKey((element as HasInputs).javaClass)) {
+                    classElementMap[element.javaClass]!!.add(element)
+                } else {
+                    classElementMap[element.javaClass] = mutableListOf(element)
+                }
             }
         }
 
@@ -92,7 +93,6 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         if (hasColors.isNotEmpty()) {
             inputElements.add(TextInput(null, { input ->
                 if (input != null && input != "") {
-                    println(input)
                     val colorWrapper = ColorWrapper.parseString(input)
                     if (colorWrapper != null) {
                         for (element in hasColors) {
@@ -142,7 +142,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         inputElements.forEach { it.show(verticalGroup, skin) }
     }
 
-    fun getArrowInputs(arrows: List<Arrow>) : List<InputElement<*>> {
+    private fun getArrowInputs(arrows: List<Arrow>) : List<InputElement<*>> {
         return listOf(
             TextInput(null, { input ->
                 if (input != null) {
@@ -156,7 +156,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         )
     }
 
-    fun getImageInputs(images: List<Image>) : List<InputElement<*>> {
+    private fun getImageInputs(images: List<Image>) : List<InputElement<*>> {
         return listOf(
             SelectBoxInput(null, { input ->
                 for (image in images) {
@@ -179,7 +179,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
             )
     }
 
-    fun getMapLabelInputs(labels: List<Label>) : List<InputElement<*>> {
+    private fun getMapLabelInputs(labels: List<Label>) : List<InputElement<*>> {
         return listOf(
             TextInput(null, { input ->
                 if (input != null) {
@@ -202,7 +202,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         )
     }
 
-    fun getUnitInputs(units: List<Unit>) : List<InputElement<*>> {
+    private fun getUnitInputs(units: List<Unit>) : List<InputElement<*>> {
         return listOf(
             TextInput(null, { input ->
                 for (unit in units) {
@@ -238,8 +238,8 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                     unit.updateCountryTexture()
                 }
             }, label@{
-                return@label returnPropertyIfSame(units) { it.country }?.substringAfter("assets/flags/")
-            }, String::class.java, "Set country", InternalLoader.countryNames),
+                return@label returnPropertyIfSame(units) { it.country }?.removePrefix("units/countries/")
+            }, String::class.java, "Set country", InternalLoader.countryNames()),
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""
@@ -250,7 +250,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         )
     }
 
-    fun getNodeInputs(nodes: List<Node>) : List<InputElement<*>> {
+    private fun getNodeInputs(nodes: List<Node>) : List<InputElement<*>> {
         return listOf(
             TextInput(null, { input ->
                 for (node in nodes) {
@@ -263,7 +263,7 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         )
     }
 
-    fun getNodeCollectionInputs(nodeCollections: List<NodeCollection>) : List<InputElement<*>> {
+    private fun getNodeCollectionInputs(nodeCollections: List<NodeCollection>) : List<InputElement<*>> {
         return listOf(
             SelectBoxInput(null, { input ->
                 for (nodeCollection in nodeCollections) {

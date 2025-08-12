@@ -6,7 +6,7 @@ plugins {
 
 gretty {
   contextPath = '/'
-  httpPort = 6969
+  httpPort = 8080
   extraResourceBase 'build/dist/webapp'
 }
 

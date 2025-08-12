@@ -13,9 +13,9 @@ object InternalLoader {
     private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
     private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
 
-    var countryNames: Array<String> = Array()
+    private var countryNames: Array<String> = Array()
     var images: Array<String> = Array()
-    var unitTypes: Array<String> = Array()
+    private var unitTypes: Array<String> = Array()
 
     fun flagsPath(file: String): String { return "units/countries/$file" }
     fun unitKindsPath(file: String): String { return "units/symbols/$file" }
@@ -97,25 +97,46 @@ object InternalLoader {
 
     fun updateCountryNames() {
         countryNames.clear()
-        countryNames = listFiles("units/countries")
+        countryNames = listChildren("units/countries")
     }
 
     fun updateImages() {
         images.clear()
-        images = listFiles("maps")
+        images = listChildren("maps")
     }
 
     fun updateUnitTypes() {
         unitTypes.clear()
-        unitTypes = listFiles("units/symbols")
+        unitTypes = listChildren("units/symbols")
     }
 
-    fun listFiles(internalPath: String): Array<String> {
+    fun listChildren(parentPath: String): Array<String> { // Works only on desktop
+        val assetsTxtHandle = Gdx.files.internal("assets.txt")
+        if (!assetsTxtHandle.exists()) {
+            Gdx.app.error("AssetLister", "assets.txt not found in internal files.")
+            return listChildrenByFile(parentPath)
+        }
+
+        val normalizedPath = parentPath.trimEnd('/') + "/"
+
+        val out = Array<String>()
+        for (string in assetsTxtHandle.readString()
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.startsWith(normalizedPath) && it.removePrefix(normalizedPath).contains('/').not() }
+        )
+        {
+            out.add(string.removePrefix(normalizedPath))
+        }
+        return out
+    }
+
+    fun listChildrenByFile(internalPath: String): Array<String> { // Works only online
         val fileNames = Array<String>()
         Gdx.files.internal(internalPath).list().forEach {
             print("${it.name()} ")
         }
-        println()
+        println(Gdx.files.internal(internalPath).list().size)
         for (file in Gdx.files.internal(internalPath).list()!!) {
             fileNames.add(file.name())
         }

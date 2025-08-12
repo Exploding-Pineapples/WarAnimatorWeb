@@ -5,11 +5,11 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
@@ -40,7 +40,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     public WarAnimator game;
 
     OrthographicCamera orthographicCamera; // Camera actually used when running, animation.camera only updates this
-
     int zoomLevel = 0;
 
     // Mouse position in unprojected units
@@ -52,7 +51,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     ArrayList<AnyObject> selectedObjects;
 
-    // Actions
+    // Keyboard actions
     TouchMode touchMode;
     List<Action> actions;
     boolean shiftPressed;
@@ -61,10 +60,11 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     long periodLastUnpressed = 0;
     boolean keysCaught = false;
 
-    // UI
+    // GUI
     Stage stage;
     Table selectedInfoTable;
     VerticalGroup selectedGroup;
+    TextButton uploadImage;
     Table leftPanel;
     VerticalGroup leftGroup;
     Label timeAndFPS;
@@ -75,33 +75,48 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     SelectBoxInput<Integer> newNodeCollectionIDInput;
     Class<? extends AnyObject> createClass;
     SelectBoxInput<String> createSelectBoxInput;
-    boolean animationMode;
+    boolean displayGUI;
     boolean UIDisplayed;
-    boolean newEdgeInputsDisplayed;
 
     public AnimationScreen(WarAnimator game, Animation animation) {
         this.animation = animation;
         this.game = game;
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        updateCam();
 
         time = animation.getInitTime();
         paused = true;
-        animationMode = true;
+        displayGUI = true;
 
-        //UI
         selectedObjects = new ArrayList<>();
 
-        touchMode = TouchMode.DEFAULT;
+        // Keyboard actions
         actions = new ArrayList<>();
         buildActions();
+        int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
+        for (int key : catchKeys) {
+            Gdx.input.setCatchKey(key, true);
+        }
+
+        // GUI
+        touchMode = TouchMode.DEFAULT;
         UIDisplayed = false;
         stage = new Stage();
 
+
+        leftGroup = new VerticalGroup();
         timeAndFPS = new Label("", game.skin);
         keyOptions = new Label("", game.skin);
-        leftGroup = new VerticalGroup();
+
+        leftPanel = new Table();
+        leftPanel.add(timeAndFPS).left().pad(10);
+        leftPanel.row();
+        leftPanel.add(keyOptions).pad(10);
+        leftPanel.row();
+        leftPanel.add(leftGroup);
+
+        stage.addActor(leftPanel);
 
         Array<String> createChoices = new Array<>();
         createChoices.addAll("Unit", "Node", "MapLabel", "Arrow", "Image");
@@ -138,26 +153,19 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             "CollectionID of New Edge",
             idChoices,
             null);
-        newEdgeInputsDisplayed = false;
 
+
+        uiShower = new InputElementShower(game.skin, animation);
         selectedLabel = new Label("", game.skin);
         selectedGroup = new VerticalGroup();
-        uiShower = new InputElementShower(game.skin, animation);
         selectedInfoTable = new Table();
-        stage.addActor(selectedInfoTable);
 
-        leftPanel = new Table();
-        stage.addActor(leftPanel);
+        selectedInfoTable.add(selectedLabel).expandX().pad(10).left();
+        selectedInfoTable.row().pad(10);
+        uiShower.showAll(selectedGroup);
+        selectedInfoTable.add(selectedGroup);
 
-        int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
-
-        for (int key : catchKeys) {
-            Gdx.input.setCatchKey(key, true);
-        }
-
-        orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time));
-        updateCam();
     }
 
     public void buildActions() {
@@ -175,7 +183,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             return null;
         }, "Return to the main menu", Input.Keys.ESCAPE).requiresSelected(Requirement.ANY).requiresShift(true).build());
         actions.add(Action.createBuilder(() -> {
-            animationMode = !animationMode;
+            displayGUI = !displayGUI;
             return null;
         }, "Toggle UI", Input.Keys.V).build());
         // Selection required
@@ -298,18 +306,23 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     private void updateTime(int newTime) {
         time = newTime;
-        animation.update(time, animationMode);
+        animation.update(time, displayGUI);
         updateCam();
     }
 
     public void updateNewEdgeInputs() { // Makes new edges match ID with first selected node collection
         System.out.println("Updating new edge inputs");
+        newNodeCollectionIDInput.getChoices().clear();
+        newNodeCollectionIDInput.getChoices().add(animation.getNodeCollectionID());
+        for (NodeCollection nodeCollection : animation.getNodeCollections()) {
+            newNodeCollectionIDInput.getChoices().add(nodeCollection.getId().getValue());
+        }
+
         for (AnyObject selectedObject : selectedObjects) {
             if (selectedObject.getClass() == NodeCollection.class) {
                 NodeCollection selectedNodeCollection = (NodeCollection) selectedObject;
                 newNodeCollectionID = selectedNodeCollection.getId().getValue();
                 newNodeCollectionIDInput.hide(leftGroup);
-                newEdgeInputsDisplayed = false;
                 break;
             }
         }
@@ -374,7 +387,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void updateUI() {
-        if (animationMode) {
+        if (displayGUI) {
             if (paused) { // Update the selected object to go to mouse in move mode
                 if ((touchMode == TouchMode.MOVE)) {
                     moveObjects(selectedObjects);
@@ -440,67 +453,35 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             selectedLabel.setText(selectedInfo);
 
             if (!UIDisplayed) {
-                leftPanel.add(timeAndFPS).left().pad(10);
-                leftPanel.row();
-                leftPanel.add(keyOptions).pad(10);
-                leftPanel.row();
-                leftPanel.add(leftGroup);
-
-                selectedInfoTable.add(selectedLabel).expandX().pad(10).left();
-                selectedInfoTable.row().pad(10);
-                uiShower.showAll(selectedGroup);
-                selectedInfoTable.add(selectedGroup);
-
+                stage.addActor(leftPanel);
+                stage.addActor(selectedInfoTable);
                 UIDisplayed = true;
             }
 
             if (touchMode == TouchMode.NEW_EDGE) {
-                Array<Integer> idChoices = new Array<>();
-                idChoices.add(animation.getNodeCollectionID());
-                for (NodeCollection nodeCollection : animation.getNodeCollections()) {
-                    idChoices.add(nodeCollection.getId().getValue());
-                }
-                newNodeCollectionIDInput.getChoices().clear();
-                newNodeCollectionIDInput.getChoices().addAll(idChoices);
-                if (!newEdgeInputsDisplayed) {
-                    newNodeCollectionIDInput.show(leftGroup, game.skin);
-                    newEdgeInputsDisplayed = true;
-                }
+                newNodeCollectionIDInput.show(leftGroup, game.skin);
             } else {
-                if (newEdgeInputsDisplayed) {
-                    newNodeCollectionIDInput.hide(leftGroup);
-                    newEdgeInputsDisplayed = false;
-                }
+                newNodeCollectionIDInput.hide(leftGroup);
             }
 
             if (touchMode == TouchMode.CREATE) {
-                if (!createSelectBoxInput.getDisplayed()) {
-                    createSelectBoxInput.show(leftGroup, game.skin);
-                    createSelectBoxInput.setDisplayed(true);
-                }
+                createSelectBoxInput.show(leftGroup, game.skin);
             } else {
-                if (createSelectBoxInput.getDisplayed()) {
-                    createSelectBoxInput.hide(leftGroup);
-                    createSelectBoxInput.setDisplayed(false);
-                }
+                createSelectBoxInput.hide(leftGroup);
             }
 
             leftPanel.pack();
-            leftPanel.setPosition(30, DISPLAY_HEIGHT - 30 - leftPanel.getHeight());
-
             selectedInfoTable.pack();
-            selectedGroup.pack();
+            leftPanel.setPosition(30, DISPLAY_HEIGHT - 30 - leftPanel.getHeight());
             selectedInfoTable.setPosition(DISPLAY_WIDTH - 30 - selectedInfoTable.getWidth(), DISPLAY_HEIGHT  - 30 - selectedInfoTable.getHeight());
         } else {
             if (UIDisplayed) {
-                uiShower.hideAll(selectedGroup);
-                leftPanel.clear();
-                selectedInfoTable.clear();
+                stage.clear();
                 UIDisplayed = false;
             }
         }
 
-        if (ctrlPressed) {
+        if (ctrlPressed) { // Catch all keys A to Z only if control pressed to stop keyboard shortcuts but allow typing in UI when not pressing control
             if (!keysCaught) {
                 for (int key = Input.Keys.A; key <= Input.Keys.Z; key++) {
                     Gdx.input.setCatchKey(key, true);
@@ -523,7 +504,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         ctrlPressed = (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT));
         shiftPressed = (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT));
 
-        animation.update(time, animationMode);
+        animation.update(time, displayGUI);
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             orthographicCamera.position.y += 10 / orthographicCamera.zoom;
@@ -569,7 +550,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         game.batch.begin();
         animation.draw();
 
-        if (animationMode) {
+        if (displayGUI) {
             // Draw contrast backgrounds for UI
             game.shapeDrawer.setColor(new Color(0, 0, 0, 0.5f));
 

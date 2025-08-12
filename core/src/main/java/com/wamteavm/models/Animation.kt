@@ -29,7 +29,7 @@ data class Animation @JvmOverloads constructor(
 
     fun init(drawer: Drawer) {
         this.drawer = drawer
-        drawer.updateDrawOrder(this)
+        drawer.init(this)
         nodeEdgeHandler = NodeEdgeHandler(this)
         nodeEdgeHandler.init()
         units.forEach { it.init() }

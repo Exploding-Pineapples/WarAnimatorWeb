@@ -119,7 +119,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             },
             () -> createClass.getSimpleName(),
             String.class,
-            "Create Mode Input",
+            "Create Type",
             createChoices, null);
         createClass = Unit.class;
 
@@ -411,11 +411,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                         selectedInfo.append("ID: ").append(((HasID) selectedObjects).getId().getValue()).append("\n");
                     }
                     if (selectedObject.getClass() == Node.class) {
-                        ArrayList<Integer> toNodes = new ArrayList<>();
                         Node node = (Node) selectedObject;
-                        for (Edge edge : node.getEdges()) {
-                            toNodes.add(edge.getSegment().getSecond().getValue());
-                        }
+                        selectedInfo.append("NodeID: ").append(node.getId().getValue()).append("\n");
                         for (NodeCollection parent : animation.getParents((node))) {
                             // Get what parameter value the node is at within its node collection set points.
                             NodeCollectionSetPoint setPoint = parent.getInterpolator().getSetPoints().get(time);
@@ -423,6 +420,11 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                                 selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
                                     .append(round(setPoint.tOfNode(node) * 10000) / 10000.0).append("\n");
                             }
+                        }
+
+                        ArrayList<Integer> toNodes = new ArrayList<>();
+                        for (Edge edge : node.getEdges()) {
+                            toNodes.add(edge.getSegment().getSecond().getValue());
                         }
                         selectedInfo.append("Edges: ").append(toNodes).append("\n");
                     }

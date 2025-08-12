@@ -94,7 +94,7 @@ data class Animation @JvmOverloads constructor(
             Image::class.java -> images.add(new as Image)
             Label::class.java -> labels.add(new as Label)
             Unit::class.java -> units.add(new as Unit)
-            Node::class.java -> nodes.add(new as Node)
+            Node::class.java -> nodeEdgeHandler.addNode(new as Node)
         }
         new.init()
         if (Drawable::class.java.isAssignableFrom(clazz)) {

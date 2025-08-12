@@ -6,6 +6,7 @@ import com.wamteavm.interpolator.FloatSetPointInterpolator
 import com.wamteavm.models.*
 import com.wamteavm.utilities.ColorWrapper
 import kotlinx.serialization.Serializable
+import kotlin.math.hypot
 
 @Serializable
 class Label(override var position: Coordinate, override var initTime: Int) : ScreenObjectWithAlpha(), HasColor, Drawable {
@@ -29,5 +30,9 @@ class Label(override var position: Coordinate, override var initTime: Int) : Scr
 
     override fun draw(drawer: Drawer) {
         drawer.draw(this)
+    }
+
+    override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
+        return hypot(x - position.x, y - position.y) <= (size * 10)
     }
 }

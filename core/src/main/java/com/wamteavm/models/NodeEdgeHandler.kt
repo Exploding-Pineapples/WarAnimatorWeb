@@ -1,6 +1,5 @@
 package com.wamteavm.models
 
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.wamteavm.utilities.ColorWrapper
 
 class NodeEdgeHandler(val animation: Animation) {

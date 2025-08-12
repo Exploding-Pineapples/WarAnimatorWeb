@@ -15,12 +15,6 @@ data class Node(
     var edges = mutableListOf<Edge>()
     override val posInterpolator = CoordinateSetPointInterpolator().apply { interpolated = false }
 
-    override fun init() { // Initialize transient properties
-        if (visitedBy == null) {
-            visitedBy = mutableListOf()
-        }
-    }
-
     override fun update(time: Int) { // Goes to time, and if animation mode is active, draws colored circle
         visitedBy.clear() // Clear to prepare to be traversed
     }

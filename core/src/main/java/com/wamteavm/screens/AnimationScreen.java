@@ -149,7 +149,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel = new Table();
         stage.addActor(leftPanel);
 
-        int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.SPACE, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
+        int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
 
         for (int key : catchKeys) {
             Gdx.input.setCatchKey(key, true);

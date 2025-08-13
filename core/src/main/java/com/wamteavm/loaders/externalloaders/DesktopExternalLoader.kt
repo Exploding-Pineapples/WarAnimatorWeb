@@ -57,7 +57,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
         callback()
     }
 
-    override fun loadImages(animation: Animation, callback: () -> Unit) {
+    override fun loadImages(animation: Animation) {
         animation.imageKeys.forEach {
             try {
                 loadedImages[it] = Texture(Gdx.files.absolute(it))
@@ -65,7 +65,6 @@ object DesktopExternalLoader : AbstractExternalLoader {
                 println("File not found")
             }
         }
-        callback()
     }
 
     override fun addImage() {

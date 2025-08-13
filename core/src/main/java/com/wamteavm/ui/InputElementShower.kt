@@ -3,7 +3,7 @@ package com.wamteavm.ui
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
-import com.wamteavm.loaders.InternalLoader
+import com.wamteavm.loaders.externalloaders.AbstractExternalLoader
 import com.wamteavm.ui.inputelements.InputElement
 import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.models.*
@@ -15,7 +15,7 @@ import com.wamteavm.ui.inputelements.CheckBoxInput
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.ColorWrapper
 
-class InputElementShower(val skin: Skin, val animation: Animation) {
+class InputElementShower(val skin: Skin, val animation: Animation, val loader: AbstractExternalLoader) {
     private val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {
@@ -160,11 +160,12 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
         return listOf(
             SelectBoxInput(null, { input ->
                 for (image in images) {
-                    image.updateTexture(InternalLoader.mapsPath(input ?: ""))
+                    image.key = input ?: ""
+                    image.loadTexture(loader)
                 }
             }, label@{
-                return@label returnPropertyIfSame(images) { it.path.substringAfter("assets/maps/") }
-            }, String::class.java, "Image", InternalLoader.images()),
+                return@label returnPropertyIfSame(images) { it.key.substringAfter("assets/maps/") }
+            }, String::class.java, "Image", Array<String>().apply { loader.loadedImages.keys.forEach { add(it) } }),
             TextInput(null, { input ->
                 if (input != null) {
                     if (input >= 0) {
@@ -226,20 +227,20 @@ class InputElementShower(val skin: Skin, val animation: Animation) {
                 if (input != null) {
                     for (unit in units) {
                         unit.type = input
-                        unit.updateTypeTexture()
+                        unit.updateTypeTexture(loader)
                     }
                 }
             }, label@{
                 return@label returnPropertyIfSame(units) { it.type }
-            }, String::class.java, "Set type", InternalLoader.unitTypes()),
+            }, String::class.java, "Set type", Array<String>()), //TODO
             SelectBoxInput(null, { input ->
                 for (unit in units) {
-                    unit.country = InternalLoader.flagsPath(input ?: "")
-                    unit.updateCountryTexture()
+                    //unit.country = InternalLoader.flagsPath(input ?: "")
+                    unit.updateCountryTexture(loader)
                 }
             }, label@{
                 return@label returnPropertyIfSame(units) { it.country }?.removePrefix("units/countries/")
-            }, String::class.java, "Set country", InternalLoader.countryNames()),
+            }, String::class.java, "Set country", Array<String>()), //TODO
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""

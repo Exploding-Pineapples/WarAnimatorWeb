@@ -1,6 +1,7 @@
 package com.wamteavm.models
 
 import com.wamteavm.WarAnimator
+import com.wamteavm.loaders.externalloaders.AbstractExternalLoader
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
@@ -12,13 +13,14 @@ import kotlinx.serialization.Transient
 data class Animation @JvmOverloads constructor(
     var name: String = "My Animation",
     var id: String = "",
-    val units: MutableList<Unit> = mutableListOf(),
     private var camera: Camera? = null,
+    val units: MutableList<Unit> = mutableListOf(),
     val nodes: MutableList<Node> = mutableListOf(),
     val nodeCollections: MutableList<NodeCollection> = mutableListOf(),
     val arrows: MutableList<Arrow> = mutableListOf(),
     val labels: MutableList<Label> = mutableListOf(),
-    var images: MutableList<Image> = mutableListOf(),
+    val images: MutableList<Image> = mutableListOf(),
+    var imageKeys: List<String> = mutableListOf(),
     var nodeCollectionID: Int = 0,
     var nodeId: Int = 0,
     var initTime: Int = 0
@@ -26,8 +28,10 @@ data class Animation @JvmOverloads constructor(
 {
     @Transient var nodeEdgeHandler = NodeEdgeHandler(this)
     @Transient lateinit var drawer: Drawer // Given by AnimationScreen
+    @Transient lateinit var loader: AbstractExternalLoader
 
-    fun init(drawer: Drawer) {
+    fun init(drawer: Drawer, loader: AbstractExternalLoader) {
+        this.loader = loader
         this.drawer = drawer
         drawer.init(this)
         nodeEdgeHandler = NodeEdgeHandler(this)

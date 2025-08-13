@@ -1,21 +1,20 @@
 package com.wamteavm.loaders.externalloaders
 
-import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.graphics.Texture
 import com.wamteavm.models.Animation
 
 interface AbstractExternalLoader {
     val animations: MutableList<Animation>
-    val images: MutableList<Image>
+    val loadedImages: MutableMap<String, Texture>
 
     fun save()
-    fun load()
+    fun loadAnimations(callback: () -> Unit = {})
     fun addAnimation(animation: Animation)
     fun deleteAnimation(animation: Animation)
-    fun addImage(image: Image) {
-        images.add(image)
-    }
-    fun deleteImage(image: Image) {
-        images.remove(image)
+    fun loadImages(animation: Animation)
+    fun addImage()
+    fun deleteImage(key: String) {
+        loadedImages.remove(key)
     }
     fun exit()
 }

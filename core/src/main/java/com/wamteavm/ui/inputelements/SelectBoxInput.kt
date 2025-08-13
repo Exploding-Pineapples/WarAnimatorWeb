@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.Array
+import kotlin.math.min
 
 class SelectBoxInput<T: Any> (skin: Skin?, output: (T?) -> Unit, val input: () -> T?, clazz: Class<T>, name: String, val choices: Array<T>, converter: ((String) -> T)? = null) : InputElement<T>(skin, output, clazz, name, converter) {
     @Transient override var inputElement: Actor? = null
@@ -25,7 +26,7 @@ class SelectBoxInput<T: Any> (skin: Skin?, output: (T?) -> Unit, val input: () -
             })
 
             table!!.add(nameLabel)
-            table!!.add(selectBox).pad(10.0f)
+            table!!.add(selectBox).pad(10.0f).width(min(selectBox.prefWidth, 250f))
             table!!.row()
 
             verticalGroup.addActor(table)

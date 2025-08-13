@@ -13,14 +13,6 @@ object InternalLoader {
     private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
     private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
 
-    private var countryNames: Array<String> = Array()
-    var images: Array<String> = Array()
-    private var unitTypes: Array<String> = Array()
-
-    fun flagsPath(file: String): String { return "units/countries/$file" }
-    fun unitKindsPath(file: String): String { return "units/symbols/$file" }
-    fun mapsPath(file: String): String { return "maps/$file" }
-
     fun loadSkin(file: String): Skin? {
         val cached = LOADED_SKINS[file]
         if (cached != null) {
@@ -74,72 +66,5 @@ object InternalLoader {
         )
     }
 
-    fun countryNames(): Array<String> {
-        if (countryNames.isEmpty) {
-            updateCountryNames()
-        }
-        return countryNames
-    }
 
-    fun unitTypes(): Array<String> {
-        if (unitTypes.isEmpty) {
-            updateUnitTypes()
-        }
-        return unitTypes
-    }
-
-    fun images(): Array<String> {
-        if (images.isEmpty) {
-            updateImages()
-        }
-        return images
-    }
-
-    fun updateCountryNames() {
-        countryNames.clear()
-        countryNames = listChildren("units/countries")
-    }
-
-    fun updateImages() {
-        images.clear()
-        images = listChildren("maps")
-    }
-
-    fun updateUnitTypes() {
-        unitTypes.clear()
-        unitTypes = listChildren("units/symbols")
-    }
-
-    fun listChildren(parentPath: String): Array<String> { // Works only on desktop
-        val assetsTxtHandle = Gdx.files.internal("assets.txt")
-        if (!assetsTxtHandle.exists()) {
-            Gdx.app.error("AssetLister", "assets.txt not found in internal files.")
-            return listChildrenByFile(parentPath)
-        }
-
-        val normalizedPath = parentPath.trimEnd('/') + "/"
-
-        val out = Array<String>()
-        for (string in assetsTxtHandle.readString()
-            .lineSequence()
-            .map { it.trim() }
-            .filter { it.startsWith(normalizedPath) && it.removePrefix(normalizedPath).contains('/').not() }
-        )
-        {
-            out.add(string.removePrefix(normalizedPath))
-        }
-        return out
-    }
-
-    fun listChildrenByFile(internalPath: String): Array<String> { // Works only online
-        val fileNames = Array<String>()
-        Gdx.files.internal(internalPath).list().forEach {
-            print("${it.name()} ")
-        }
-        println(Gdx.files.internal(internalPath).list().size)
-        for (file in Gdx.files.internal(internalPath).list()!!) {
-            fileNames.add(file.name())
-        }
-        return fileNames
-    }
 }

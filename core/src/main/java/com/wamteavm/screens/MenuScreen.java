@@ -57,7 +57,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                game.animationLoader.deleteAnimation(animation);
+                game.loader.deleteAnimation(animation);
                 game.menuScreen = new MenuScreen(game);
                 game.setScreen(game.menuScreen);
             }
@@ -75,6 +75,30 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             }
         });
         return textButton;
+    }
+
+    public void updateAnimations() {
+        List<Animation> animations = game.loader.getAnimations();
+
+        Label title = new Label("", skin);
+        if (animations.isEmpty()) {
+            title.setText("You have no animations.");
+        } else {
+            title.setText("Animations:");
+        }
+        table.add(title).colspan(4);
+        table.row().pad(10).height(40);
+
+        for (Animation animation : animations) {
+            Label nameLabel = new Label(animation.getName(), skin);
+
+            table.add(getDeleteButton(animation));
+            table.add(nameLabel);
+            table.add(getOpenButton(animation));
+            table.add(getEditButton(animation));
+
+            table.row().pad(10).height(40);
+        }
     }
 
     @Override
@@ -135,7 +159,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new LoginScreen(game));
-                game.animationLoader.exit();
+                game.loader.exit();
                 dispose();
             }
         });
@@ -159,31 +183,10 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         table.add(newAnimationButton).colspan(4);
         table.row().pad(10);
 
-        game.animationLoader.load();
-        List<Animation> animations = game.animationLoader.getAnimations();
-
-        Label title = new Label("", skin);
-        if (animations.isEmpty()) {
-            title.setText("You have no animations.");
-        } else {
-            title.setText("Animations:");
-        }
-        table.add(title).colspan(4);
-        table.row().pad(10).height(40);
-
-        for (Animation animation : animations) {
-            Label nameLabel = new Label(animation.getName(), skin);
-
-            table.add(getDeleteButton(animation));
-            table.add(nameLabel);
-            table.add(getOpenButton(animation));
-            table.add(getEditButton(animation));
-
-            table.row().pad(10).height(40);
-        }
-
         stage.addActor(table);
 
         Gdx.input.setInputProcessor(stage);
+
+        updateAnimations();
     }
 }

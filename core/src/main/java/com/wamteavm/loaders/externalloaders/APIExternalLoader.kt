@@ -1,13 +1,17 @@
 package com.wamteavm.loaders.externalloaders
 
-import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.graphics.Texture
 import com.wamteavm.models.Animation
 import com.waranimator.api.client.WarAnimatorAPI
 
 object APIExternalLoader : AbstractExternalLoader {
     val api = WarAnimatorAPI("https://api.waranimator.com")
     override val animations = mutableListOf<Animation>()
-    override val images: MutableList<Image> = mutableListOf()
+    override val loadedImages: MutableMap<String, Texture> = mutableMapOf()
+
+    init {
+        BrowserIO.initHiddenFileInput()
+    }
 
     override fun save() {
         animations.forEach {
@@ -17,7 +21,7 @@ object APIExternalLoader : AbstractExternalLoader {
         println("saved")
     }
 
-    override fun load() {
+    override fun loadAnimations(callback: () -> Unit) {
         animations.clear()
         api.getMyAnimations().forEach {
             val result = runCatching {
@@ -39,6 +43,16 @@ object APIExternalLoader : AbstractExternalLoader {
         animations.removeIf { it.id == animation.id }
         api.deleteAnimation(animation.id)
         println(animation.name)
+    }
+
+    override fun loadImages(animation: Animation) {
+        animation.imageKeys.forEach {
+            TODO("load image from API")
+        }
+    }
+
+    override fun addImage() {
+        TODO("Not yet implemented")
     }
 
     override fun exit() {

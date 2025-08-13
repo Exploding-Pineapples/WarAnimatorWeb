@@ -6,11 +6,13 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
 import com.wamteavm.models.screenobjects.Arrow;
@@ -47,13 +49,14 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     float mouseY;
 
     Integer time;
-    boolean paused;
+    boolean paused = true;
 
-    ArrayList<AnyObject> selectedObjects;
+    ArrayList<AnyObject> selectedObjects = new ArrayList<>();
+
+    TouchMode touchMode = TouchMode.DEFAULT;
 
     // Keyboard actions
-    TouchMode touchMode;
-    List<Action> actions;
+    List<Action> actions = new ArrayList<>();
     boolean shiftPressed;
     boolean ctrlPressed;
     long commaLastUnpressed = 0;
@@ -75,24 +78,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     SelectBoxInput<Integer> newNodeCollectionIDInput;
     Class<? extends AnyObject> createClass;
     SelectBoxInput<String> createSelectBoxInput;
-    boolean displayGUI;
-    boolean UIDisplayed;
+    boolean uploadDisplayed = false;
+    boolean displayGUI = true;
+    boolean GUIDisplayed = false;
 
     public AnimationScreen(WarAnimator game, Animation animation) {
         this.animation = animation;
         this.game = game;
 
+        game.loader.loadImages(animation);
+
         orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         updateCam();
 
         time = animation.getInitTime();
-        paused = true;
-        displayGUI = true;
-
-        selectedObjects = new ArrayList<>();
 
         // Keyboard actions
-        actions = new ArrayList<>();
         buildActions();
         int[] catchKeys = new int[]{Input.Keys.CONTROL_LEFT, Input.Keys.CONTROL_RIGHT, Input.Keys.ESCAPE, Input.Keys.SHIFT_LEFT, Input.Keys.SHIFT_RIGHT};
         for (int key : catchKeys) {
@@ -100,14 +101,17 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }
 
         // GUI
-        touchMode = TouchMode.DEFAULT;
-        UIDisplayed = false;
         stage = new Stage();
-
-
         leftGroup = new VerticalGroup();
         timeAndFPS = new Label("", game.skin);
         keyOptions = new Label("", game.skin);
+        uploadImage = new TextButton("Upload Image", game.skin, "small");
+        uploadImage.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.loader.addImage();
+            }
+        });
 
         leftPanel = new Table();
         leftPanel.add(timeAndFPS).left().pad(10);
@@ -115,6 +119,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel.add(keyOptions).pad(10);
         leftPanel.row();
         leftPanel.add(leftGroup);
+        leftPanel.row();
 
         stage.addActor(leftPanel);
 
@@ -155,7 +160,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             null);
 
 
-        uiShower = new InputElementShower(game.skin, animation);
+        uiShower = new InputElementShower(game.skin, animation, game.loader);
         selectedLabel = new Label("", game.skin);
         selectedGroup = new VerticalGroup();
         selectedInfoTable = new Table();
@@ -165,7 +170,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         uiShower.showAll(selectedGroup);
         selectedInfoTable.add(selectedGroup);
 
-        animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time));
+        animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time), game.loader);
     }
 
     public void buildActions() {
@@ -177,7 +182,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }, "Pause/Unpause the game", Input.Keys.SPACE).requiresSelected(Requirement.ANY).build());
         // Shift required
         actions.add(Action.createBuilder(() -> {
-            game.animationLoader.save();
+            game.loader.save();
             game.menuScreen = new MenuScreen(game);
             game.setScreen(game.menuScreen);
             return null;
@@ -260,7 +265,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             return null;
         }, "Toggle new edge mode", Input.Keys.E).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {
-            game.animationLoader.save();
+            game.loader.save();
             System.out.println("saved");
             return null;
         }, "Save project", Input.Keys.S).requiresControl(true).build());
@@ -452,10 +457,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
             selectedLabel.setText(selectedInfo);
 
-            if (!UIDisplayed) {
+            if (!GUIDisplayed) {
                 stage.addActor(leftPanel);
                 stage.addActor(selectedInfoTable);
-                UIDisplayed = true;
+                GUIDisplayed = true;
+            }
+
+            if (createClass == Image.class) {
+                if (!uploadDisplayed) {
+                    leftGroup.addActor(uploadImage);
+                    uploadDisplayed = true;
+                }
+            } else {
+                if (uploadDisplayed) {
+                    leftGroup.removeActor(uploadImage);
+                    uploadDisplayed = false;
+                }
             }
 
             if (touchMode == TouchMode.NEW_EDGE) {
@@ -475,9 +492,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             leftPanel.setPosition(30, DISPLAY_HEIGHT - 30 - leftPanel.getHeight());
             selectedInfoTable.setPosition(DISPLAY_WIDTH - 30 - selectedInfoTable.getWidth(), DISPLAY_HEIGHT  - 30 - selectedInfoTable.getHeight());
         } else {
-            if (UIDisplayed) {
+            if (GUIDisplayed) {
                 stage.clear();
-                UIDisplayed = false;
+                GUIDisplayed = false;
             }
         }
 

@@ -77,7 +77,7 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
                 if (inputCheck.getFirst()) {
                     animation.setName(nameField.getText());
                     if (newAnimation) {
-                        game.animationLoader.addAnimation(animation);
+                        game.loader.addAnimation(animation);
                     }
                     game.setScreen(new LoadingScreen(game, animation));
                 } else {
@@ -101,7 +101,7 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
             return new Pair<>(false, "Name cannot be empty");
         }
         if (newAnimation) {
-            for (Animation existing : game.animationLoader.getAnimations()) {
+            for (Animation existing : game.loader.getAnimations()) {
                 if (existing.getName().equals(name)) {
                     return new Pair<>(false, "Animation already exists");
                 }

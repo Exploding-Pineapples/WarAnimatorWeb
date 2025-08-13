@@ -8,11 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.wamteavm.loaders.externalloaders.AbstractExternalLoader;
 import com.wamteavm.loaders.InternalLoader;
 import com.wamteavm.loaders.externalloaders.APIExternalLoader;
-import com.wamteavm.loaders.externalloaders.BrowserIO;
-import com.wamteavm.loaders.externalloaders.FileExternalLoader;
 import com.wamteavm.models.Animation;
 import com.wamteavm.screens.AnimationScreen;
-import com.wamteavm.screens.LoginScreen;
 import com.wamteavm.screens.MenuScreen;
 import com.waranimator.api.client.models.AuthResult;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -26,20 +23,18 @@ public class WarAnimator extends Game {
     public ShapeDrawer shapeDrawer;
     public MenuScreen menuScreen;
     public InputMultiplexer multiplexer;
-    public AbstractExternalLoader animationLoader;
+    public AbstractExternalLoader loader;
     private final Screen firstScreen;
-    public boolean web;
 
-    public WarAnimator(boolean web) {
-        this.web = web;
-        animationLoader = web ? APIExternalLoader.INSTANCE : FileExternalLoader.INSTANCE;
-        firstScreen = web ? new LoginScreen(this) : new MenuScreen(this);
+    public WarAnimator(AbstractExternalLoader loader) {
+        this.loader = loader;
+        firstScreen = new MenuScreen(this);
     }
 
     public WarAnimator(AuthResult authResult, Animation animation) { // Skip login, go directly to AnimationScreen. Only from direct edit animation link
-        web = true;
+        this.loader = APIExternalLoader.INSTANCE;
         APIExternalLoader.INSTANCE.getApi().setAuthToken(authResult.getToken());
-        animationLoader = APIExternalLoader.INSTANCE;
+        loader = APIExternalLoader.INSTANCE;
         firstScreen = new AnimationScreen(this, animation);
     }
 
@@ -56,14 +51,14 @@ public class WarAnimator extends Game {
             Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
         }
 
-        setScreen(firstScreen);
+        loader.loadAnimations(() -> {setScreen(firstScreen); return null;});
     }
 
     @Override
     public void dispose() {
-        animationLoader.exit();
+        loader.exit();
         batch.dispose();
-        animationLoader.save();
+        loader.save();
     }
 
     public static final int DISPLAY_WIDTH = 1920;

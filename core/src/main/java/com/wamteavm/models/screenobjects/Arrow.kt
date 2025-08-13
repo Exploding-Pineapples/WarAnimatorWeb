@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObjectWithAlpha(), HasColor, Drawable {
-    override var order = "f"
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("black")!!) }
+    override var order = "f"
 
     override fun init() {
         super<ScreenObjectWithAlpha>.init()

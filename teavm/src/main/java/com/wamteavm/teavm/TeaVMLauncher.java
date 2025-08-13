@@ -3,6 +3,7 @@ package com.wamteavm.teavm;
 import com.github.xpenatan.gdx.backends.teavm.TeaApplicationConfiguration;
 import com.github.xpenatan.gdx.backends.teavm.TeaApplication;
 import com.wamteavm.WarAnimator;
+import com.wamteavm.loaders.externalloaders.IndexedDBExternalLoader;
 
 /**
  * Launches the TeaVM/HTML application.
@@ -19,6 +20,6 @@ public class TeaVMLauncher {
         //// If width and height are both -1, then the app will fill the canvas size.
         config.width = WarAnimator.DISPLAY_WIDTH;
         config.height = WarAnimator.DISPLAY_HEIGHT;
-        new TeaApplication(new WarAnimator(true), config);
+        new TeaApplication(new WarAnimator(IndexedDBExternalLoader.INSTANCE), config);
     }
 }

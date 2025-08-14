@@ -132,17 +132,22 @@ class Drawer(val font: BitmapFont,
             shapeDrawer.setColor(colorWithAlpha(Color.LIGHT_GRAY, unit.alpha.value)) // Center light gray contrast area
             shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, unit.width - 2 * padding, unit.height - 2 * padding))
 
-            batcher.setColor(1f, 1f, 1f, unit.alpha.value)
-            if (unit.typeTexture() != null) {
-                drawTexture(unit.typeTexture()!!, centerRect(screenPosition.x, screenPosition.y, unit.width / 1.5f, unit.height / 1.5f))
-            }
-            if (unit.countryTexture() != null) {
-                batcher.draw(
-                    unit.countryTexture(),
-                    screenPosition.x - unit.width / 2f + padding,
-                    screenPosition.y + unit.height / 2f - unit.height / 4f - padding,
-                    unit.width / 4.0f, unit.height / 4.0f
-                )
+            if (unit.alpha.value != 0f) {
+                batcher.setColor(1f, 1f, 1f, unit.alpha.value)
+                if (unit.type.loaded) {
+                    drawTexture(
+                        unit.type.getTexture()!!,
+                        centerRect(screenPosition.x, screenPosition.y, unit.width / 1.5f, unit.height / 1.5f)
+                    )
+                }
+                if (unit.country.loaded) {
+                    batcher.draw(
+                        unit.country.getTexture()!!,
+                        screenPosition.x - unit.width / 2f + padding,
+                        screenPosition.y + unit.height / 2f - unit.height / 4f - padding,
+                        unit.width / 4.0f, unit.height / 4.0f
+                    )
+                }
             }
 
             prepareFont(Color.WHITE, unit.color.value.color, unit.alpha.value, 0.5f * zoomFactor * drawSize)
@@ -208,14 +213,14 @@ class Drawer(val font: BitmapFont,
         if (animationMode) {
             drawAsSelected(image)
         }
-        if (image.texture != null && image.alpha.value != 0f) {
+        if (image.texture.loaded && image.alpha.value != 0f) {
             batcher.color = colorWithAlpha(Color.WHITE, image.alpha.value)
             batcher.draw(
-                image.texture,
+                image.texture.getTexture(),
                 screenPosition.x,
                 screenPosition.y,
-                image.texture!!.width.toFloat() * camera.zoom * image.scale,
-                image.texture!!.height.toFloat() * camera.zoom * image.scale
+                image.texture.getTexture()!!.width.toFloat() * camera.zoom * image.scale,
+                image.texture.getTexture()!!.height.toFloat() * camera.zoom * image.scale
             )
         }
     }
@@ -279,7 +284,8 @@ class Drawer(val font: BitmapFont,
             }
 
             if (anyObject.javaClass == Image::class.java) {
-                shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, 6f, 6f))
+                shapeDrawer.setColor(Color.ORANGE)
+                shapeDrawer.filledRectangle(centerRect(screenPosition.x, screenPosition.y, 12f, 12f))
             }
         }
 

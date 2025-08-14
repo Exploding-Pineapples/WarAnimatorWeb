@@ -2,7 +2,6 @@ package com.wamteavm.loaders.externalloaders
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.wamteavm.models.Animation
 import kotlinx.serialization.json.Json
@@ -11,7 +10,7 @@ import javax.swing.JFileChooser
 
 object DesktopExternalLoader : AbstractExternalLoader {
     override val animations = mutableListOf<Animation>()
-    override val loadedImages: MutableMap<String, Texture> = mutableMapOf()
+    override val loadedImages: MutableMap<String, Texture> = HashMap()
     val json: Json = Json { ignoreUnknownKeys = true }
     val chooser: JFileChooser by lazy {
         JFileChooser(File(Gdx.files.localStoragePath))
@@ -65,6 +64,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
                 println("File not found")
             }
         }
+        animation.loadExternal(this)
     }
 
     override fun addImage() {
@@ -86,26 +86,6 @@ object DesktopExternalLoader : AbstractExternalLoader {
         if (file.exists()) {
             println(file.delete())
         }
-    }
-
-    fun listChildren(parentPath: String): Array<String> {
-        val assetsTxtHandle = Gdx.files.internal("assets.txt")
-        if (!assetsTxtHandle.exists()) {
-            Gdx.app.error("AssetLister", "assets.txt not found in internal files.")
-        }
-
-        val normalizedPath = parentPath.trimEnd('/') + "/"
-
-        val out = Array<String>()
-        for (string in assetsTxtHandle.readString()
-            .lineSequence()
-            .map { it.trim() }
-            .filter { it.startsWith(normalizedPath) && it.removePrefix(normalizedPath).contains('/').not() }
-        )
-        {
-            out.add(string.removePrefix(normalizedPath))
-        }
-        return out
     }
 
     override fun exit() {

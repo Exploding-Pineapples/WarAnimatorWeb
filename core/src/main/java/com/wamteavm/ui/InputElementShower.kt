@@ -3,6 +3,7 @@ package com.wamteavm.ui
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
+import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.loaders.externalloaders.AbstractExternalLoader
 import com.wamteavm.ui.inputelements.InputElement
 import com.wamteavm.ui.inputelements.TextInput
@@ -14,8 +15,9 @@ import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.CheckBoxInput
 import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.ColorWrapper
+import com.wamteavm.utilities.gdxArrayOf
 
-class InputElementShower(val skin: Skin, val animation: Animation, val loader: AbstractExternalLoader) {
+class InputElementShower(val skin: Skin, val animation: Animation, val externalLoader: AbstractExternalLoader) {
     private val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {
@@ -160,12 +162,12 @@ class InputElementShower(val skin: Skin, val animation: Animation, val loader: A
         return listOf(
             SelectBoxInput(null, { input ->
                 for (image in images) {
-                    image.key = input ?: ""
-                    image.loadTexture(loader)
+                    image.texture.key = input ?: ""
+                    image.texture.loadTexture(externalLoader)
                 }
             }, label@{
-                return@label returnPropertyIfSame(images) { it.key.substringAfter("assets/maps/") }
-            }, String::class.java, "Image", Array<String>().apply { loader.loadedImages.keys.forEach { add(it) } }),
+                return@label returnPropertyIfSame(images) { it.texture.key }
+            }, String::class.java, "Image", Array<String>().apply { externalLoader.loadedImages.keys.forEach { add(it) } }),
             TextInput(null, { input ->
                 if (input != null) {
                     if (input >= 0) {
@@ -225,22 +227,32 @@ class InputElementShower(val skin: Skin, val animation: Animation, val loader: A
             }, Float::class.java, "Set draw size"),
             SelectBoxInput(null, { input ->
                 if (input != null) {
-                    for (unit in units) {
-                        unit.type = input
-                        unit.updateTypeTexture(loader)
+                    if (input in InternalLoader.listChildren(InternalLoader.DEFAULT_SYMBOLS)) {
+                        for (unit in units) {
+                            unit.type.key = InternalLoader.defaultSymbols(input)
+                            unit.type.loadTexture(null)
+                        }
+                    } else {
+                        for (unit in units) {
+                            unit.type.key = input
+                            unit.type.loadTexture(externalLoader)
+                        }
                     }
                 }
             }, label@{
-                return@label returnPropertyIfSame(units) { it.type }
-            }, String::class.java, "Set type", Array<String>()), //TODO
+                return@label returnPropertyIfSame(units) { it.type.key }?.removePrefix(InternalLoader.DEFAULT_SYMBOLS)
+            }, String::class.java, "Set type",
+                gdxArrayOf(InternalLoader.listChildren(InternalLoader.DEFAULT_SYMBOLS)).apply {
+                addAll(gdxArrayOf(externalLoader.loadedImages.keys))
+            }),
             SelectBoxInput(null, { input ->
                 for (unit in units) {
-                    //unit.country = InternalLoader.flagsPath(input ?: "")
-                    unit.updateCountryTexture(loader)
+                    unit.country.key = input?: ""
+                    unit.country.loadTexture(externalLoader)
                 }
             }, label@{
-                return@label returnPropertyIfSame(units) { it.country }?.removePrefix("units/countries/")
-            }, String::class.java, "Set country", Array<String>()), //TODO
+                return@label returnPropertyIfSame(units) { it.country.key }
+            }, String::class.java, "Set country", gdxArrayOf(externalLoader.loadedImages.keys)),
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""

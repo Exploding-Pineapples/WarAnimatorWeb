@@ -21,9 +21,9 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
 
     override fun loadAnimations(callback: () -> Unit) {
         BrowserIO.loadIndexedDB( "horsInfo","animations", object : ImageCallback {
-            override fun onLoad(entries: JSArray<Entry>) {
-                for (i in 0 until entries.getLength()) {
-                    val entry = entries.get(i)
+            override fun onLoad(images: JSArray<Entry>) {
+                for (i in 0 until images.getLength()) {
+                    val entry = images.get(i)
                     val key = entry.getKey()
                     val value = entry.getValue()
 
@@ -65,7 +65,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                         loadedImages[key] = base64ToTexture(value)
                     }
                 }
-                animation.images.forEach { it.loadTexture(this@IndexedDBExternalLoader) }
+                animation.loadExternal(this@IndexedDBExternalLoader)
             }
         })
 

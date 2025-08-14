@@ -28,10 +28,16 @@ data class Animation @JvmOverloads constructor(
 {
     @Transient var nodeEdgeHandler = NodeEdgeHandler(this)
     @Transient lateinit var drawer: Drawer // Given by AnimationScreen
-    @Transient lateinit var loader: AbstractExternalLoader
 
-    fun init(drawer: Drawer, loader: AbstractExternalLoader) {
-        this.loader = loader
+    fun loadExternal(externalLoader: AbstractExternalLoader) {
+        images.forEach { it.texture.loadTexture(externalLoader) }
+        units.forEach {
+            it.type.loadTexture(externalLoader)
+            it.country.loadTexture(externalLoader)
+        }
+    }
+
+    fun init(drawer: Drawer) {
         this.drawer = drawer
         drawer.init(this)
         nodeEdgeHandler = NodeEdgeHandler(this)
@@ -84,6 +90,7 @@ data class Animation @JvmOverloads constructor(
     fun getNodeByID(id: NodeID): Node? = nodes.firstOrNull { it.id.value == id.value }
 
     // May the coding gods forgive me for I have sinned
+    @Suppress("UNCHECKED_CAST")
     fun <T : AnyObject>createObjectAtPosition(time: Int, x: Float, y: Float, clazz: Class<T>): T {
         val new = when (clazz) {
             Arrow::class.java -> Arrow(Coordinate(x, y), time)

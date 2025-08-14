@@ -170,7 +170,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         uiShower.showAll(selectedGroup);
         selectedInfoTable.add(selectedGroup);
 
-        animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time), game.loader);
+        animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time));
     }
 
     public void buildActions() {

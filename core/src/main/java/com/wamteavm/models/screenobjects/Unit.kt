@@ -1,13 +1,12 @@
 package com.wamteavm.models.screenobjects
 
-import com.badlogic.gdx.graphics.Texture
 import com.wamteavm.interpolator.ColorSetPointInterpolator
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
-import com.wamteavm.loaders.externalloaders.AbstractExternalLoader
 import com.wamteavm.models.*
 import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.ColorWrapper
+import com.wamteavm.utilities.LoadedTexture
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -21,19 +20,20 @@ data class Unit(
     override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("red")!!) }
     override var order = "d"
 
-    var country: String = ""
-    var name: String = ""
-    var type: String = "infantry.png"
+    var country: LoadedTexture = LoadedTexture()
+    var type: LoadedTexture = LoadedTexture()
+
     var size: String = "XX"
+    var name: String = ""
     var drawSize: Float? = 1.0f
-    @Transient private var typeTexture: Texture? = null
-    @Transient private var countryTexture: Texture? = null
+
     @Transient var width: Float = AnimationScreen.DEFAULT_UNIT_WIDTH.toFloat()
     @Transient var height: Float = AnimationScreen.DEFAULT_UNIT_HEIGHT.toFloat()
 
     override fun init() {
         super<ScreenObjectWithAlpha>.init()
         super<HasColor>.init()
+        type.loadTexture(null)
     }
 
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
@@ -49,28 +49,6 @@ data class Unit(
 
     override fun draw(drawer: Drawer) {
         drawer.draw(this)
-    }
-
-    fun updateCountryTexture(loader: AbstractExternalLoader) {
-        countryTexture = loader.loadedImages[country]
-    }
-
-    fun countryTexture(loader: AbstractExternalLoader? = null): Texture? {
-        if (loader != null && countryTexture == null) {
-            updateCountryTexture(loader)
-        }
-        return countryTexture
-    }
-
-    fun updateTypeTexture(loader: AbstractExternalLoader) {
-        typeTexture = loader.loadedImages[type]
-    }
-
-    fun typeTexture(loader: AbstractExternalLoader? = null): Texture? {
-        if (loader != null && typeTexture == null) {
-            updateTypeTexture(loader)
-        }
-        return typeTexture
     }
 
     companion object {

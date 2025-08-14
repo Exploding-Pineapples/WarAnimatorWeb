@@ -7,11 +7,15 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.Array
+import com.wamteavm.utilities.gdxArrayOf
 import java.util.*
 
 object InternalLoader {
     private val LOADED_TEXTURES: MutableMap<String, Texture> = HashMap()
     private val LOADED_SKINS: MutableMap<String, Skin> = HashMap()
+
+    const val DEFAULT_SYMBOLS = "units/symbols/"
+    fun defaultSymbols(internalPath: String): String { return "$DEFAULT_SYMBOLS$internalPath" }
 
     fun loadSkin(file: String): Skin? {
         val cached = LOADED_SKINS[file]
@@ -66,5 +70,21 @@ object InternalLoader {
         )
     }
 
-
+    fun listChildren(parentPath: String): Array<String> { // Returns children path relative to parent path
+        println("listing children")
+        val normalizedPath = parentPath.trimEnd('/') + "/"
+        val assetsTxtHandle = Gdx.files.internal("assets.txt")
+        if (!assetsTxtHandle.exists()) { // Happens online
+            val file = Gdx.files.internal(parentPath)
+            return gdxArrayOf(file.list().map {
+                it.toString().removePrefix(normalizedPath)
+            })
+        }
+        // Happens on desktop
+        return gdxArrayOf(assetsTxtHandle.readString()
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.startsWith(normalizedPath) && it.removePrefix(normalizedPath).contains('/').not() }
+            .map { it.removePrefix(normalizedPath) }.toList())
+    }
 }

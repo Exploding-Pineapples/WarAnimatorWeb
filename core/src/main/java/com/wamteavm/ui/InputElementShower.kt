@@ -17,7 +17,7 @@ import com.wamteavm.ui.inputelements.SelectBoxInput
 import com.wamteavm.utilities.ColorWrapper
 import com.wamteavm.utilities.gdxArrayOf
 
-class InputElementShower(val skin: Skin, val animation: Animation, val externalLoader: AbstractExternalLoader) {
+class InputElementShower(val skin: Skin, val animation: Animation, private val externalLoader: AbstractExternalLoader) {
     private val inputElements: MutableList<InputElement<*>> = mutableListOf()
 
     fun hideAll(verticalGroup: VerticalGroup) {
@@ -167,7 +167,10 @@ class InputElementShower(val skin: Skin, val animation: Animation, val externalL
                 }
             }, label@{
                 return@label returnPropertyIfSame(images) { it.texture.key }
-            }, String::class.java, "Image", Array<String>().apply { externalLoader.loadedImages.keys.forEach { add(it) } }),
+            }, String::class.java, "Image", Array<String>().apply {
+                externalLoader.loadedImages.keys.forEach { add(it) }
+                add("")
+            }),
             TextInput(null, { input ->
                 if (input != null) {
                     if (input >= 0) {
@@ -226,7 +229,7 @@ class InputElementShower(val skin: Skin, val animation: Animation, val externalL
                 return@label returnPropertyIfSame(units) { it.drawSize }.toString()
             }, Float::class.java, "Set draw size"),
             SelectBoxInput(null, { input ->
-                if (input != null) {
+                if (input != null && input != "") {
                     if (input in InternalLoader.listChildren(InternalLoader.DEFAULT_SYMBOLS)) {
                         for (unit in units) {
                             unit.type.key = InternalLoader.defaultSymbols(input)
@@ -238,12 +241,17 @@ class InputElementShower(val skin: Skin, val animation: Animation, val externalL
                             unit.type.loadTexture(externalLoader)
                         }
                     }
+                } else {
+                    for (unit in units) {
+                        unit.type.key = ""
+                    }
                 }
             }, label@{
                 return@label returnPropertyIfSame(units) { it.type.key }?.removePrefix(InternalLoader.DEFAULT_SYMBOLS)
             }, String::class.java, "Set type",
                 gdxArrayOf(InternalLoader.listChildren(InternalLoader.DEFAULT_SYMBOLS)).apply {
                 addAll(gdxArrayOf(externalLoader.loadedImages.keys))
+                    add("")
             }),
             SelectBoxInput(null, { input ->
                 for (unit in units) {
@@ -252,7 +260,9 @@ class InputElementShower(val skin: Skin, val animation: Animation, val externalL
                 }
             }, label@{
                 return@label returnPropertyIfSame(units) { it.country.key }
-            }, String::class.java, "Set country", gdxArrayOf(externalLoader.loadedImages.keys)),
+            }, String::class.java, "Set country", gdxArrayOf(externalLoader.loadedImages.keys).apply {
+                add("")
+            }),
             TextInput(null, { input ->
                 for (unit in units) {
                     unit.name = input ?: ""

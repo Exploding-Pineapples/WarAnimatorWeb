@@ -26,9 +26,7 @@ class LoadedTexture {
             } else {
                 InternalLoader.loadTexture(key)
             }
-            if (texture != null) {
-                loaded = true
-            }
+            loaded = texture != null
         }
     }
 

@@ -1,15 +1,19 @@
 package com.wamteavm;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.wamteavm.loaders.externalloaders.AbstractExternalLoader;
 import com.wamteavm.loaders.InternalLoader;
 import com.wamteavm.loaders.externalloaders.APIExternalLoader;
+import com.wamteavm.loaders.externalloaders.AbstractExternalLoader;
 import com.wamteavm.models.Animation;
 import com.wamteavm.screens.AnimationScreen;
+import com.wamteavm.screens.LoadingScreen;
 import com.wamteavm.screens.MenuScreen;
 import com.waranimator.api.client.models.AuthResult;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -50,6 +54,8 @@ public class WarAnimator extends Game {
         if (!fontShader.isCompiled()) {
             Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
         }
+
+        setScreen(new LoadingScreen(this));
 
         loader.loadAnimations(() -> {setScreen(firstScreen); return null;});
     }

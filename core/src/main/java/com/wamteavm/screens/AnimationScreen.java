@@ -110,7 +110,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         uploadImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.loader.addImage();
+                game.loader.addImage(animation);
             }
         });
 
@@ -348,18 +348,14 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             options.append("Zoom: ").append(orthographicCamera.zoom).append("\n");
             options.append("Touch mode: ").append(touchMode.name()).append("\n");
             options.append("Control pressed: ").append(ctrlPressed).append(" ").append("Shift pressed: ").append(shiftPressed).append("\n");
-            if (hasFocus) {
-                for (Action action : actions) {
-                    if (action.couldExecute(shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
-                        for (int key : action.getActionKeys()) {
-                            options.append(Input.Keys.toString(key)).append(", ");
-                        }
-                        options.replace(options.length() - 2, options.length() - 1, " |"); // Replace trailing comma, StringJoiner unavailable in TeaVM
-                        options.append(action.getActionName()).append("\n");
+            for (Action action : actions) {
+                if (action.couldExecute(shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
+                    for (int key : action.getActionKeys()) {
+                        options.append(Input.Keys.toString(key)).append(", ");
                     }
+                    options.replace(options.length() - 2, options.length() - 1, " |"); // Replace trailing comma, StringJoiner unavailable in TeaVM
+                    options.append(action.getActionName()).append("\n");
                 }
-            } else {
-                options.append("Escape | Exit UI Input \n");
             }
             keyOptions.setText(options);
 
@@ -409,8 +405,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 stage.addActor(selectedInfoTable);
                 GUIDisplayed = true;
             }
-
-
 
             if (touchMode == TouchMode.NEW_EDGE) {
                 newNodeCollectionIDInput.show(leftGroup, game.skin);
@@ -733,6 +727,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
+        if (!hasFocus) {
+            stage.mouseMoved(screenX, screenY);
+        }
         return false;
     }
 

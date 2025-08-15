@@ -37,7 +37,6 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
 
     override fun saveAnimations() {
         animations.forEach { animation ->
-            animation.imageKeys = loadedImages.keys.toList()
             val jsonString = json.encodeToString(Animation.serializer(), animation)
             val base64String = java.util.Base64.getEncoder()
                 .encodeToString(jsonString.toByteArray(Charsets.UTF_8))
@@ -50,10 +49,10 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
     }
 
     override fun deleteAnimation(animation: Animation) {
-        TODO("Not yet implemented")
+        animations.remove(animation)
     }
 
-    override fun addImage() {
+    override fun addImage(animation: Animation) {
         BrowserIO.pickImage( object: ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
                 for (i in 0 until images.length) {
@@ -61,6 +60,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                     val key = entry.getKey()
                     val value = entry.getValue().split(",")[1]
                     loadedImages[key] = base64ToTexture(value)
+                    animation.imageKeys.add(key)
                     BrowserIO.saveBase64ToIndexedDB("horsInfo","images", key, value)
                 }
             }
@@ -68,6 +68,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
     }
 
     override fun loadImages(animation: Animation) {
+        loadedImages.clear()
         BrowserIO.loadIndexedDB( "horsInfo","images", object : ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
                 for (i in 0 until images.length) {
@@ -82,7 +83,6 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                 animation.loadExternal(this@IndexedDBExternalLoader)
             }
         })
-
     }
 
     fun base64ToTexture(base64String: String): Texture {

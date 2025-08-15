@@ -1,7 +1,6 @@
 package com.wamteavm.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -23,50 +22,58 @@ import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
 
-public class EditAnimationScreen extends ScreenAdapter implements InputProcessor {
+public class EditAnimationScreen extends ScreenAdapter {
     WarAnimator game;
     Stage stage = new Stage();
     Table table = new Table();
     Label warningLabel;
+    TextButton uploadImage;
     boolean newAnimation;
 
     public EditAnimationScreen(WarAnimator game, Animation animation, boolean newAnimation) {
         this.game = game;
         this.newAnimation = newAnimation;
 
-        Table titleTable = new Table();
-        titleTable.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT - 100);
-        Label titleLabel = new Label("", game.skin);
-        updateTitle(titleLabel, animation);
-        titleTable.add(titleLabel);
-        stage.addActor(titleTable);
-
         table.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT / 2f);
 
-        TextButton menuButton = new TextButton("Menu", game.skin, "small");
-        menuButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.input.setInputProcessor(game.menuScreen.stage);
-                game.setScreen(game.menuScreen); //No need to reinitialize the menu since it's not possible to have added an animation
-            }
-        });
-        menuButton.setPosition(100, 100);
-        stage.addActor(menuButton);
+        Table titleTable = new Table();
+        titleTable.setPosition(DISPLAY_WIDTH / 2f, DISPLAY_HEIGHT - 100);
+        Label titleLabel = new Label("", game.skin, "big");
+        if (newAnimation) {
+            titleLabel.setText("Creating new animation");
+        } else {
+            titleLabel.setText("Editing " + animation.getName());
+        }
+        titleTable.add(titleLabel);
+        stage.addActor(titleTable);
 
         Table nameArea = new Table();
         Label nameLabel = new Label("Name: ", game.skin);
         TextField nameField = new TextField(animation.getName(), game.skin);
-        nameField.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                updateTitle(titleLabel, animation);
-            }
-        });
         nameArea.add(nameLabel);
         nameArea.add(nameField);
-        nameArea.row();
         table.add(nameArea);
+        table.row().pad(10);
+
+        table.add(new Label("Images:", game.skin));
+        table.row();
+
+        Table imagesTable = new Table();
+
+        uploadImage = new TextButton("Upload Image", game.skin, "small");
+        uploadImage.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.loader.addImage(animation);
+                updateImages(animation, game, imagesTable);
+            }
+        });
+        table.add(uploadImage).height(50).pad(10);
+        table.row();
+
+        updateImages(animation, game, imagesTable);
+
+        table.add(imagesTable);
         table.row().pad(10);
 
         TextButton submitButton = new TextButton("Submit", game.skin, "small");
@@ -79,7 +86,8 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
                     if (newAnimation) {
                         game.loader.addAnimation(animation);
                     }
-                    game.setScreen(new LoadingScreen(game, animation));
+                    game.setScreen(new LoadingScreen(game));
+                    game.setScreen(new AnimationScreen(game, animation));
                 } else {
                     warningLabel.setText(inputCheck.getSecond());
                 }
@@ -92,6 +100,17 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
         warningLabel = new Label("", game.skin);
         warningLabel.setColor(Color.RED);
         table.add(warningLabel);
+
+        TextButton menuButton = new TextButton("Menu", game.skin, "small");
+        menuButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.input.setInputProcessor(game.menuScreen.stage);
+                game.setScreen(game.menuScreen); //No need to reinitialize the menu since it's not possible to have added an animation
+            }
+        });
+        menuButton.setPosition(100, 100);
+        stage.addActor(menuButton);
 
         stage.addActor(table);
     }
@@ -110,11 +129,24 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
         return new Pair<>(true, "");
     }
 
-    public void updateTitle(Label label, Animation animation) {
-        if (newAnimation) {
-            label.setText("Creating new animation");
-        } else {
-            label.setText("Editing " + animation.getName());
+    private void updateImages(Animation animation, WarAnimator game, Table imagesTable) {
+        game.loader.loadImages(animation);
+        for (String image : game.loader.getLoadedImages().keySet().stream().toList()) { // Copy the keys to avoid concurrent modification
+            Table imageTable = new Table();
+            imageTable.add(new Label(image, game.skin)).pad(10);
+            TextButton deleteButton = new TextButton("Delete", game.skin, "small");
+            deleteButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    animation.getImageKeys().remove(image);
+                    imagesTable.removeActor(imageTable);
+                    game.loader.saveAnimations();
+                }
+            });
+
+            imageTable.add(deleteButton).height(45);
+            imagesTable.add(imageTable);
+            imagesTable.row();
         }
     }
 
@@ -133,49 +165,5 @@ public class EditAnimationScreen extends ScreenAdapter implements InputProcessor
 
         stage.act();
         stage.draw();
-    }
-    @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float amountX, float amountY) {
-        return false;
     }
 }

@@ -20,7 +20,7 @@ data class Animation @JvmOverloads constructor(
     val arrows: MutableList<Arrow> = mutableListOf(),
     val labels: MutableList<Label> = mutableListOf(),
     val images: MutableList<Image> = mutableListOf(),
-    var imageKeys: List<String> = mutableListOf(),
+    var imageKeys: MutableList<String> = mutableListOf(),
     var nodeCollectionID: Int = 0,
     var nodeId: Int = 0,
     var initTime: Int = 0

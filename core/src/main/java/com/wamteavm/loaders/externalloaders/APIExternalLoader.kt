@@ -47,7 +47,7 @@ object APIExternalLoader : AbstractExternalLoader {
         println(animation.name)
     }
 
-    override fun addImage() {
+    override fun addImage(animation: Animation) {
         BrowserIO.pickImage( object: ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
                 for (i in 0 until images.length) {
@@ -55,6 +55,7 @@ object APIExternalLoader : AbstractExternalLoader {
                     val key = entry.getKey()
                     val value = entry.getValue().split(",")[1]
                     loadedImages[key] = base64ToTexture(value)
+                    animation.imageKeys.add(key)
                     //TODO api.saveImage(key, value)
                 }
             }
@@ -62,6 +63,7 @@ object APIExternalLoader : AbstractExternalLoader {
     }
 
     override fun loadImages(animation: Animation) {
+        loadedImages.clear()
         animation.imageKeys.forEach {
             TODO("load image from API")
         }

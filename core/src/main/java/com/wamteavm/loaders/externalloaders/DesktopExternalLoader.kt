@@ -26,7 +26,6 @@ object DesktopExternalLoader : AbstractExternalLoader {
 
     override fun saveAnimations() {
         animations.forEach {
-            it.imageKeys = loadedImages.keys.toList()
             val file = File("$animationsFolder","${it.name}.json")
 
             if (!file.exists()) {
@@ -57,6 +56,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
     }
 
     override fun loadImages(animation: Animation) {
+        loadedImages.clear()
         animation.imageKeys.forEach {
             try {
                 loadedImages[it] = Texture(Gdx.files.absolute(it))
@@ -67,10 +67,11 @@ object DesktopExternalLoader : AbstractExternalLoader {
         animation.loadExternal(this)
     }
 
-    override fun addImage() {
+    override fun addImage(animation: Animation) {
         val result = chooser.showOpenDialog(null)
         if (result == JFileChooser.APPROVE_OPTION) {
             loadedImages[chooser.selectedFile.absolutePath] = (Texture(Gdx.files.absolute(chooser.selectedFile.absolutePath)))
+            animation.imageKeys.add(chooser.selectedFile.absolutePath)
         }
     }
 

@@ -1,7 +1,6 @@
 package com.wamteavm.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -22,7 +21,7 @@ import java.util.List;
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 
-public class MenuScreen extends ScreenAdapter implements InputProcessor {
+public class MenuScreen extends ScreenAdapter {
     WarAnimator game;
     Skin skin;
     Stage stage;
@@ -33,11 +32,35 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
     }
 
     @Override
-    public void render(float delta) {
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    public void show() {
+        stage = new Stage();
+        table = new Table();
+        skin = game.skin;
+        table.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT/2f);
 
-        stage.act();
-        stage.draw();
+        Table titleTable = new Table();
+        titleTable.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
+        Label titleLabel = new Label("War Animator", skin);
+        titleLabel.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
+        titleTable.add(titleLabel);
+        stage.addActor(titleTable);
+
+        TextButton newAnimationButton = new TextButton("New Animation", skin, "small");
+        newAnimationButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new EditAnimationScreen(game, new Animation(), true));
+                dispose();
+            }
+        });
+        table.add(newAnimationButton).colspan(4);
+        table.row().pad(10);
+
+        stage.addActor(table);
+
+        Gdx.input.setInputProcessor(stage);
+
+        updateAnimations();
     }
 
     private @NotNull TextButton getOpenButton(Animation animation) {
@@ -45,8 +68,8 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                LoadingScreen loadingScreen = new LoadingScreen(game, animation);
-                game.setScreen(loadingScreen);
+                game.setScreen(new LoadingScreen(game));
+                game.setScreen(new AnimationScreen(game, animation));
             }
         });
         return textButton;
@@ -87,7 +110,7 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             title.setText("Animations:");
         }
         table.add(title).colspan(4);
-        table.row().pad(10).height(40);
+        table.row().pad(10).height(45);
 
         for (Animation animation : animations) {
             Label nameLabel = new Label(animation.getName(), skin);
@@ -97,96 +120,15 @@ public class MenuScreen extends ScreenAdapter implements InputProcessor {
             table.add(getOpenButton(animation));
             table.add(getEditButton(animation));
 
-            table.row().pad(10).height(40);
+            table.row().pad(10).height(45);
         }
     }
 
     @Override
-    public boolean keyDown(int i) {
-        return false;
-    }
+    public void render(float delta) {
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-    @Override
-    public boolean keyUp(int i) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char c) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int x, int y, int pointer, int b) {
-        return true;
-    }
-
-    @Override
-    public boolean touchUp(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int i, int i1, int i2) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int i, int i1) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float v, float v1) {
-        return false;
-    }
-
-    @Override
-    public void show() {
-        stage = new Stage();
-        table = new Table();
-        skin = game.skin;
-        table.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT/2f);
-
-        TextButton logout = new TextButton("Logout", skin, "small");
-        logout.setPosition(100f, 100f);
-        logout.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new LoginScreen(game));
-                game.loader.exit();
-                dispose();
-            }
-        });
-        stage.addActor(logout);
-
-        Table titleTable = new Table();
-        titleTable.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
-        Label titleLabel = new Label("War Animator", skin);
-        titleLabel.setPosition(DISPLAY_WIDTH/2f, DISPLAY_HEIGHT - 100);
-        titleTable.add(titleLabel);
-        stage.addActor(titleTable);
-
-        TextButton newAnimationButton = new TextButton("New Animation", skin, "small");
-        newAnimationButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new EditAnimationScreen(game, new Animation(), true));
-                dispose();
-            }
-        });
-        table.add(newAnimationButton).colspan(4);
-        table.row().pad(10);
-
-        stage.addActor(table);
-
-        Gdx.input.setInputProcessor(stage);
-
-        updateAnimations();
+        stage.act();
+        stage.draw();
     }
 }

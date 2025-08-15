@@ -14,12 +14,10 @@ import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 public class LoadingScreen extends ScreenAdapter implements InputProcessor {
     WarAnimator game;
     Animation animation;
-    boolean loading;
 
     public LoadingScreen(WarAnimator game, Animation animation) {
         this.game = game;
         this.animation = animation;
-        loading = false;
     }
 
     @Override

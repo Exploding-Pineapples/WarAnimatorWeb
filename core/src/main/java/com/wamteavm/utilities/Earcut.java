@@ -10,7 +10,7 @@ import java.util.List;
 public final class Earcut {
 
     private Earcut() {
-    };
+    }
 
     /**
      * Triangulates the given polygon

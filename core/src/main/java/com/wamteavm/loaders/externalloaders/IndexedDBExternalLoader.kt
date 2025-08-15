@@ -15,14 +15,13 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
     val json: Json = Json { ignoreUnknownKeys = true }
 
     init {
-        BrowserIO.initHiddenFileInput()
         BrowserIO.openDatabase("horsInfo", 1, arrayOf("images", "animations"))
     }
 
     override fun loadAnimations(callback: () -> Unit) {
         BrowserIO.loadIndexedDB( "horsInfo","animations", object : ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
-                for (i in 0 until images.getLength()) {
+                for (i in 0 until images.length) {
                     val entry = images.get(i)
                     val key = entry.getKey()
                     val value = entry.getValue()
@@ -35,7 +34,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
         })
     }
 
-    override fun save() {
+    override fun saveAnimations() {
         animations.forEach { animation ->
             animation.imageKeys = loadedImages.keys.toList()
             val jsonString = json.encodeToString(Animation.serializer(), animation)
@@ -53,10 +52,24 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
         TODO("Not yet implemented")
     }
 
+    override fun addImage() {
+        BrowserIO.pickImage( object: ImageCallback {
+            override fun onLoad(images: JSArray<Entry>) {
+                for (i in 0 until images.length) {
+                    val entry = images.get(i)
+                    val key = entry.getKey()
+                    val value = entry.getValue().split(",")[1]
+                    loadedImages[key] = base64ToTexture(value)
+                    BrowserIO.saveBase64ToIndexedDB("horsInfo","images", key, value)
+                }
+            }
+        })
+    }
+
     override fun loadImages(animation: Animation) {
         BrowserIO.loadIndexedDB( "horsInfo","images", object : ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
-                for (i in 0 until images.getLength()) {
+                for (i in 0 until images.length) {
                     val entry = images.get(i)
                     val key = entry.getKey()
                     val value = entry.getValue()
@@ -71,16 +84,6 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
 
     }
 
-    override fun addImage() {
-        BrowserIO.pickImage()
-    }
-    fun addImage(name: String, base64URL: String) { // Gets called through JS by addImage()
-        val base64String = base64URL.split(",")[1]
-        loadedImages[name] = base64ToTexture(base64String)
-
-        BrowserIO.saveBase64ToIndexedDB("horsInfo","images", name, base64String)
-    }
-
     fun base64ToTexture(base64String: String): Texture {
         // Convert Base64 -> Pixmap -> Texture
         val imageBytes = Base64Coder.decode(base64String)
@@ -89,7 +92,6 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
     }
 
     override fun exit() {
-
     }
 }
 

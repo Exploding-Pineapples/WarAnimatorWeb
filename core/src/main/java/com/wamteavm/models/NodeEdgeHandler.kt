@@ -37,7 +37,7 @@ class NodeEdgeHandler(val animation: Animation) {
             return removeNode(removeNode)
         } else {
             animation.nodes.forEach { node ->
-                node.edges.removeIf() { it.segment.second.value == removeNode.id.value }
+                node.edges.removeIf { it.segment.second.value == removeNode.id.value }
             }
             removeNode.edges.clear()
             val result = animation.nodes.remove(removeNode)

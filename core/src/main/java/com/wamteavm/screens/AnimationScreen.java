@@ -182,7 +182,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }, "Pause/Unpause the game", Input.Keys.SPACE).requiresSelected(Requirement.ANY).build());
         // Shift required
         actions.add(Action.createBuilder(() -> {
-            game.loader.save();
+            game.loader.saveAnimations();
             game.menuScreen = new MenuScreen(game);
             game.setScreen(game.menuScreen);
             return null;
@@ -265,7 +265,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             return null;
         }, "Toggle new edge mode", Input.Keys.E).requiresControl(true).build());
         actions.add(Action.createBuilder(() -> {
-            game.loader.save();
+            game.loader.saveAnimations();
             System.out.println("saved");
             return null;
         }, "Save project", Input.Keys.S).requiresControl(true).build());

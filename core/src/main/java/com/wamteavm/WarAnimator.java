@@ -58,7 +58,7 @@ public class WarAnimator extends Game {
     public void dispose() {
         loader.exit();
         batch.dispose();
-        loader.save();
+        loader.saveAnimations();
     }
 
     public static final int DISPLAY_WIDTH = 1920;

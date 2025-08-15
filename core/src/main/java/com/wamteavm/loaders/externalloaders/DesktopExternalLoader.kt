@@ -24,7 +24,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
         file
     }
 
-    override fun save() {
+    override fun saveAnimations() {
         animations.forEach {
             it.imageKeys = loadedImages.keys.toList()
             val file = File("$animationsFolder","${it.name}.json")
@@ -76,7 +76,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
 
     override fun addAnimation(animation: Animation) {
         animations.add(animation)
-        save()
+        saveAnimations()
     }
 
     override fun deleteAnimation(animation: Animation) {

@@ -3,12 +3,10 @@ package com.wamteavm.teavm;
 import com.github.xpenatan.gdx.backends.teavm.config.AssetFileHandle;
 import com.github.xpenatan.gdx.backends.teavm.config.TeaBuildConfiguration;
 import com.github.xpenatan.gdx.backends.teavm.config.TeaBuilder;
-import com.github.xpenatan.gdx.backends.teavm.config.plugins.TeaReflectionSupplier;
 import java.io.File;
 import java.io.IOException;
 
 import org.teavm.tooling.TeaVMSourceFilePolicy;
-import org.teavm.tooling.TeaVMTargetType;
 import org.teavm.tooling.TeaVMTool;
 import org.teavm.tooling.sources.DirectorySourceFileProvider;
 import org.teavm.vm.TeaVMOptimizationLevel;

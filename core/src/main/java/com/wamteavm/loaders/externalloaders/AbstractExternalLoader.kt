@@ -7,7 +7,7 @@ interface AbstractExternalLoader {
     val animations: MutableList<Animation>
     val loadedImages: MutableMap<String, Texture>
 
-    fun save()
+    fun saveAnimations()
     fun loadAnimations(callback: () -> Unit = {})
     fun addAnimation(animation: Animation)
     fun deleteAnimation(animation: Animation)

@@ -9,6 +9,7 @@ public class BrowserIO implements JSObject {
         if (!window.__libgdxFileInput) {
             var input = document.createElement('input');
             input.type = 'file';
+            input.multiple = true;
             input.accept = 'image/*';
             input.style.display = 'none';
             document.body.appendChild(input);
@@ -17,28 +18,33 @@ public class BrowserIO implements JSObject {
     """)
     public static native void initHiddenFileInput();
 
-    @JSBody(script = """
+    @JSBody(params = {"callback"}, script = """
         var input = window.__libgdxFileInput;
-        if (!input) {
-            input = document.createElement('input');
-            input.type = 'file';
-            input.style.display = 'none';
-            document.body.appendChild(input);
-            window.__libgdxFileInput = input;
-        }
+        if (!input.files || input.files.length === 0) return;
+
+        const files = Array.from(input.files);
+        const entries = [];
+        let loadedCount = 0;
+
         input.onchange = function() {
-            var file = input.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function() {
-                javaMethods.get('com.wamteavm.loaders.externalloaders.BrowserIO.onImageLoaded(Ljava/lang/String;Ljava/lang/String;)V').invoke(file.name, reader.result);
-            };
-            reader.readAsDataURL(file);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    entries.push({ key: file.name, value: reader.result });
+                    loadedCount++;
+
+                    // When all files are read, call the callback once
+                    if (loadedCount === files.length) {
+                        callback(entries);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
             input.value = '';
         };
         input.click();
     """)
-    public static native void pickImage();
+    public static native void pickImage(ImageCallback callback);
 
     @JSBody(params = { "database", "storeName", "key", "base64Data" }, script = """
         const prefixIndex = base64Data.indexOf('base64,');
@@ -117,8 +123,4 @@ public class BrowserIO implements JSObject {
         };
         """)
     public static native void openDatabase(String database, int version, String[] storeNames);
-
-    public static void onImageLoaded(String name, String dataUrl) {
-        IndexedDBExternalLoader.INSTANCE.addImage(name, dataUrl);
-    }
 }

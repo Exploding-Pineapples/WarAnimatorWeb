@@ -1,7 +1,7 @@
 package com.wamteavm.loaders.externalloaders;
 
-import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
+import org.teavm.jso.JSObject
+import org.teavm.jso.JSProperty
 
 interface Entry : JSObject {
     @JSProperty("key")

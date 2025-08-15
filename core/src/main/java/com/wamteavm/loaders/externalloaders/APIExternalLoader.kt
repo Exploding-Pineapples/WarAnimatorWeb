@@ -11,6 +11,10 @@ object APIExternalLoader : AbstractExternalLoader {
     override val animations = mutableListOf<Animation>()
     override val loadedImages: MutableMap<String, Texture> = mutableMapOf()
 
+    init {
+        BrowserIO.initHiddenFileInput()
+    }
+
     override fun saveAnimations() {
         animations.forEach {
             println("saving: " + it.id)

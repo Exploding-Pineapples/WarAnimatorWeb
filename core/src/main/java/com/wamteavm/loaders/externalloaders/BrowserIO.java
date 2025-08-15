@@ -20,13 +20,14 @@ public class BrowserIO implements JSObject {
 
     @JSBody(params = {"callback"}, script = """
         var input = window.__libgdxFileInput;
-        if (!input.files || input.files.length === 0) return;
-
-        const files = Array.from(input.files);
-        const entries = [];
-        let loadedCount = 0;
 
         input.onchange = function() {
+            if (!input.files || input.files.length === 0) return;
+
+            const files = Array.from(input.files);
+            const entries = [];
+            let loadedCount = 0;
+
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function () {

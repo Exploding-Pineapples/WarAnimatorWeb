@@ -15,6 +15,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
     val json: Json = Json { ignoreUnknownKeys = true }
 
     init {
+        BrowserIO.initHiddenFileInput()
         BrowserIO.openDatabase("horsInfo", 1, arrayOf("images", "animations"))
     }
 

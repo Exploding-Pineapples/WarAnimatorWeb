@@ -15,15 +15,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.wamteavm.WarAnimator;
+import com.wamteavm.models.*;
 import com.wamteavm.models.screenobjects.Arrow;
 import com.wamteavm.models.screenobjects.Image;
 import com.wamteavm.models.screenobjects.Unit;
-import com.wamteavm.ui.inputelements.SelectBoxInput;
-import com.wamteavm.models.*;
 import com.wamteavm.ui.InputElementShower;
 import com.wamteavm.ui.input.Action;
 import com.wamteavm.ui.input.Requirement;
 import com.wamteavm.ui.input.TouchMode;
+import com.wamteavm.ui.inputelements.SelectBoxInput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +81,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     boolean uploadDisplayed = false;
     boolean displayGUI = true;
     boolean GUIDisplayed = false;
+    boolean hasFocus = true;
 
     public AnimationScreen(WarAnimator game, Animation animation) {
         this.animation = animation;
@@ -333,64 +334,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
-    private void moveObjects(ArrayList<AnyObject> objects) {
-        for (AnyObject object : objects) {
-            if (HasPosition.class.isAssignableFrom(object.getClass())) {
-                Coordinate mouseCoords = new Coordinate(mouseX, mouseY);
-
-                ((HasPosition) object).setPosition(mouseCoords);
-                ((HasPosition) object).getPosInterpolator().newSetPoint(time, mouseCoords);
-
-                if (object.getClass() == Node.class) {
-                    for (NodeCollection parent : animation.getParents((Node) object)) {
-                        parent.getInterpolator().updateInterpolationFunction();
-                    }
-                }
-            }
-        }
-    }
-
-    private void clearSelected() {
-        uiShower.hideAll(selectedGroup);
-        selectedObjects.clear();
-    }
-
-    public <T extends AnyObject> void addNewSelection(T newSelection) {
-        if (newSelection != null) {
-            selectedObjects.add(newSelection);
-
-            if (newSelection.getClass() == Node.class) { // Show new selection's parent's inputs if it has parents
-                for (NodeCollection collection : animation.getParents((Node) newSelection)) {
-                    if (!selectedObjects.contains(collection)) {
-                        if (collection != null) {
-                            selectedObjects.add(collection);
-                        } else {
-                            System.out.println("Warning: Null node collection");
-                        }
-                    }
-                }
-            }
-            if (newSelection.getClass() == Edge.class) {
-                NodeCollection collection = animation.getNodeCollection(((Edge) newSelection).getCollectionID());
-                if (!selectedObjects.contains(collection)) {
-                    if (collection != null) {
-                        selectedObjects.add(collection);
-                    } else {
-                        System.out.println("Warning: Null node collection");
-                    }
-                }
-            }
-
-            System.out.println("Selected: " + newSelection.getClass().getSimpleName());
-        }
-        uiShower.update(selectedGroup, selectedObjects, time);
-    }
-
-    public <T extends AnyObject> void switchSelected(T newSelection) {
-        clearSelected();
-        addNewSelection(newSelection);
-    }
-
     private void updateUI() {
         if (displayGUI) {
             if (paused) { // Update the selected object to go to mouse in move mode
@@ -405,14 +348,18 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             options.append("Zoom: ").append(orthographicCamera.zoom).append("\n");
             options.append("Touch mode: ").append(touchMode.name()).append("\n");
             options.append("Control pressed: ").append(ctrlPressed).append(" ").append("Shift pressed: ").append(shiftPressed).append("\n");
-            for (Action action : actions) {
-                if (action.couldExecute(shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
-                    for (int key : action.getActionKeys()) {
-                        options.append(Input.Keys.toString(key)).append(", ");
+            if (hasFocus) {
+                for (Action action : actions) {
+                    if (action.couldExecute(shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
+                        for (int key : action.getActionKeys()) {
+                            options.append(Input.Keys.toString(key)).append(", ");
+                        }
+                        options.replace(options.length() - 2, options.length() - 1, " |"); // Replace trailing comma, StringJoiner unavailable in TeaVM
+                        options.append(action.getActionName()).append("\n");
                     }
-                    options.replace(options.length() - 2, options.length() - 1, " |"); // Replace trailing comma, StringJoiner unavailable in TeaVM
-                    options.append(action.getActionName()).append("\n");
                 }
+            } else {
+                options.append("Escape | Exit UI Input \n");
             }
             keyOptions.setText(options);
 
@@ -463,17 +410,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 GUIDisplayed = true;
             }
 
-            if (createClass == Image.class) {
-                if (!uploadDisplayed) {
-                    leftGroup.addActor(uploadImage);
-                    uploadDisplayed = true;
-                }
-            } else {
-                if (uploadDisplayed) {
-                    leftGroup.removeActor(uploadImage);
-                    uploadDisplayed = false;
-                }
-            }
+
 
             if (touchMode == TouchMode.NEW_EDGE) {
                 newNodeCollectionIDInput.show(leftGroup, game.skin);
@@ -483,7 +420,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
             if (touchMode == TouchMode.CREATE) {
                 createSelectBoxInput.show(leftGroup, game.skin);
+                if (createClass == Image.class) {
+                    if (!uploadDisplayed) {
+                        leftGroup.addActor(uploadImage);
+                        uploadDisplayed = true;
+                    }
+                } else {
+                    if (uploadDisplayed) {
+                        leftGroup.removeActor(uploadImage);
+                        uploadDisplayed = false;
+                    }
+                }
             } else {
+                if (uploadDisplayed) {
+                    leftGroup.removeActor(uploadImage);
+                    uploadDisplayed = false;
+                }
                 createSelectBoxInput.hide(leftGroup);
             }
 
@@ -590,11 +542,18 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        for (Action action : actions) {
-            if (action.shouldExecute(keycode, shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
-                action.execute();
-                break;
+        if (keycode == Input.Keys.ESCAPE) { // Escape UI input
+            hasFocus = true;
+        }
+        if (hasFocus) {
+            for (Action action : actions) {
+                if (action.shouldExecute(keycode, shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
+                    action.execute();
+                    break;
+                }
             }
+        } else {
+            stage.keyDown(keycode);
         }
 
         return false;
@@ -602,12 +561,76 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean keyUp(int keycode) {
-        return false;
+        if (!hasFocus) {
+            stage.keyUp(keycode);
+        }
+        return true;
     }
 
     @Override
     public boolean keyTyped(char character) {
-        return false;
+        if (!hasFocus) {
+            stage.keyTyped(character);
+        }
+        return true;
+    }
+
+    private void moveObjects(ArrayList<AnyObject> objects) {
+        for (AnyObject object : objects) {
+            if (HasPosition.class.isAssignableFrom(object.getClass())) {
+                Coordinate mouseCoords = new Coordinate(mouseX, mouseY);
+
+                ((HasPosition) object).setPosition(mouseCoords);
+                ((HasPosition) object).getPosInterpolator().newSetPoint(time, mouseCoords);
+
+                if (object.getClass() == Node.class) {
+                    for (NodeCollection parent : animation.getParents((Node) object)) {
+                        parent.getInterpolator().updateInterpolationFunction();
+                    }
+                }
+            }
+        }
+    }
+
+    private void clearSelected() {
+        uiShower.hideAll(selectedGroup);
+        selectedObjects.clear();
+    }
+
+    public <T extends AnyObject> void addNewSelection(T newSelection) {
+        if (newSelection != null) {
+            selectedObjects.add(newSelection);
+
+            if (newSelection.getClass() == Node.class) { // Show new selection's parent's inputs if it has parents
+                for (NodeCollection collection : animation.getParents((Node) newSelection)) {
+                    if (!selectedObjects.contains(collection)) {
+                        if (collection != null) {
+                            selectedObjects.add(collection);
+                        } else {
+                            System.out.println("Warning: Null node collection");
+                        }
+                    }
+                }
+            }
+            if (newSelection.getClass() == Edge.class) {
+                NodeCollection collection = animation.getNodeCollection(((Edge) newSelection).getCollectionID());
+                if (!selectedObjects.contains(collection)) {
+                    if (collection != null) {
+                        selectedObjects.add(collection);
+                    } else {
+                        System.out.println("Warning: Null node collection");
+                    }
+                }
+            }
+
+            System.out.println("Selected: " + newSelection.getClass().getSimpleName());
+        }
+        uiShower.update(selectedGroup, selectedObjects, time);
+    }
+
+    public <T extends AnyObject> void switchSelected(T newSelection) {
+        clearSelected();
+        addNewSelection(newSelection);
     }
 
     @SuppressWarnings("unchecked")
@@ -620,64 +643,78 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         return null;
     }
 
-    public void selectDefault(float x, float y) {
+    public boolean selectDefault(float x, float y) {
+        AnyObject newSelection = selectNewObject(x, y, selectedObjects, AnyObject.class);
         if (ctrlPressed) {
-            addNewSelection(selectNewObject(x, y, selectedObjects, AnyObject.class));
+            addNewSelection(newSelection);
         } else {
-            switchSelected(selectNewObject(x, y, selectedObjects, AnyObject.class));
+            switchSelected(newSelection);
         }
+        System.out.println(newSelection != null);
+        return newSelection != null;
     }
 
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
         System.out.println("Clicked " + mouseX + " " + mouseY + " touch mode " + touchMode);
 
-        animation.selectObjectWithType(mouseX, mouseY, orthographicCamera.zoom, time, Node.class);
+        if (!stage.touchDown(x, y, pointer, button)) {
+            if (paused) {
+                if (hasFocus) {
+                    if (touchMode == TouchMode.DEFAULT) { // Default behavior: select an object to show info about it
+                        selectDefault(mouseX, mouseY);
+                    }
+                    if (touchMode == TouchMode.MOVE) { // Selects an object to move. If a node is selected to be moved into another node, it will be merged
+                        moveObjects(selectedObjects);
 
-        if (paused) {
-            if (touchMode == TouchMode.DEFAULT) { // Default behavior: select an object to show info about it
-                selectDefault(mouseX, mouseY);
-            }
-            if (touchMode == TouchMode.MOVE) { // Selects an object to move. If a node is selected to be moved into another node, it will be merged
-                if (selectedObjects.isEmpty()) {
-                    selectDefault(mouseX, mouseY);
-                } else {
-                    clearSelected();
-                }
-
-                moveObjects(selectedObjects);
-            }
-
-            if (touchMode == TouchMode.CREATE) {
-                switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass));
-            }
-
-            if (touchMode == TouchMode.NEW_EDGE) {
-                Node newSelection = selectNewObject(mouseX, mouseY, selectedObjects, Node.class);
-                if (newSelection != null) {
-                    for (AnyObject selectedObject : selectedObjects) { // Add edge from already selected Nodes to new selected node
-                        if (selectedObject.getClass() == Node.class) {
-                            System.out.println("trying to select for new edge");
-
-                            Node currentSelection = (Node) selectedObject;
-                            animation.getNodeEdgeHandler().addEdge(currentSelection, newSelection, newNodeCollectionID);
-                            System.out.println("Added an edge. Edges: " + currentSelection.getEdges());
+                        if (selectedObjects.isEmpty()) {
+                            return selectDefault(mouseX, mouseY);
+                        } else {
+                            clearSelected();
                         }
                     }
-                }
-                if (selectedObjects.isEmpty()) { // Only change new edge collection if nothing was selected
-                    switchSelected(newSelection);
-                    updateNewEdgeInputs();
+
+                    if (touchMode == TouchMode.CREATE) {
+                        switchSelected(animation.createObjectAtPosition(time, mouseX, mouseY, createClass));
+                    }
+
+                    if (touchMode == TouchMode.NEW_EDGE) {
+                        Node newSelection = selectNewObject(mouseX, mouseY, selectedObjects, Node.class);
+                        if (newSelection != null) {
+                            for (AnyObject selectedObject : selectedObjects) { // Add edge from already selected Nodes to new selected node
+                                if (selectedObject.getClass() == Node.class) {
+                                    System.out.println("trying to select for new edge");
+
+                                    Node currentSelection = (Node) selectedObject;
+                                    animation.getNodeEdgeHandler().addEdge(currentSelection, newSelection, newNodeCollectionID);
+                                    System.out.println("Added an edge. Edges: " + currentSelection.getEdges());
+                                }
+                            }
+                        }
+                        if (selectedObjects.isEmpty()) { // Only change new node collection ID if nothing had been selected
+                            switchSelected(newSelection);
+                            updateNewEdgeInputs();
+                        } else {
+                            switchSelected(newSelection);
+                        }
+                        return newSelection != null;
+                    }
                 } else {
-                    switchSelected(newSelection);
+                    clearSelected();
+                    hasFocus = true;
                 }
             }
+        } else {
+            hasFocus = false;
         }
-        return true;
+        return false;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        if (!hasFocus) {
+            stage.touchUp(screenX, screenY, pointer, button);
+        }
         return false;
     }
 
@@ -688,6 +725,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if (!hasFocus) {
+            stage.touchDragged(screenX, screenY, pointer);
+        }
         return false;
     }
 
@@ -710,9 +750,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public void show() {
-        game.multiplexer.clear();
-        game.multiplexer.addProcessor(stage);
-        game.multiplexer.addProcessor(this);
-        Gdx.input.setInputProcessor(game.multiplexer);
+        Gdx.input.setInputProcessor(this);
     }
 }

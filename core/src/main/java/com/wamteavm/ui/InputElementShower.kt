@@ -5,15 +5,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.utils.Array
 import com.wamteavm.loaders.InternalLoader
 import com.wamteavm.loaders.externalloaders.AbstractExternalLoader
-import com.wamteavm.ui.inputelements.InputElement
-import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.models.*
 import com.wamteavm.models.screenobjects.Arrow
 import com.wamteavm.models.screenobjects.Image
 import com.wamteavm.models.screenobjects.Label
 import com.wamteavm.models.screenobjects.Unit
 import com.wamteavm.ui.inputelements.CheckBoxInput
+import com.wamteavm.ui.inputelements.InputElement
 import com.wamteavm.ui.inputelements.SelectBoxInput
+import com.wamteavm.ui.inputelements.TextInput
 import com.wamteavm.utilities.ColorWrapper
 import com.wamteavm.utilities.gdxArrayOf
 
@@ -168,8 +168,8 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
             }, label@{
                 return@label returnPropertyIfSame(images) { it.texture.key }
             }, String::class.java, "Image", Array<String>().apply {
-                externalLoader.loadedImages.keys.forEach { add(it) }
                 add("")
+                externalLoader.loadedImages.keys.forEach { add(it) }
             }),
             TextInput(null, { input ->
                 if (input != null) {

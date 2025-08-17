@@ -130,6 +130,7 @@ public class EditAnimationScreen extends ScreenAdapter {
     }
 
     private void updateImages(Animation animation, WarAnimator game, Table imagesTable) {
+        imagesTable.clear();
         game.loader.loadImages(animation);
         for (String image : game.loader.getLoadedImages().keySet().stream().toList()) { // Copy the keys to avoid concurrent modification
             Table imageTable = new Table();

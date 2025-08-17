@@ -119,7 +119,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         leftPanel.row();
         leftPanel.add(keyOptions).pad(10);
         leftPanel.row();
-        leftPanel.add(leftGroup);
+        leftPanel.add(leftGroup).pad(10);
         leftPanel.row();
 
         stage.addActor(leftPanel);
@@ -138,6 +138,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     case "Image" -> Image.class;
                     default -> AnyObject.class;
                 };
+                hasFocus = true;
                 return null;
             },
             () -> createClass.getSimpleName(),
@@ -159,7 +160,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             "CollectionID of New Edge",
             idChoices,
             null);
-
 
         uiShower = new InputElementShower(game.skin, animation, game.loader);
         selectedLabel = new Label("", game.skin);
@@ -279,7 +279,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             clearSelected();
             System.out.println("Deselected object");
             return null;
-        }, "Deselect Object", Input.Keys.D).description("Deselect object").requiresSelected(Requirement.REQUIRES).build());
+        }, "Deselect Object", Input.Keys.ESCAPE).description("Deselect object").requiresSelected(Requirement.REQUIRES).build());
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
                 animation.deleteObject(selectedObject);
@@ -346,7 +346,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
             StringBuilder options = new StringBuilder();
             options.append("Zoom: ").append(orthographicCamera.zoom).append("\n");
-            options.append("Touch mode: ").append(touchMode.name()).append("\n");
+            options.append("Touch mode: ").append(hasFocus? touchMode.name() : "UI has focus").append("\n");
             options.append("Control pressed: ").append(ctrlPressed).append(" ").append("Shift pressed: ").append(shiftPressed).append("\n");
             for (Action action : actions) {
                 if (action.couldExecute(shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
@@ -539,15 +539,13 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         if (keycode == Input.Keys.ESCAPE) { // Escape UI input
             hasFocus = true;
         }
-        if (hasFocus) {
+        if (!stage.keyDown(keycode) || hasFocus) {
             for (Action action : actions) {
                 if (action.shouldExecute(keycode, shiftPressed, ctrlPressed, selectedObjects, touchMode)) {
                     action.execute();
                     break;
                 }
             }
-        } else {
-            stage.keyDown(keycode);
         }
 
         return false;
@@ -694,7 +692,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                         return newSelection != null;
                     }
                 } else {
-                    clearSelected();
                     hasFocus = true;
                 }
             }
@@ -719,17 +716,13 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        if (!hasFocus) {
-            stage.touchDragged(screenX, screenY, pointer);
-        }
+        stage.touchDragged(screenX, screenY, pointer);
         return false;
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        if (!hasFocus) {
-            stage.mouseMoved(screenX, screenY);
-        }
+        stage.mouseMoved(screenX, screenY);
         return false;
     }
 

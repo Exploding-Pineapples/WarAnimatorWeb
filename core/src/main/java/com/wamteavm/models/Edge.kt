@@ -25,6 +25,17 @@ class Edge(
     override fun toString(): String {
         return "Edge of collection ${collectionID.value} from node ${segment.first.value} to node ${segment.second.value}"
     }
+
+    fun duplicate(): Edge {
+        return Edge(collectionID.duplicate(), Pair(segment.first.duplicate(), segment.second.duplicate()))
+    }
+
+    fun holdPosition(time: Int, animation: Animation) {
+        val fromNode = animation.getNodeByID(segment.first)!!.holdPositionUntil(time, animation)
+        val toNode = animation.getNodeByID(segment.second)!!.holdPositionUntil(time, animation)
+        val newEdge = Edge(collectionID.duplicate(), Pair(fromNode.id.duplicate(), toNode.id.duplicate()))
+        fromNode.edges.add(newEdge)
+    }
 }
 
 

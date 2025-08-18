@@ -2,7 +2,6 @@ package com.wamteavm.interpolator
 
 import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
-import com.wamteavm.models.Animation
 import com.wamteavm.models.Coordinate
 import com.wamteavm.models.NodeCollectionSetPoint
 import com.wamteavm.screens.AnimationScreen
@@ -10,7 +9,7 @@ import com.wamteavm.utilities.ColorWrapper
 import com.wamteavm.utilities.SerializableTreeMap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlin.math.round
+import kotlin.math.min
 
 @Serializable
 class CoordinateSetPointInterpolator : SetPointInterpolator<Int, Coordinate, Coordinate> {
@@ -92,15 +91,15 @@ class ColorSetPointInterpolator : SetPointInterpolator<Int, ColorWrapper, ColorW
     }
 }
 
-class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPoint, FloatArray> {
-    override var setPoints: SerializableTreeMap<Int, NodeCollectionSetPoint> = SerializableTreeMap()
-    override var value: FloatArray = floatArrayOf()
+class NodeCollectionInterpolator : SetPointInterpolator<Int, MutableList<NodeCollectionSetPoint>, Array<FloatArray>> {
+    override var setPoints: SerializableTreeMap<Int, MutableList<NodeCollectionSetPoint>> = SerializableTreeMap()
+    override var value: Array<FloatArray> = arrayOf()
     override var interpolated: Boolean = true
     private var cachedInterpolators: MutableMap<Double, Pair<PCHIPInterpolationFunction<Int>, PCHIPInterpolationFunction<Int>>> = hashMapOf()
     private var zoom: Float = 1f
 
     override fun updateInterpolationFunction() {
-        setPoints.values.forEach { it.updateInterpolators() }
+        setPoints.values.forEach { setPoints1 -> setPoints1.forEach { it.updateInterpolators() } }
         cachedInterpolators.clear()
     }
 
@@ -108,111 +107,107 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, NodeCollectionSetPo
         this.zoom = zoom
     }
 
-    override fun evaluateWithInterpolator(at: Int): FloatArray {
-        var num = 0
-        var setPoint: NodeCollectionSetPoint? = null
+    override fun evaluateWithInterpolator(at: Int): Array<FloatArray> { // at is a time
+        val nums = mutableListOf<Int>()
+        var foundSetPoints: MutableList<NodeCollectionSetPoint> = mutableListOf()
 
         if (setPoints.isNotEmpty()) {
             if (setPoints.containsKey(at)) {
-                setPoint = setPoints[at]!!
-                num = round((setPoint.length) / AnimationScreen.LINE_RESOLUTION).toInt()
+                foundSetPoints = setPoints[at]!!
+                for (setPoint in foundSetPoints) {
+                    nums += (setPoint.length / AnimationScreen.LINE_RESOLUTION).toInt()
+                }
             } else {
-                if (setPoints.size < 2 || at < setPoints.keys.first()) {
-                    setPoint = setPoints.values.first()
-                    num = round((setPoint.length / AnimationScreen.LINE_RESOLUTION)).toInt()
+                if (setPoints.size == 1 || at < setPoints.keys.first()) {
+                    foundSetPoints = setPoints.values.first()
+                    for (setPoint in foundSetPoints) {
+                        nums += (setPoint.length / AnimationScreen.LINE_RESOLUTION).toInt()
+                    }
                 } else {
-                    var index = 0
-                    var time0 = 0
-                    var length0 = 0.0
-                    var found = false
+                    lateinit var prev: MutableList<NodeCollectionSetPoint>
 
                     for (frame in setPoints) {
-                        if (found) {
-                            setPoint = frame.value
-                            val deltaTime = setPoint.time - time0
-                            num = round((length0 + ((at - time0).toDouble() / deltaTime) * (setPoint.length - length0)) / AnimationScreen.LINE_RESOLUTION).toInt()
+                        if (frame.key > at) {
+                            val time0 = prev.first().time
+                            val length0s = mutableListOf<Double>()
+                            for (setPoint in prev) {
+                                length0s += (setPoint.length) / AnimationScreen.LINE_RESOLUTION
+                            }
+                            foundSetPoints = frame.value
+                            val deltaTime = foundSetPoints.first().time - time0
+                            val lesserLength = min(foundSetPoints.size, length0s.size)
+                            for (index in 0 until lesserLength) {
+                                val setPoint = foundSetPoints[index]
+                                val length1 = setPoint.length / AnimationScreen.LINE_RESOLUTION
+                                nums += (length0s[index] + ((at - time0).toDouble() / deltaTime) * (length1 - length0s[index])).toInt()
+                            }
+                            if (foundSetPoints.size > length0s.size) {
+                                for (index in lesserLength until foundSetPoints.size) {
+                                    val setPoint = foundSetPoints[index]
+                                    val length1 = setPoint.length / AnimationScreen.LINE_RESOLUTION
+                                    nums += length1.toInt()
+                                }
+                            }
+                            if (length0s.size > foundSetPoints.size) {
+                                for (index in lesserLength until length0s.size) {
+                                    nums += length0s[index].toInt()
+                                }
+                            }
+
                             break
                         }
-                        if (frame.key < at) {
-                            time0 = frame.value.time
-                            length0 = frame.value.length
-                            found = true
+                        prev = frame.value
+                    }
+                }
+            }
+
+            for (i in foundSetPoints.indices) {
+                nums[i] = (nums[i] * zoom).toInt().coerceIn(0..AnimationScreen.MAX_LINES_PER_LENGTH * foundSetPoints[i].length.toInt())
+            }
+
+            value = Array(foundSetPoints.size) { setPointIndex: Int -> FloatArray(nums[setPointIndex] * 2) }
+            var parameter: Double
+
+            for ((setPointIndex, num) in nums.withIndex()) {
+                for (i in 0 until num) { // For every point to draw, build an interpolator for the point which evaluates from a specific t (parameter) value (0 to 1) through time
+                    val setPoint = foundSetPoints[setPointIndex]
+                    parameter = setPoint.distanceInterpolator.evaluate((i.toDouble() / nums[setPointIndex]) * setPoint.length)
+                    val cachedInterpolators = this.cachedInterpolators[parameter]
+                    lateinit var xInterpolatorTime: PCHIPInterpolationFunction<Int>
+                    lateinit var yInterpolatorTime: PCHIPInterpolationFunction<Int>
+                    if (cachedInterpolators != null) {
+                        xInterpolatorTime = cachedInterpolators.first
+                        yInterpolatorTime = cachedInterpolators.second
+                    } else {
+                        //println("creating new")
+                        val xInTime = DoubleArray(setPoints.size)
+                        val yInTime = DoubleArray(setPoints.size)
+
+                        var index = 0
+                        for (frame in setPoints) {
+                            // frame.value's interpolators are through space at a specific time
+                            val interpolators: NodeCollectionSetPoint = if (setPointIndex > frame.value.size - 1) {
+                                frame.value.first { it.tInterpolator.inRange(parameter) }
+                            } else {
+                                frame.value[setPointIndex]
+                            }
+                            xInTime[index] = interpolators.xInterpolator.evaluate(parameter)
+                            yInTime[index] = interpolators.yInterpolator.evaluate(parameter)
+                            index++
                         }
-                        index++
+
+                        val times = setPoints.keys.toTypedArray()
+                        xInterpolatorTime = PCHIPInterpolationFunction(times, xInTime)
+                        yInterpolatorTime = PCHIPInterpolationFunction(times, yInTime)
+
+                        this.cachedInterpolators[parameter] = Pair(xInterpolatorTime, yInterpolatorTime)
                     }
+                    value[setPointIndex][i * 2] = xInterpolatorTime.evaluate(at).toFloat()
+                    value[setPointIndex][i * 2 + 1] = yInterpolatorTime.evaluate(at).toFloat()
                 }
             }
-
-            num = (num * zoom).toInt().coerceIn(0..AnimationScreen.MAX_LINES_PER_LENGTH * setPoint!!.length.toInt())
-
-            value = FloatArray(num * 2)
-            var parameter = 0.0
-
-            for (i in 0 until num) { // For every point to draw, build an interpolator for the point which evaluates from a specific t (parameter) value (0 to 1) through time
-                val cachedInterpolators = this.cachedInterpolators[parameter]
-                lateinit var xInterpolatorTime: PCHIPInterpolationFunction<Int>
-                lateinit var yInterpolatorTime: PCHIPInterpolationFunction<Int>
-                if (cachedInterpolators != null) {
-                    xInterpolatorTime = cachedInterpolators.first
-                    yInterpolatorTime = cachedInterpolators.second
-                } else {
-                    //println("creating new")
-                    val xInTime = DoubleArray(setPoints.size)
-                    val yInTime = DoubleArray(setPoints.size)
-
-                    var index = 0
-                    for (frame in setPoints) {
-                        // frame.value's interpolators are through space at a specific time
-                        xInTime[index] = frame.value.xInterpolator.evaluate(parameter)
-                        yInTime[index] = frame.value.yInterpolator.evaluate(parameter)
-                        index++
-                    }
-
-                    val times = setPoints.keys.toTypedArray()
-                    xInterpolatorTime = PCHIPInterpolationFunction(times, xInTime)
-                    yInterpolatorTime = PCHIPInterpolationFunction(times, yInTime)
-
-                    this.cachedInterpolators[parameter] = Pair(xInterpolatorTime, yInterpolatorTime)
-                }
-                value[i * 2] = (xInterpolatorTime.evaluate(at).toFloat())
-                value[i * 2 + 1] = (yInterpolatorTime.evaluate(at).toFloat())
-
-                parameter = setPoint.distanceInterpolator.evaluate(((i + 1.0) / num) * setPoint.length)
-                //print("$parameter ")
-            }
-            //println()
         }
 
         return value
-    }
-
-    fun holdValueUntil(time: Int, animation: Animation) { // Special hold function for NodeCollectionInterpolator since values are objects (pointers), not literals
-        var prevTime: Int? = null
-        var prevValue: NodeCollectionSetPoint? = null
-
-        val frameTimes = setPoints.keys.toList()
-
-        for (i in frameTimes.indices) {
-            val definedTime = frameTimes[i]
-
-            if (definedTime == time) {
-                return
-            }
-
-            if ((definedTime > time) && (prevTime != null)) {
-                setPoints[time] = prevValue!!.duplicate(time, animation)
-                this.updateInterpolationFunction()
-
-                println("Added hold frame: $setPoints")
-                return
-            }
-
-            prevTime = definedTime
-            prevValue = setPoints[prevTime]
-        }
-
-        setPoints[time] = setPoints.values.last().duplicate(time, animation)
-        this.updateInterpolationFunction()
-        print(setPoints)
     }
 }

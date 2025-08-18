@@ -1,7 +1,7 @@
 package com.wamteavm.interpolator.interpfunction
 
 // this is a java number which isn't rly the saME AS KOTLIN number, uu should converr this class  to kotlin first of all
-class PCHIPInterpolationFunction<I : Number>(i: Array<I>, o: DoubleArray) : InterpolationFunction<I, Double>(i, o.toTypedArray()) {
+class PCHIPInterpolationFunction<I : Number>(i: Array<I>, o: DoubleArray) : ComparableOInterpolationFunction<I, Double>(i, o.toTypedArray()) {
     private var slopes: DoubleArray = computeSlopes(i, o)
     private var iDoubles: DoubleArray = i.map { it.toDouble() }.toDoubleArray()
 
@@ -11,7 +11,7 @@ class PCHIPInterpolationFunction<I : Number>(i: Array<I>, o: DoubleArray) : Inte
     }
 
     // Function to compute the PCHIP slopes
-    fun computeSlopes(x: Array<I>, y: DoubleArray): DoubleArray { // ChatGPT wrote this
+    private fun computeSlopes(x: Array<I>, y: DoubleArray): DoubleArray { // ChatGPT wrote this
         val n = x.size
 
         if (n < 2) {

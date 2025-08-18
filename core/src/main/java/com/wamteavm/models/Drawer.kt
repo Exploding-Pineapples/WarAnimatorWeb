@@ -81,33 +81,36 @@ class Drawer(val font: BitmapFont,
     }
 
     fun draw(nodeCollection: NodeCollection) {
-        val screenCoordinates = FloatArray(nodeCollection.interpolator.value.size)
-        for (i in nodeCollection.interpolator.value.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
-            screenCoordinates[i] = nodeCollection.interpolator.value[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
-            screenCoordinates[i + 1] = nodeCollection.interpolator.value[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
-        }
-
-        if (screenCoordinates.isNotEmpty()) {
-            shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value.color, nodeCollection.alpha.value))
-            if (nodeCollection.type == "Area") {
-                val earcut =
-                    Earcut.earcut(screenCoordinates) // Turns polygon into series of triangles which share vertices with the polygon. The triangles' vertices are represented as the index of an original polygon vertex
-
-                var j = 0
-                while (j < earcut.size) {
-                    shapeDrawer.filledTriangle(
-                        screenCoordinates[earcut[j] * 2],
-                        screenCoordinates[earcut[j] * 2 + 1],
-                        screenCoordinates[earcut[j + 1] * 2],
-                        screenCoordinates[earcut[j + 1] * 2 + 1],
-                        screenCoordinates[earcut[j + 2] * 2],
-                        screenCoordinates[earcut[j + 2] * 2 + 1]
-                    )
-                    j += 3
-                }
+        for (setPoint in nodeCollection.interpolator.value) {
+            val screenCoordinates = FloatArray(setPoint.size)
+            for (i in setPoint.indices step 2) { // project like this instead of using projectToScreen() to avoid boxing of Coordinate class
+                screenCoordinates[i] =
+                    setPoint[i] * camera.zoom - camera.position.x * (camera.zoom - 1) + (DISPLAY_WIDTH / 2 - camera.position.x)
+                screenCoordinates[i + 1] =
+                    setPoint[i + 1] * camera.zoom - camera.position.y * (camera.zoom - 1) + (DISPLAY_HEIGHT / 2 - camera.position.y)
             }
-            if (nodeCollection.type == "Line") {
-                shapeDrawer.path(screenCoordinates, nodeCollection.width ?: 5f, JoinType.NONE, true)
+
+            if (screenCoordinates.isNotEmpty()) {
+                shapeDrawer.setColor(colorWithAlpha(nodeCollection.color.value.color, nodeCollection.alpha.value))
+                if (nodeCollection.type == "Area") {
+                    val earcut = Earcut.earcut(screenCoordinates) // Look up polygon earclip
+
+                    var j = 0
+                    while (j < earcut.size) {
+                        shapeDrawer.filledTriangle(
+                            screenCoordinates[earcut[j] * 2],
+                            screenCoordinates[earcut[j] * 2 + 1],
+                            screenCoordinates[earcut[j + 1] * 2],
+                            screenCoordinates[earcut[j + 1] * 2 + 1],
+                            screenCoordinates[earcut[j + 2] * 2],
+                            screenCoordinates[earcut[j + 2] * 2 + 1]
+                        )
+                        j += 3
+                    }
+                }
+                if (nodeCollection.type == "Line") {
+                    shapeDrawer.path(screenCoordinates, nodeCollection.width ?: 5f, JoinType.SMOOTH, true)
+                }
             }
         }
     }

@@ -1,15 +1,15 @@
 package com.wamteavm.models
 
-import com.wamteavm.interpolator.interpfunction.InterpolationFunction
+import com.wamteavm.interpolator.interpfunction.ComparableOInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
 import kotlin.math.hypot
 
 class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes: MutableList<Node> = mutableListOf()) {
-    var tInterpolator: InterpolationFunction<Int, Double> = LinearInterpolationFunction(arrayOf(0), doubleArrayOf(0.0))
-    var xInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
-    var yInterpolator: InterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
-    var distanceInterpolator: InterpolationFunction<Double, Double> = LinearInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
+    var tInterpolator: LinearInterpolationFunction<Int> = LinearInterpolationFunction(arrayOf(0), doubleArrayOf(0.0))
+    var xInterpolator: ComparableOInterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
+    var yInterpolator: ComparableOInterpolationFunction<Double, Double> = PCHIPInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
+    var distanceInterpolator: LinearInterpolationFunction<Double> = LinearInterpolationFunction(arrayOf(0.0), doubleArrayOf(0.0))
     var length: Double = 0.0
 
     init {
@@ -48,9 +48,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
             distances[nodes.size - 1] = totalDistance
             length = totalDistance
 
-            if (nodes.last().tSetPoint == null) {
-                tSetPoints[nodes.size - 1] = 1.0
-            }
+            tSetPoints[nodes.size - 1] = nodes.last().tSetPoint ?: 1.0
         }
 
         tInterpolator.i = tSetPoints.keys.toTypedArray()
@@ -62,6 +60,8 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
 
         distanceInterpolator.i = distanceMap.keys.toTypedArray()
         distanceInterpolator.o = distanceMap.values.toTypedArray()
+
+        println(distanceMap.map { it })
 
         val tVals = mutableListOf<Double>()
         val xVals = mutableListOf<Double>()
@@ -84,8 +84,12 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         yInterpolator.init()
     }
 
-    fun tOfNode(node: Node): Double {
-        return tInterpolator.evaluate(nodes.indexOf(node))
+    fun tOfNode(node: Node): Double? {
+        val index = nodes.indexOf(node)
+        if (index == -1) {
+            return null
+        }
+        return tInterpolator.evaluate(index)
     }
 
     fun insert(at: Node, node: Node) { // Insert node after at

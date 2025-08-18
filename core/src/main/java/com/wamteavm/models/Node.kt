@@ -18,4 +18,14 @@ data class Node(
     override fun update(time: Int) { // Goes to time, and if animation mode is active, draws colored circle
         visitedBy.clear() // Clear to prepare to be traversed
     }
+
+    override fun holdPositionUntil(time: Int) {
+        println("Warning: attempt to hold node position as HasPosition")
+    }
+
+    fun holdPositionUntil(time: Int, animation: Animation): Node { // Holds ONLY the node, not any of its edges
+        val new = Node(position, time, NodeID(animation.nodeId)).apply { this@apply.tSetPoint = this@Node.tSetPoint }
+        animation.nodeEdgeHandler.addNode(new)
+        return new
+    }
 }

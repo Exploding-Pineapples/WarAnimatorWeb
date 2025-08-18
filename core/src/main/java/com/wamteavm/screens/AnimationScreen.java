@@ -198,8 +198,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 if (HasPosition.class.isAssignableFrom(selectedObject.getClass())) {
                     ((HasPosition) selectedObject).holdPositionUntil(time);
                 }
-                if (selectedObject.getClass() == NodeCollection.class) {
-                    ((NodeCollection) selectedObject).getInterpolator().holdValueUntil(time, animation);
+                if (selectedObject.getClass() == Edge.class) {
+                    ((Edge) selectedObject).holdPosition(time, animation);
                 }
             }
             clearSelected();
@@ -379,10 +379,16 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                         selectedInfo.append("NodeID: ").append(node.getId().getValue()).append("\n");
                         for (NodeCollection parent : animation.getParents((node))) {
                             // Get what parameter value the node is at within its node collection set points.
-                            NodeCollectionSetPoint setPoint = parent.getInterpolator().getSetPoints().get(time);
-                            if (setPoint != null) {
-                                selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
-                                    .append(round(setPoint.tOfNode(node) * 10000) / 10000.0).append("\n");
+                            List<NodeCollectionSetPoint> setPoints = parent.getInterpolator().getSetPoints().get(time);
+                            if (setPoints != null) {
+                                for (NodeCollectionSetPoint setPoint : setPoints) {
+                                    Double tVal = setPoint.tOfNode(node);
+                                    if (tVal != null) {
+                                        selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
+                                            .append(round(tVal * 10000) / 10000.0).append("\n");
+                                        break;
+                                    }
+                                }
                             }
                         }
 

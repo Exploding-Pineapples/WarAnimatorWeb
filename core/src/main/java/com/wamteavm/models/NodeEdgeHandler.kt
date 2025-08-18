@@ -19,7 +19,7 @@ class NodeEdgeHandler(val animation: Animation) {
         val newNodeCollection = NodeCollection(NodeCollectionID(animation.nodeCollectionID))
         animation.nodeCollectionID++
         newNodeCollection.alpha.newSetPoint(nodeCollectionSetPoint.time, 1f)
-        newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
+        newNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, mutableListOf(nodeCollectionSetPoint))
         newNodeCollection.color.newSetPoint(nodeCollectionSetPoint.time, ColorWrapper.parseString("red")!!)
         newNodeCollection.init()
         return newNodeCollection
@@ -148,33 +148,36 @@ class NodeEdgeHandler(val animation: Animation) {
 
         nodeCollectionSetPoints.removeIf { it.nodes.isEmpty() }
 
-        val usedIDsAtTime = mutableListOf<Pair<Int, Int>>() // Keep track of duplicate IDs, but only if at the same time. Set points for the same Node Collection should have the same ID. Pair(time, id)
+        val nodeCollectionSetPointss = sortedMapOf<Int, MutableList<NodeCollectionSetPoint>>()
         for (i in 0..<nodeCollectionSetPoints.size) {
             val nodeCollectionSetPoint = nodeCollectionSetPoints[i]
-            if (Pair(nodeCollectionSetPoint.time, nodeCollectionSetPoint.id.value) in usedIDsAtTime) {
-                val newId = animation.nodeCollectionID
-                animation.nodeCollectionID++
-                nodeCollectionSetPoints[i] = NodeCollectionSetPoint(nodeCollectionSetPoint.time, NodeCollectionID(newId)).apply { nodes.addAll(nodeCollectionSetPoint.nodes) }
-                println("Resolved duplicate ID ${nodeCollectionSetPoint.id.value}, New ID: ${nodeCollectionSetPoints[i].id.value}, new edge collection size: ${nodeCollectionSetPoints[i].nodes.size}")
-                usedIDsAtTime.add(Pair(nodeCollectionSetPoint.time, newId))
+            if (nodeCollectionSetPointss[nodeCollectionSetPoint.id.value] == null) {
+                nodeCollectionSetPointss[nodeCollectionSetPoint.id.value] = mutableListOf(nodeCollectionSetPoint)
             } else {
-                usedIDsAtTime.add(Pair(nodeCollectionSetPoint.time, nodeCollectionSetPoint.id.value))
+                nodeCollectionSetPointss[nodeCollectionSetPoint.id.value]!!.add(nodeCollectionSetPoint)
             }
         }
 
-        for (nodeCollectionSetPoint in nodeCollectionSetPoints) {
-            val existingNodeCollection = animation.getNodeCollection(nodeCollectionSetPoint.id)
+        for (nodeCollectionSetPoints in nodeCollectionSetPointss) {
+            var existingNodeCollection = animation.getNodeCollection(nodeCollectionSetPoints.value.first().id)
             if (existingNodeCollection == null) { // Create new node collection if it does not exist
-                nodeCollectionSetPoint.nodes.forEach { node ->
-                    node.edges.filter { it.collectionID.value == nodeCollectionSetPoint.id.value }.forEach {
-                        it.collectionID = NodeCollectionID(nodeCollectionSetPoint.id.value)
-                    }
+                existingNodeCollection = newNodeCollection(nodeCollectionSetPoints.value.first())
+                animation.nodeCollections.add(existingNodeCollection)
+            }
+            existingNodeCollection.interpolator.setPoints.clear()
+            for (nodeCollectionSetPoint in nodeCollectionSetPoints.value) {
+                nodeCollectionSetPoint.updateInterpolators()
+                val existingSetPoint = existingNodeCollection.interpolator.setPoints[nodeCollectionSetPoint.time]
+                if (existingSetPoint == null) {
+                    existingNodeCollection.interpolator.newSetPoint(
+                        nodeCollectionSetPoint.time,
+                        mutableListOf(nodeCollectionSetPoint)
+                    )
+                    println("created new set point")
+                } else {
+                    println("added to existing set point")
+                    existingSetPoint.add(nodeCollectionSetPoint)
                 }
-                val newNodeCollection = newNodeCollection(nodeCollectionSetPoint)
-                println("Created node collection ${newNodeCollection.id.value}")
-                animation.nodeCollections.add(newNodeCollection)
-            } else {
-                existingNodeCollection.interpolator.newSetPoint(nodeCollectionSetPoint.time, nodeCollectionSetPoint)
             }
         }
 
@@ -187,9 +190,9 @@ class NodeEdgeHandler(val animation: Animation) {
     }
 
     fun insert(at: Node, node: Node) {
-        at.edges.forEach {
+        /*at.edges.forEach {
             animation.getNodeCollection(it.collectionID)!!.interpolator.setPoints[at.initTime]?.insert(at, node)
-        }
+        } TODO*/
         updateNodeCollections()
     }
 }

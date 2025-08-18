@@ -21,6 +21,7 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     override fun init() {
         super<HasAlpha>.init()
         super<HasColor>.init()
+        interpolator.updateInterpolationFunction()
     }
 
     override fun update(time: Int) {
@@ -39,6 +40,6 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     }
 
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean {
-        return clickedCoordinates(x, y, zoom, interpolator.value)
+        return interpolator.value.any { clickedCoordinates(x, y, zoom, it) }
     }
 }

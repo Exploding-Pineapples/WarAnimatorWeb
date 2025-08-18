@@ -154,7 +154,7 @@ data class Animation @JvmOverloads constructor(
 
     fun getParents(node: Node) : List<NodeCollection> {
         return nodeCollections.filter {
-                nodeCollection -> (nodeCollection.interpolator.setPoints[node.initTime]?.nodes?.find { it.id.value == node.id.value } != null)
+                nodeCollection -> (nodeCollection.interpolator.setPoints[node.initTime]?.any { setPoint -> setPoint.nodes.any { it.id.value == node.id.value } } == true)
         }
     }
 

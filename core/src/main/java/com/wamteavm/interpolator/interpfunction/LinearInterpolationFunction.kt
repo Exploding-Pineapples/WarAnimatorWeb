@@ -1,6 +1,6 @@
 package com.wamteavm.interpolator.interpfunction
 
-class LinearInterpolationFunction<I : Number>(x: Array<I>, y: DoubleArray) : InterpolationFunction<I, Double>(x, y.toTypedArray()) {
+class LinearInterpolationFunction<I : Number>(x: Array<I>, y: DoubleArray) : ComparableOInterpolationFunction<I, Double>(x, y.toTypedArray()) {
     override fun evaluate(at: I): Double {
         val atDouble = at.toDouble()
 
@@ -22,8 +22,5 @@ class LinearInterpolationFunction<I : Number>(x: Array<I>, y: DoubleArray) : Int
         val y1 = o[index + 1]
 
         return y0 + (y1 - y0) * (atDouble - x0) / (x1 - x0)
-    }
-
-    override fun init() {
     }
 }

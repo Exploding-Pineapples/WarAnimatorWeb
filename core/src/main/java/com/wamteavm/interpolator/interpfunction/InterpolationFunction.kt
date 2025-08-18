@@ -10,7 +10,7 @@ abstract class InterpolationFunction<I : Number, O>(i: Array<I>, o: Array<O>) {
         this.o = o
     }
 
-    abstract fun init()
+    open fun init() {}
 
     abstract fun evaluate(at: I): O
 }

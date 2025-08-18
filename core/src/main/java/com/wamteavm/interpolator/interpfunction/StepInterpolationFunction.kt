@@ -1,32 +1,22 @@
-package com.wamteavm.interpolator.interpfunction;
+package com.wamteavm.interpolator.interpfunction
 
-public class StepInterpolationFunction<I extends Number, O> extends InterpolationFunction<I, O> {
-    public StepInterpolationFunction(I[] x, O[] y) {
-        super(x, y);
-    }
-
-    @Override
-    public O evaluate(I at) {
-        int i = 0;
-        if (at.doubleValue() <= getI()[0].doubleValue()) {
-            return getO()[0];
+class StepInterpolationFunction<I : Number, O>(x: Array<I>, y: Array<O>) :
+    InterpolationFunction<I, O>(x, y) {
+    override fun evaluate(at: I): O {
+        val atDouble = at.toDouble()
+        if (atDouble <= i.first().toDouble()) {
+            return o[0]
         }
 
-        if (at.doubleValue() >= getI()[getI().length - 1].doubleValue()) {
-            return getO()[getI().length - 1];
+        if (atDouble >= i.last().toDouble()) {
+            return o.last()
         }
 
-        for (I definedTime : getI()) {
-            if (definedTime.doubleValue() > at.doubleValue()) {
-                return getO()[i - 1];
+        for ((index, definedTime) in i.withIndex()) {
+            if (definedTime.toDouble() > atDouble) {
+                return o[index - 1]
             }
-            i++;
         }
-        throw new IllegalStateException("Step interpolation failed somehow");
-    }
-
-    @Override
-    public void init() {
-
+        throw IllegalStateException("Step interpolation failed somehow")
     }
 }

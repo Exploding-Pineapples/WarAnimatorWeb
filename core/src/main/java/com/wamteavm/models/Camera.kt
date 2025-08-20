@@ -9,18 +9,18 @@ import kotlinx.serialization.Serializable
 data class Camera(
     override var position: Coordinate = Coordinate(WarAnimator.DISPLAY_WIDTH / 2f, WarAnimator.DISPLAY_HEIGHT / 2f),
     override val initTime: Int
-) : HasPosition, HasZoom {
+) : HasInterpolatedPosition, HasZoom {
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var zoomInterpolator: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
 
     override fun init() {
-        super<HasPosition>.init()
+        super<HasInterpolatedPosition>.init()
         super<HasZoom>.init()
     }
 
     override fun update(time: Int) {
+        super<HasInterpolatedPosition>.update(time)
         super<HasZoom>.update(time)
-        super<HasPosition>.update(time)
     }
 
     override fun holdPositionUntil(time: Int) {  // Create a new movement that keeps the object at its last defined position until the current time
@@ -33,6 +33,4 @@ data class Camera(
         val positionResult = super.removeFrame(time)
         return zoomResult || positionResult // If either a zoom or position frame is removed it is a success
     }
-
-
 }

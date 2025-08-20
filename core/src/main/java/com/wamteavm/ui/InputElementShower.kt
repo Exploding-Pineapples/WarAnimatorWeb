@@ -277,11 +277,11 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
         return listOf(
             TextInput(null, { input ->
                 for (node in nodes) {
-                    node.tSetPoint = input
+                    TODO("Make every node have a t set point input for every node collection it is a part of")
                 }
                 animation.nodeEdgeHandler.updateNodeCollections()
             }, label@{
-                return@label returnPropertyIfSame(nodes) { it.tSetPoint }.toString()
+                return@label returnPropertyIfSame(nodes) { it.tSetPoints }.toString()
             }, Double::class.java, "Set t set point")
         )
     }

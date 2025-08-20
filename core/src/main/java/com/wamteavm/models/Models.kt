@@ -1,7 +1,5 @@
 package com.wamteavm.models
 
-import com.wamteavm.WarAnimator.DISPLAY_HEIGHT
-import com.wamteavm.WarAnimator.DISPLAY_WIDTH
 import kotlinx.serialization.Serializable
 
 interface HasInputs
@@ -36,9 +34,3 @@ class NodeID(override val value: Int = -1) : ID {
     }
 }
 
-fun projectToScreen(position: Coordinate, zoom: Float, cx: Float, cy: Float): Coordinate {
-    return Coordinate(
-        position.x * zoom - cx * (zoom - 1) + (DISPLAY_WIDTH / 2 - cx),
-        position.y * zoom - cy * (zoom - 1) + (DISPLAY_HEIGHT / 2 - cy)
-    )
-}

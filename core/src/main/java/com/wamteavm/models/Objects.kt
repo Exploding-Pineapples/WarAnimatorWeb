@@ -3,11 +3,10 @@ package com.wamteavm.models
 import com.wamteavm.interpolator.ColorSetPointInterpolator
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
+import com.wamteavm.interpolator.HasSetPoints
 import kotlin.math.hypot
 
-interface AnyObject {
-    fun init()
-}
+interface AnyObject
 
 interface Drawable {
     var order: String
@@ -21,11 +20,15 @@ interface InterpolatedObject : AnyObject {
     fun update(time: Int)
 }
 
-interface HasPosition : InterpolatedObject {
+interface HasPosition {
     var position: Coordinate
-    val posInterpolator: CoordinateSetPointInterpolator
+    val posInterpolator: HasSetPoints<Int, Coordinate>
+}
 
-    override fun init() {
+interface HasInterpolatedPosition : HasPosition, InterpolatedObject {
+    override val posInterpolator: CoordinateSetPointInterpolator
+
+    fun init() {
         posInterpolator.updateInterpolationFunction()
     }
 
@@ -42,7 +45,17 @@ interface HasPosition : InterpolatedObject {
     }
 }
 
-abstract class ScreenObject : HasPosition, Clickable {
+abstract class ScreenObject : HasInterpolatedPosition, Clickable, HasAlpha {
+    override fun init() {
+        super<HasInterpolatedPosition>.init()
+        super<HasAlpha>.init()
+    }
+
+    override fun update(time: Int) {
+        super<HasInterpolatedPosition>.update(time)
+        super<HasAlpha>.update(time)
+    }
+
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean
     {
         return hypot(x - position.x, y - position.y) <= (10 / zoom)
@@ -50,19 +63,7 @@ abstract class ScreenObject : HasPosition, Clickable {
 
     override fun toString(): String {
         return "Movements: " + posInterpolator.setPoints.keys + "\n" +
-               "Positions: " + posInterpolator.setPoints.values + "\n"
-    }
-}
-
-abstract class ScreenObjectWithAlpha : ScreenObject(), HasAlpha {
-    override fun init() {
-        super<ScreenObject>.init()
-        super<HasAlpha>.init()
-    }
-
-    override fun update(time: Int) {
-        super<ScreenObject>.update(time)
-        super<HasAlpha>.update(time)
+            "Positions: " + posInterpolator.setPoints.values + "\n"
     }
 }
 

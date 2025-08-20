@@ -6,7 +6,6 @@ class NodeEdgeHandler(val animation: Animation) {
 
     fun init() {
         animation.nodes.forEach { node ->
-            node.init()
             node.edges.forEach {
                 it.updateCoords(animation)
             }
@@ -31,32 +30,47 @@ class NodeEdgeHandler(val animation: Animation) {
         animation.nodeId++
     }
 
-    fun removeNode(removeNode: Node, redirectEdge: Boolean): Boolean
+    fun deleteNode(removeNode: Node, redirectEdge: Boolean): Boolean
+    {
+        removeNode.posInterpolator.setPoints.keys.forEach {
+            removeNodeAt(removeNode, it, redirectEdge)
+        }
+        return true
+    }
+
+    fun removeNodeAt(removeNode: Node, time: Int, redirectEdge: Boolean): Boolean
     {
         if (redirectEdge) {
-            return removeNode(removeNode)
+            return removeNodeAt(removeNode, time)
         } else {
             animation.nodes.forEach { node ->
-                node.edges.removeIf { it.segment.second.value == removeNode.id.value }
+                node.edges.forEach {
+                    if (it.segment.second.value == removeNode.id.value) {
+                        it.times.remove(time)
+                    }
+                }
+                node.edges.removeIf { it.times.isEmpty() }
             }
             removeNode.edges.clear()
             val result = animation.nodes.remove(removeNode)
             updateNodeCollections()
             return result
         }
-
     }
 
-    fun removeNode(removeNode: Node): Boolean
+    private fun removeNodeAt(removeNode: Node, time: Int): Boolean
     {
         // Redirect edges that point to the node to the next node in the Node Collection, or delete if that does not exist
         animation.nodes.forEach { node ->
-            node.edges.filter { it.segment.second.value == removeNode.id.value }.forEach { edge ->
-                val matchingEdge = removeNode.edges.find { it.collectionID.value == edge.collectionID.value }
+            node.edges.filter { it.segment.second.value == removeNode.id.value}.forEach { edge ->
+                val matchingEdge = removeNode.edges.find { it.collectionID.value == edge.collectionID.value && time in it.times }
                 if (matchingEdge != null) {
                     edge.segment = Pair(node.id.duplicate(), matchingEdge.segment.second.duplicate())
                 } else {
-                    node.edges.remove(edge)
+                    edge.times.remove(time)
+                    if (edge.times.isEmpty()) {
+                        node.edges.remove(edge)
+                    }
                 }
             }
         }
@@ -66,14 +80,18 @@ class NodeEdgeHandler(val animation: Animation) {
         return result
     }
 
-    fun addEdge(fromNode: Node, toNode: Node, id: Int) {
-        if (!fromNode.edges.map { it.collectionID.value }.contains(id) && fromNode.initTime == toNode.initTime) { // Adding an edge from a node that already has an edge with the same collectionID is not allowed
+    fun addEdge(fromNode: Node, toNode: Node, time: Int, id: Int) {
+        println(fromNode.edges.map { it.times.toString() })
+        if (!fromNode.edges.any { it.collectionID.value == id && time in it.times}) { // Adding an edge from a node that already has an edge with the same collectionID is not allowed
             fromNode.edges.add(
                 Edge(
                     NodeCollectionID(id),
                     Pair(fromNode.id, toNode.id),
+                    mutableListOf(time)
                 )
             )
+        } else {
+            println("Edge not added")
         }
 
         updateNodeCollections()
@@ -96,7 +114,7 @@ class NodeEdgeHandler(val animation: Animation) {
     }
 
     private fun traverse(node: Node, nodeCollections: MutableList<NodeCollectionSetPoint>, currentBranch: NodeCollectionSetPoint) {
-        val visited = (node.visitedBy.find { (it.value == currentBranch.id.value) } != null)
+        val visited = (node.visitedBy.find { (it.first == currentBranch.time && it.second.value == currentBranch.id.value) } != null)
         if (visited) {
             val matchingNodeCollections = nodeCollections.filter { it.id.value == currentBranch.id.value }
             for (nodeCollection in matchingNodeCollections) {
@@ -118,13 +136,19 @@ class NodeEdgeHandler(val animation: Animation) {
 
         var reachedEnd = true
 
-        node.visitedBy.add(currentBranch.id)
+        node.visitedBy.add(Pair(currentBranch.time, currentBranch.id))
 
         for (edge in node.edges) { // Traverses every available edge from the node
-            val nextNode = animation.getNodeByID(edge.segment.second)!!
-            if (edge.collectionID.value == currentBranch.id.value && nextNode.initTime == currentBranch.time) { // If edge continues the Node Collection that is being constructed, then continue recursion with this branch
-                reachedEnd = false
-                traverse(nextNode, nodeCollections, currentBranch.apply { nodes.add(node) })
+            if (currentBranch.time in edge.times) {
+                val nextNode = animation.getNodeByID(edge.segment.second)!!
+                if (edge.collectionID.value == currentBranch.id.value) { // If edge continues the Node Collection that is being constructed, then continue recursion with this branch
+                    if (nextNode.timeDefined(currentBranch.time)) {
+                        reachedEnd = false
+                        traverse(nextNode, nodeCollections, currentBranch.apply { nodes.add(node) })
+                    } else {
+                        edge.times.remove(currentBranch.time)
+                    }
+                }
             }
         }
 
@@ -136,13 +160,18 @@ class NodeEdgeHandler(val animation: Animation) {
     fun updateNodeCollections() {
         val nodeCollectionSetPoints = mutableListOf<NodeCollectionSetPoint>()
 
+        animation.nodes.forEach {
+            it.visitedBy.clear()
+        }
         for (node in animation.nodes) { // Build all node collections in all time
-            for (edge in node.edges) {
-                traverse(
-                    node,
-                    nodeCollectionSetPoints,
-                    NodeCollectionSetPoint(node.initTime, NodeCollectionID(edge.collectionID.value))
-                )
+            for (time in node.posInterpolator.setPoints.keys) {
+                for (edge in node.edges) {
+                    traverse(
+                        node,
+                        nodeCollectionSetPoints,
+                        NodeCollectionSetPoint(time, NodeCollectionID(edge.collectionID.value))
+                    )
+                }
             }
         }
 
@@ -189,10 +218,18 @@ class NodeEdgeHandler(val animation: Animation) {
         animation.nodeCollections.forEach { it.update(time, animation.camera().zoomInterpolator.value) }
     }
 
-    fun insert(at: Node, node: Node) {
-        /*at.edges.forEach {
-            animation.getNodeCollection(it.collectionID)!!.interpolator.setPoints[at.initTime]?.insert(at, node)
-        } TODO*/
+    fun insert(at: Node, node: Node, time: Int) {
+        if (at.edges.isEmpty()) {
+            animation.nodes.forEach { existingNode ->
+                existingNode.edges.filter { it.segment.second.value == at.id.value }.forEach {
+                    animation.getNodeCollection(it.collectionID)!!.getSetPointOfNode(at, time)?.insert(at, node)
+                }
+            }
+        } else {
+            at.edges.toMutableList().forEach {
+                animation.getNodeCollection(it.collectionID)!!.getSetPointOfNode(at, time)?.insert(at, node)
+            }
+        }
         updateNodeCollections()
     }
 }

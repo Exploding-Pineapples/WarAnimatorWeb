@@ -14,7 +14,7 @@ import kotlinx.serialization.Transient
 data class Unit(
     override var position: Coordinate,
     override val initTime: Int,
-) : ScreenObjectWithAlpha(), HasColor, Drawable {
+) : ScreenObject(), HasColor, Drawable {
     override val posInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("red")!!) }
@@ -31,7 +31,7 @@ data class Unit(
     @Transient var height: Float = AnimationScreen.DEFAULT_UNIT_HEIGHT.toFloat()
 
     override fun init() {
-        super<ScreenObjectWithAlpha>.init()
+        super<ScreenObject>.init()
         super<HasColor>.init()
         type.loadTexture(null)
     }
@@ -43,7 +43,7 @@ data class Unit(
     }
 
     override fun update(time: Int) {
-        super<ScreenObjectWithAlpha>.update(time)
+        super<ScreenObject>.update(time)
         super<HasColor>.update(time)
     }
 

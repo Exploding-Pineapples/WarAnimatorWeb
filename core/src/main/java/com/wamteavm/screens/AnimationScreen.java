@@ -195,11 +195,16 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         // Selection required
         actions.add(Action.createBuilder(() -> {
             for (AnyObject selectedObject : selectedObjects) {
-                if (HasPosition.class.isAssignableFrom(selectedObject.getClass())) {
-                    ((HasPosition) selectedObject).holdPositionUntil(time);
+                if (selectedObject.getClass() == Node.class) {
+                    ((Node) selectedObject).duplicateAt(time);
+                } else {
+                    if (HasInterpolatedPosition.class.isAssignableFrom(selectedObject.getClass())) {
+                        ((HasInterpolatedPosition) selectedObject).holdPositionUntil(time);
+                    }
                 }
-                if (selectedObject.getClass() == Edge.class) {
-                    ((Edge) selectedObject).holdPosition(time, animation);
+                if (selectedObject.getClass() == NodeCollection.class) {
+                    ((NodeCollection) selectedObject).duplicateAt(time, animation);
+                    animation.getNodeEdgeHandler().updateNodeCollections();
                 }
             }
             clearSelected();
@@ -207,7 +212,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         }, "Hold last defined position to this time", Input.Keys.H).requiresSelected(Requirement.REQUIRES).requiredSelectedTypes(InterpolatedObject.class).build());
         // Does not care about selection
         actions.add(Action.createBuilder(() -> {
-            updateTime((time / 200) * 200 + 200);
+            updateTime((int) Math.floor(time / 200.0) * 200 + 200);
             return null;
         }, "Step time forward 200", Input.Keys.E).build());
         actions.add(Action.createBuilder(() -> {
@@ -244,7 +249,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 for (AnyObject selectedObject : selectedObjectsCopy) {
                     if (selectedObject.getClass() == Node.class) {
                         Node newNode = animation.createObjectAtPosition(time, mouseX, mouseY, Node.class);
-                        animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode);
+                        animation.getNodeEdgeHandler().insert((Node) selectedObject, newNode, time);
                         switchSelected(newNode);
                     }
                 }
@@ -296,6 +301,12 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     } else {
                         System.out.println("Cannot delete frame on object with less than 2 frames");
                     }
+                    if (selectedObject.getClass() == Node.class) {
+                        animation.getNodeEdgeHandler().removeNodeAt((Node) selectedObject, time, true);
+                    }
+                }
+                if (Edge.class.isAssignableFrom(selectedObject.getClass())) {
+                    ((Edge) selectedObject).getTimes().remove(time);
                 }
             }
             clearSelected();
@@ -379,22 +390,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                         selectedInfo.append("NodeID: ").append(node.getId().getValue()).append("\n");
                         for (NodeCollection parent : animation.getParents((node))) {
                             // Get what parameter value the node is at within its node collection set points.
-                            List<NodeCollectionSetPoint> setPoints = parent.getInterpolator().getSetPoints().get(time);
-                            if (setPoints != null) {
-                                for (NodeCollectionSetPoint setPoint : setPoints) {
-                                    Double tVal = setPoint.tOfNode(node);
-                                    if (tVal != null) {
-                                        selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
-                                            .append(round(tVal * 10000) / 10000.0).append("\n");
-                                        break;
-                                    }
+                            NodeCollectionSetPoint setPoint = parent.getSetPointOfNode(node, time);
+                            if (setPoint != null) {
+                                Double tVal = setPoint.tOfNode(node);
+                                if (tVal != null) {
+                                    selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
+                                        .append(round(tVal * 10000) / 10000.0).append("\n");
+                                    break;
                                 }
                             }
                         }
 
                         ArrayList<Integer> toNodes = new ArrayList<>();
                         for (Edge edge : node.getEdges()) {
-                            toNodes.add(edge.getSegment().getSecond().getValue());
+                            if (edge.getTimes().contains(time)) {
+                                toNodes.add(edge.getSegment().getSecond().getValue());
+                            }
                         }
                         selectedInfo.append("Edges: ").append(toNodes).append("\n");
                     }
@@ -577,10 +588,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         for (AnyObject object : objects) {
             if (HasPosition.class.isAssignableFrom(object.getClass())) {
                 Coordinate mouseCoords = new Coordinate(mouseX, mouseY);
-
                 ((HasPosition) object).setPosition(mouseCoords);
                 ((HasPosition) object).getPosInterpolator().newSetPoint(time, mouseCoords);
-
                 if (object.getClass() == Node.class) {
                     for (NodeCollection parent : animation.getParents((Node) object)) {
                         parent.getInterpolator().updateInterpolationFunction();
@@ -648,7 +657,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         } else {
             switchSelected(newSelection);
         }
-        System.out.println(newSelection != null);
         return newSelection != null;
     }
 
@@ -684,7 +692,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                                     System.out.println("trying to select for new edge");
 
                                     Node currentSelection = (Node) selectedObject;
-                                    animation.getNodeEdgeHandler().addEdge(currentSelection, newSelection, newNodeCollectionID);
+                                    animation.getNodeEdgeHandler().addEdge(currentSelection, newSelection, time, newNodeCollectionID);
                                     System.out.println("Added an edge. Edges: " + currentSelection.getEdges());
                                 }
                             }

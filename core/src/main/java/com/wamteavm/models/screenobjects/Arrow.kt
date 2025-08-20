@@ -8,19 +8,19 @@ import com.wamteavm.utilities.ColorWrapper
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObjectWithAlpha(), HasColor, Drawable {
+class Arrow(override var position: Coordinate, override var initTime: Int): ScreenObject(), HasColor, Drawable {
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("black")!!) }
     override var order = "f"
 
     override fun init() {
-        super<ScreenObjectWithAlpha>.init()
+        super<ScreenObject>.init()
         super<HasColor>.init()
     }
 
     override fun update(time: Int) {
-        super<ScreenObjectWithAlpha>.update(time)
+        super<ScreenObject>.update(time)
         super<HasColor>.update(time)
     }
 

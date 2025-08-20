@@ -2,12 +2,15 @@ package com.wamteavm.models.screenobjects
 
 import com.wamteavm.interpolator.CoordinateSetPointInterpolator
 import com.wamteavm.interpolator.FloatSetPointInterpolator
-import com.wamteavm.models.*
+import com.wamteavm.models.Coordinate
+import com.wamteavm.models.Drawable
+import com.wamteavm.models.Drawer
+import com.wamteavm.models.ScreenObject
 import com.wamteavm.utilities.LoadedTexture
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Image(override var position: Coordinate, override var initTime: Int) : ScreenObjectWithAlpha(), Drawable {
+class Image(override var position: Coordinate, override var initTime: Int) : ScreenObject(), Drawable {
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override var alpha = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     override var order = "a"

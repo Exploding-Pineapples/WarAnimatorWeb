@@ -18,6 +18,21 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     var type: String = "None"
     var width: Float? = null
 
+    fun getSetPointOfNode(node: Node, time: Int): NodeCollectionSetPoint? {
+        val setPoints = interpolator.setPoints[time]
+        return setPoints?.firstOrNull { it.nodes.contains(node) }
+    }
+
+    fun contains(node: Node): Boolean {
+        return node.posInterpolator.setPoints.keys.any { time ->
+            interpolator.setPoints[time]?.any { it.contains(node) } == true
+        }
+    }
+
+    fun duplicateAt(time: Int, animation: Animation) {
+        interpolator.holdValueUntil(time, animation)
+    }
+
     override fun init() {
         super<HasAlpha>.init()
         super<HasColor>.init()
@@ -31,8 +46,8 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
     }
 
     fun update(time: Int, zoom: Float) {
-        update(time)
         interpolator.prepare(zoom)
+        update(time)
     }
 
     override fun draw(drawer: Drawer) {

@@ -20,6 +20,7 @@ import com.wamteavm.screens.AnimationScreen
 import com.wamteavm.utilities.Earcut
 import com.wamteavm.utilities.colorWithAlpha
 import com.wamteavm.utilities.measureText
+import com.wamteavm.utilities.projectToScreen
 import space.earlygrey.shapedrawer.JoinType
 import space.earlygrey.shapedrawer.ShapeDrawer
 import kotlin.math.min
@@ -109,7 +110,7 @@ class Drawer(val font: BitmapFont,
                     }
                 }
                 if (nodeCollection.type == "Line") {
-                    shapeDrawer.path(screenCoordinates, nodeCollection.width ?: 5f, JoinType.SMOOTH, true)
+                    shapeDrawer.path(screenCoordinates, nodeCollection.width ?: 5f, JoinType.NONE, true)
                 }
             }
         }
@@ -179,7 +180,7 @@ class Drawer(val font: BitmapFont,
 
     fun draw(node: Node) {
         val screenPosition = projectToScreen(node.position, camera.zoom, camera.position.x, camera.position.y)
-        if (time == node.initTime) {
+        if (node.timeDefined(time)) {
             shapeDrawer.setColor(Color.GREEN)
             shapeDrawer.filledCircle(screenPosition.x, screenPosition.y, 7.0f)
         }
@@ -249,8 +250,8 @@ class Drawer(val font: BitmapFont,
     }
 
     fun drawAsSelected(anyObject: AnyObject) {
-        if (HasPosition::class.java.isAssignableFrom(anyObject.javaClass)) {
-            val hasPosition = anyObject as HasPosition
+        if (HasInterpolatedPosition::class.java.isAssignableFrom(anyObject.javaClass)) {
+            val hasPosition = anyObject as HasInterpolatedPosition
             val posInterpolator = hasPosition.posInterpolator
 
             if (posInterpolator.interpolated && posInterpolator.setPoints.size > 1) {

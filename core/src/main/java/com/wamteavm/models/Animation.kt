@@ -62,7 +62,7 @@ data class Animation @JvmOverloads constructor(
     fun deleteObject(obj: AnyObject): Boolean {
         var result = false
         if (obj.javaClass == Node::class.java) {
-            result = nodeEdgeHandler.removeNode(obj as Node)
+            result = nodeEdgeHandler.deleteNode(obj as Node, true)
         }
         if (obj.javaClass == Image::class.java) {
             result = images.remove(obj as Image)
@@ -107,7 +107,10 @@ data class Animation @JvmOverloads constructor(
             Unit::class.java -> units.add(new as Unit)
             Node::class.java -> nodeEdgeHandler.addNode(new as Node)
         }
-        new.init()
+
+        if (ScreenObject::class.java.isAssignableFrom(clazz)) {
+            (new as ScreenObject).init()
+        }
         if (Drawable::class.java.isAssignableFrom(clazz)) {
             drawer.addToDrawOrder(new as Drawable)
         }
@@ -120,12 +123,12 @@ data class Animation @JvmOverloads constructor(
         val objects = ArrayList<T>()
 
         if (type.isAssignableFrom(Node::class.java)) {
-            objects.addAll(nodes.filter { time == it.initTime && it.clicked(x, y, zoom) }.map {it as T})
+            objects.addAll(nodes.filter { it.timeDefined(time) && it.clicked(x, y, zoom) }.map {it as T})
         }
 
         if (type.isAssignableFrom(Edge::class.java)) {
-            nodes.filter { time == it.initTime }.forEach { node ->
-                objects.addAll(node.edges.filter { it.clicked(x, y, zoom) }.map { it as T} )
+            nodes.filter { it.timeDefined(time) }.forEach { node ->
+                objects.addAll(node.edges.filter { it.times.contains(time) && it.clicked(x, y, zoom) }.map { it as T} )
             }
         }
 
@@ -153,9 +156,7 @@ data class Animation @JvmOverloads constructor(
     }
 
     fun getParents(node: Node) : List<NodeCollection> {
-        return nodeCollections.filter {
-                nodeCollection -> (nodeCollection.interpolator.setPoints[node.initTime]?.any { setPoint -> setPoint.nodes.any { it.id.value == node.id.value } } == true)
-        }
+        return nodeCollections.filter { it.contains(node) }
     }
 
     fun update(time: Int, animationMode: Boolean) {

@@ -25,15 +25,16 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         if (nodes.isNotEmpty()) {
             distances = DoubleArray(nodes.size)
 
-            if (nodes.first().tSetPoint == null) {
+            if (nodes.first().tSetPoints.setPoints[time] == null) {
                 tSetPoints[0] = 0.0
             }
 
             for (index in 0..<nodes.size - 1) {
                 val node = nodes[index]
 
-                if (node.tSetPoint != null) {
-                    tSetPoints[index] = node.tSetPoint!!
+                val setPointValue = node.tSetPoints.setPoints[time]?.get(id.value)
+                if  (setPointValue != null) {
+                    tSetPoints[index] = setPointValue
                 }
 
                 distances[index] = totalDistance
@@ -48,7 +49,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
             distances[nodes.size - 1] = totalDistance
             length = totalDistance
 
-            tSetPoints[nodes.size - 1] = nodes.last().tSetPoint ?: 1.0
+            tSetPoints[nodes.size - 1] = nodes.last().tSetPoints.setPoints[time]?.get(id.value) ?: 1.0
         }
 
         tInterpolator.i = tSetPoints.keys.toTypedArray()
@@ -61,13 +62,11 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         distanceInterpolator.i = distanceMap.keys.toTypedArray()
         distanceInterpolator.o = distanceMap.values.toTypedArray()
 
-        println(distanceMap.map { it })
-
         val tVals = mutableListOf<Double>()
         val xVals = mutableListOf<Double>()
         val yVals = mutableListOf<Double>()
 
-        val coordinates = nodes.map { it.position }
+        val coordinates = nodes.map { it.posInterpolator.setPoints[time]!! }
 
         for (i in coordinates.indices) {
             tVals.add(tInterpolator.evaluate(i))
@@ -92,37 +91,39 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         return tInterpolator.evaluate(index)
     }
 
-    fun insert(at: Node, node: Node) { // Insert node after at
-        val atEdge = at.edges.find { it.collectionID.value == id.value }
-        if (atEdge != null) {
-            node.edges.add(Edge(id.duplicate(), Pair(node.id.duplicate(), atEdge.segment.second.duplicate())))
-            atEdge.segment = Pair(at.id.duplicate(), node.id.duplicate())
-        } else {
-            at.edges.add(Edge(id.duplicate(), Pair(at.id.duplicate(), node.id.duplicate())))
-        }
-
-        nodes.add(nodes.indexOf(at), node)
+    fun contains(node: Node): Boolean {
+        return nodes.any { it.id.value == node.id.value }
     }
 
-    fun duplicate(time: Int, animation: Animation): NodeCollectionSetPoint {
-        // TODO this will not work with multiple NCs sharing one node because duplication will create new nodes for each one
-        val newSetPoint = NodeCollectionSetPoint(time, NodeCollectionID(id.value))
+    fun insert(at: Node, node: Node) { // Insert node after at
+        val atEdge = at.edges.find { it.collectionID.value == id.value && it.times.contains(node.initTime) }
+        at.edges.add(Edge(id.duplicate(), Pair(at.id.duplicate(), node.id.duplicate()), mutableListOf(node.initTime)))
+        if (atEdge != null) {
+            node.edges.add(Edge(id.duplicate(), Pair(node.id.duplicate(), atEdge.segment.second.duplicate()), ArrayList(node.posInterpolator.setPoints.keys)))
+            atEdge.times.remove(node.initTime)
+            nodes.add(nodes.indexOf(at), node)
+        } else {
+            nodes.add(node)
+        }
+    }
+
+    fun duplicateAt(time: Int, animation: Animation) {
+        val lastTime = animation.getNodeCollection(id)!!.interpolator.setPoints.keys.last()
         for (node in nodes) {
-            newSetPoint.nodes.add(
-                animation.createObjectAtPosition(time, node.position.x, node.position.y, Node::class.java)
-                    .apply { tSetPoint = node.tSetPoint })
+            node.duplicateAt(time)
+            node.edges.forEach {
+                if (it.collectionID.value == id.value) {
+                    if (it.times.contains(lastTime)) {
+                        it.duplicateAt(time)
+                    }
+                }
+            }
         }
-        for (index in 0..<newSetPoint.nodes.size - 1) {
-            val node = newSetPoint.nodes[index]
-            val nextNode = newSetPoint.nodes[index + 1]
-            node.edges.add(Edge(id.duplicate(), Pair(node.id.duplicate(), nextNode.id.duplicate())).apply { updateCoords(animation) })
-        }
-        return newSetPoint
     }
 
     fun delete(animation: Animation) {
         nodes.forEach {
-            animation.nodeEdgeHandler.removeNode(it, false)
+            animation.nodeEdgeHandler.deleteNode(it, false)
         }
     }
 }

@@ -2,6 +2,7 @@ package com.wamteavm.interpolator
 
 import com.wamteavm.interpolator.interpfunction.LinearInterpolationFunction
 import com.wamteavm.interpolator.interpfunction.PCHIPInterpolationFunction
+import com.wamteavm.models.Animation
 import com.wamteavm.models.Coordinate
 import com.wamteavm.models.NodeCollectionSetPoint
 import com.wamteavm.screens.AnimationScreen
@@ -105,6 +106,34 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, MutableList<NodeCol
 
     fun prepare(zoom: Float) {
         this.zoom = zoom
+    }
+
+    fun holdValueUntil(time: Int, animation: Animation) {
+        if (setPoints.isNotEmpty()) {
+            if (setPoints.size == 1) {
+                setPoints.values.first().forEach {
+                    it.duplicateAt(time, animation)
+                }
+                return
+            }
+            if (time > setPoints.keys.last()) {
+                setPoints.values.last().forEach {
+                    it.duplicateAt(time, animation)
+                }
+            }
+            var prev: Int? = null
+            for (definedTime in setPoints.keys) {
+                if (definedTime > time) {
+                    if (prev != null) {
+                        setPoints[prev]!!.forEach {
+                            it.duplicateAt(time, animation)
+                        }
+                    }
+                }
+                prev = definedTime
+            }
+        }
+        animation.nodeEdgeHandler.updateNodeCollections()
     }
 
     override fun evaluateWithInterpolator(at: Int): Array<FloatArray> { // at is a time

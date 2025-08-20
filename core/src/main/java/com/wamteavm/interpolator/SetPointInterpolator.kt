@@ -1,48 +1,27 @@
 package com.wamteavm.interpolator
 
-import com.wamteavm.utilities.SerializableTreeMap
-
-interface SetPointInterpolator<I : Comparable<I>, O, V> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
-    var setPoints: SerializableTreeMap<I, O>
+interface SetPointInterpolator<I : Comparable<I>, O, V> : HasSetPoints<I, O> { // Number to interpolate over, set point type, actual output type (usually the same as O but sometimes different due to some processing)
     var value: V
     var interpolated: Boolean
 
     fun updateInterpolationFunction()
 
-    fun removeFrame(x: I): Boolean {
-        if (setPoints.size > 1) {
-            if (setPoints.remove(x) != null) { // Remove was successful or not
-                updateInterpolationFunction()
-                return true
-            }
-        }
-        return false
-    }
-
-    fun newSetPoint(time: I, value: O) {
-        setPoints[time] = value
+    override fun newSetPoint(time: I, value: O) {
+        super.newSetPoint(time, value)
         updateInterpolationFunction()
     }
 
-    fun newSetPoint(time: I, value: O, removeDuplicates: Boolean) {
-        newSetPoint(time, value)
+    override fun newSetPoint(time: I, value: O, removeDuplicates: Boolean) {
+        super.newSetPoint(time, value, removeDuplicates)
+        updateInterpolationFunction()
+    }
 
-        if (removeDuplicates) { // Remove all set points after the new set point that have the same value in a row
-            var found = false
-            for (definedTime in setPoints.keys) {
-                if (definedTime >= time) {
-                    if (found) { // If the last set point already exists
-                        if (setPoints[definedTime] == value) {
-                            setPoints.remove(definedTime)
-                        } else {
-                            return
-                        }
-                    } else {
-                        found = true
-                    }
-                }
-            }
+    override fun removeFrame(x: I): Boolean {
+        if (super.removeFrame(x)) {
+            updateInterpolationFunction()
+            return true
         }
+        return false
     }
 
     // When you add a time coordinate pair to an object which hasn't had a defined movement for a long time, it will interpolate a motion the whole way, which can be undesirable

@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlin.math.hypot
 
 @Serializable
-class Label(override var position: Coordinate, override var initTime: Int) : ScreenObjectWithAlpha(), HasColor, Drawable {
+class Label(override var position: Coordinate, override var initTime: Int) : ScreenObject(), HasColor, Drawable {
     override val posInterpolator: CoordinateSetPointInterpolator = CoordinateSetPointInterpolator().apply { newSetPoint(initTime, position) }
     override val alpha: FloatSetPointInterpolator = FloatSetPointInterpolator().apply { newSetPoint(initTime, 1f) }
     override var color: ColorSetPointInterpolator = ColorSetPointInterpolator().apply { newSetPoint(initTime, ColorWrapper.parseString("red")!!) }
@@ -19,12 +19,12 @@ class Label(override var position: Coordinate, override var initTime: Int) : Scr
     var size = 1f
 
     override fun init() {
-        super<ScreenObjectWithAlpha>.init()
+        super<ScreenObject>.init()
         super<HasColor>.init()
     }
 
     override fun update(time: Int) {
-        super<ScreenObjectWithAlpha>.update(time)
+        super<ScreenObject>.update(time)
         super<HasColor>.update(time)
     }
 

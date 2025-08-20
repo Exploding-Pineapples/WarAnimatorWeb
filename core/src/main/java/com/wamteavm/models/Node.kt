@@ -1,31 +1,39 @@
 package com.wamteavm.models
 
-import com.wamteavm.interpolator.CoordinateSetPointInterpolator
+import com.wamteavm.interpolator.CoordinateSetPoints
+import com.wamteavm.interpolator.TSetPoints
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlin.math.hypot
 
 @Serializable
 data class Node(
     override var position: Coordinate,
-    override val initTime: Int,
+    val initTime: Int,
     override val id: NodeID
-) : ScreenObject(), HasInputs, HasID {
-    @Transient var visitedBy = mutableListOf<NodeCollectionID>()
-    var tSetPoint: Double? = null
+) : AnyObject, HasPosition, HasInputs, HasID, Clickable {
+    @Transient var visitedBy = mutableListOf<Pair<Int, NodeCollectionID>>()
+    var tSetPoints: TSetPoints = TSetPoints() // Maps time to mutable map of node collection ID to t value for that node collection
     var edges = mutableListOf<Edge>()
-    override val posInterpolator = CoordinateSetPointInterpolator().apply { interpolated = false }
+    override val posInterpolator = CoordinateSetPoints().apply { setPoints[initTime] = position }
 
-    override fun update(time: Int) { // Goes to time, and if animation mode is active, draws colored circle
-        visitedBy.clear() // Clear to prepare to be traversed
+    fun update(time: Int) {
+        val value = posInterpolator.setPoints[time]
+        if (value != null) {
+            position = value
+        }
     }
 
-    override fun holdPositionUntil(time: Int) {
-        println("Warning: attempt to hold node position as HasPosition")
+    fun timeDefined(time: Int): Boolean {
+        return posInterpolator.setPoints.containsKey(time)
     }
 
-    fun holdPositionUntil(time: Int, animation: Animation): Node { // Holds ONLY the node, not any of its edges
-        val new = Node(position, time, NodeID(animation.nodeId)).apply { this@apply.tSetPoint = this@Node.tSetPoint }
-        animation.nodeEdgeHandler.addNode(new)
-        return new
+    fun duplicateAt(time: Int) {
+        posInterpolator.setPoints[time] = position
+    }
+
+    override fun clicked(x: Float, y: Float, zoom: Float): Boolean
+    {
+        return hypot(x - position.x, y - position.y) <= (10 / zoom)
     }
 }

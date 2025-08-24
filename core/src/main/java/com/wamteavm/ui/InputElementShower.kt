@@ -288,13 +288,13 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
                         } else {
                             node.tSetPoints.setPoints[time]?.remove(parent.second.value)
                         }
+                        animation.nodeEdgeHandler.updateNodeCollections()
                     }, label@{
                         return@label node.tSetPoints.setPoints[time]?.get(parent.second.value).toString()
                     }, Double::class.java, "Set t set point for node on NC ${parent.second.value}"))
                 }
             }
         }
-        animation.nodeEdgeHandler.updateNodeCollections()
         return inputs
     }
 

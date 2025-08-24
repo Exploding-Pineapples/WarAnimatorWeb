@@ -66,6 +66,6 @@ public class WarAnimator extends Game {
         loader.saveAnimations();
     }
 
-    public static final int DISPLAY_WIDTH = 1920;
-    public static final int DISPLAY_HEIGHT = 1080;
+    public static int DISPLAY_WIDTH = 1920;
+    public static int DISPLAY_HEIGHT = 1080;
 }

@@ -1,9 +1,6 @@
 package com.wamteavm.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -34,7 +31,7 @@ import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 import static java.lang.Math.round;
 
-public class AnimationScreen extends ScreenAdapter implements InputProcessor {
+public class AnimationScreen extends ScreenAdapter implements InputProcessor, ApplicationListener {
     public static final int DEFAULT_UNIT_WIDTH = 75;
     public static final int DEFAULT_UNIT_HEIGHT = 75;
     public static final double LINE_RESOLUTION = 10; // Distance per straight line
@@ -755,5 +752,20 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(this);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        DISPLAY_HEIGHT = height;
+        DISPLAY_WIDTH = width;
+    }
+
+    @Override
+    public void create() {
+
+    }
+
+    @Override
+    public void render() {
     }
 }

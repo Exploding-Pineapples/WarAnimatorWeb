@@ -61,11 +61,12 @@ class NodeEdgeHandler(val animation: Animation) {
     private fun removeNodeAt(removeNode: Node, time: Int): Boolean
     {
         // Redirect edges that point to the node to the next node in the Node Collection, or delete if that does not exist
+
         animation.nodes.forEach { node ->
-            node.edges.filter { it.segment.second.value == removeNode.id.value}.forEach { edge ->
+            node.edges.filter { it.segment.second.value == removeNode.id.value && time in it.times }.forEach { edge ->
                 val matchingEdge = removeNode.edges.find { it.collectionID.value == edge.collectionID.value && time in it.times }
                 if (matchingEdge != null) {
-                    edge.segment = Pair(node.id.duplicate(), matchingEdge.segment.second.duplicate())
+                    edge.segment = Pair(node.id, matchingEdge.segment.second)
                 } else {
                     edge.times.remove(time)
                     if (edge.times.isEmpty()) {
@@ -219,16 +220,9 @@ class NodeEdgeHandler(val animation: Animation) {
     }
 
     fun insert(at: Node, node: Node, time: Int) {
-        if (at.edges.isEmpty()) {
-            animation.nodes.forEach { existingNode ->
-                existingNode.edges.filter { it.segment.second.value == at.id.value }.forEach {
-                    animation.getNodeCollection(it.collectionID).getSetPointOfNode(at, time)?.insert(at, node)
-                }
-            }
-        } else {
-            at.edges.toMutableList().forEach {
-                animation.getNodeCollection(it.collectionID).getSetPointOfNode(at, time)?.insert(at, node)
-            }
+        at.parents.forEach {
+            val parent = animation.getNodeCollection(it.second)
+            parent.getSetPointOfNode(at, time)?.insert(at, node)
         }
         updateNodeCollections()
     }

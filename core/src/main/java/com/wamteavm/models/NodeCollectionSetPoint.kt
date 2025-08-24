@@ -33,7 +33,6 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
                 val node = nodes[index]
 
                 val lastDefinedTime = node.tSetPoints.setPoints.keys.lastOrNull { it <= time }
-                println(lastDefinedTime)
                 val setPointValue = node.tSetPoints.setPoints[lastDefinedTime]?.get(id.value)
                 if  (setPointValue != null) {
                     tSetPoints[index] = setPointValue

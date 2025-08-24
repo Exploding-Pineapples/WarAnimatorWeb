@@ -169,7 +169,7 @@ class NodeEdgeHandler(val animation: Animation) {
                     traverse(
                         node,
                         nodeCollectionSetPoints,
-                        NodeCollectionSetPoint(time, NodeCollectionID(edge.collectionID.value))
+                        NodeCollectionSetPoint(time, edge.collectionID)
                     )
                 }
             }

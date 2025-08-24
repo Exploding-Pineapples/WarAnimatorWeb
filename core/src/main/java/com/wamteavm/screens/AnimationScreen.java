@@ -380,7 +380,6 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             if (selectedObjects.isEmpty()) {
                 selectedInfo.append("Nothing is selected").append("\n");
             } else {
-                //TODO stop NCs from being added twice
                 for (AnyObject selectedObject : selectedObjects) {
                     selectedInfo.append("Selected: ").append(selectedObject.getClass().getSimpleName()).append("\n");
                     if (selectedObject.getClass().isAssignableFrom(HasPosition.class)) {
@@ -617,8 +616,11 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             selectedObjects.add(newSelection);
 
             if (newSelection.getClass() == Node.class) { // Show new selection's parent's inputs if it has parents
-                for (Pair<Integer, NodeCollectionID> collection : ((Node) newSelection).getParents()) {
-                    selectedObjects.add(animation.getNodeCollection(collection.getSecond()));
+                for (Pair<Integer, NodeCollectionID> parent : ((Node) newSelection).getParents()) {
+                    NodeCollection collection = animation.getNodeCollection(parent.getSecond());
+                    if (!selectedObjects.contains(collection)) {
+                        selectedObjects.add(collection);
+                    }
                 }
             }
             if (newSelection.getClass() == Edge.class) {

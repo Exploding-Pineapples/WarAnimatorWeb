@@ -24,9 +24,11 @@ import com.wamteavm.ui.input.Action;
 import com.wamteavm.ui.input.Requirement;
 import com.wamteavm.ui.input.TouchMode;
 import com.wamteavm.ui.inputelements.SelectBoxInput;
+import kotlin.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
@@ -174,6 +176,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
         animation.init(new Drawer(game.bitmapFont, game.fontShader, game.batch, game.shapeDrawer, orthographicCamera, time));
     }
 
+    @SuppressWarnings("DataFlowIssue")
     public void buildActions() {
         // Actions available when game is not inputting
         // Actions that do not care about selection
@@ -324,6 +327,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
     private void updateTime(int newTime) {
         time = newTime;
         animation.update(time, displayGUI);
+        uiShower.update(selectedGroup, selectedObjects, time);
         updateCam();
     }
 
@@ -376,6 +380,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             if (selectedObjects.isEmpty()) {
                 selectedInfo.append("Nothing is selected").append("\n");
             } else {
+                //TODO stop NCs from being added twice
                 for (AnyObject selectedObject : selectedObjects) {
                     selectedInfo.append("Selected: ").append(selectedObject.getClass().getSimpleName()).append("\n");
                     if (selectedObject.getClass().isAssignableFrom(HasPosition.class)) {
@@ -388,15 +393,18 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                     if (selectedObject.getClass() == Node.class) {
                         Node node = (Node) selectedObject;
                         selectedInfo.append("NodeID: ").append(node.getId().getValue()).append("\n");
-                        for (NodeCollection parent : animation.getParents((node))) {
+                        for (Pair<Integer, NodeCollectionID> parentID : node.getParents()) {
                             // Get what parameter value the node is at within its node collection set points.
-                            NodeCollectionSetPoint setPoint = parent.getSetPointOfNode(node, time);
-                            if (setPoint != null) {
-                                Double tVal = setPoint.tOfNode(node);
-                                if (tVal != null) {
-                                    selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
-                                        .append(round(tVal * 10000) / 10000.0).append("\n");
-                                    break;
+                            if (Objects.equals(parentID.getFirst(), time)) {
+                                NodeCollection parent = animation.getNodeCollection(parentID.getSecond());
+                                NodeCollectionSetPoint setPoint = parent.getSetPointOfNode(node, time);
+                                if (setPoint != null) {
+                                    Double tVal = setPoint.tOfNode(node);
+                                    if (tVal != null) {
+                                        selectedInfo.append("T on Node Collection").append(parent.getId().getValue()).append(": ")
+                                            .append(round(tVal * 10000) / 10000.0).append("\n");
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -591,8 +599,8 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
                 ((HasPosition) object).setPosition(mouseCoords);
                 ((HasPosition) object).getPosInterpolator().newSetPoint(time, mouseCoords);
                 if (object.getClass() == Node.class) {
-                    for (NodeCollection parent : animation.getParents((Node) object)) {
-                        parent.getInterpolator().updateInterpolationFunction();
+                    for (Pair<Integer, NodeCollectionID> parent : ((Node) object).getParents()) {
+                        animation.getNodeCollection(parent.getSecond()).getInterpolator().updateInterpolationFunction();
                     }
                 }
             }
@@ -609,24 +617,14 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor {
             selectedObjects.add(newSelection);
 
             if (newSelection.getClass() == Node.class) { // Show new selection's parent's inputs if it has parents
-                for (NodeCollection collection : animation.getParents((Node) newSelection)) {
-                    if (!selectedObjects.contains(collection)) {
-                        if (collection != null) {
-                            selectedObjects.add(collection);
-                        } else {
-                            System.out.println("Warning: Null node collection");
-                        }
-                    }
+                for (Pair<Integer, NodeCollectionID> collection : ((Node) newSelection).getParents()) {
+                    selectedObjects.add(animation.getNodeCollection(collection.getSecond()));
                 }
             }
             if (newSelection.getClass() == Edge.class) {
                 NodeCollection collection = animation.getNodeCollection(((Edge) newSelection).getCollectionID());
                 if (!selectedObjects.contains(collection)) {
-                    if (collection != null) {
-                        selectedObjects.add(collection);
-                    } else {
-                        System.out.println("Warning: Null node collection");
-                    }
+                    selectedObjects.add(collection);
                 }
             }
 

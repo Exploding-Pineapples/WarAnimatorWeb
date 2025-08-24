@@ -114,7 +114,7 @@ class NodeEdgeHandler(val animation: Animation) {
     }
 
     private fun traverse(node: Node, nodeCollections: MutableList<NodeCollectionSetPoint>, currentBranch: NodeCollectionSetPoint) {
-        val visited = (node.visitedBy.find { (it.first == currentBranch.time && it.second.value == currentBranch.id.value) } != null)
+        val visited = (node.parents.find { (it.first == currentBranch.time && it.second.value == currentBranch.id.value) } != null)
         if (visited) {
             val matchingNodeCollections = nodeCollections.filter { it.id.value == currentBranch.id.value }
             for (nodeCollection in matchingNodeCollections) {
@@ -136,7 +136,7 @@ class NodeEdgeHandler(val animation: Animation) {
 
         var reachedEnd = true
 
-        node.visitedBy.add(Pair(currentBranch.time, currentBranch.id))
+        node.parents.add(Pair(currentBranch.time, currentBranch.id))
 
         for (edge in node.edges) { // Traverses every available edge from the node
             if (currentBranch.time in edge.times) {
@@ -161,7 +161,7 @@ class NodeEdgeHandler(val animation: Animation) {
         val nodeCollectionSetPoints = mutableListOf<NodeCollectionSetPoint>()
 
         animation.nodes.forEach {
-            it.visitedBy.clear()
+            it.parents.clear()
         }
         for (node in animation.nodes) { // Build all node collections in all time
             for (time in node.posInterpolator.setPoints.keys) {
@@ -188,7 +188,7 @@ class NodeEdgeHandler(val animation: Animation) {
         }
 
         for (nodeCollectionSetPoints in nodeCollectionSetPointss) {
-            var existingNodeCollection = animation.getNodeCollection(nodeCollectionSetPoints.value.first().id)
+            var existingNodeCollection = animation.getNodeCollectionOrNull(nodeCollectionSetPoints.value.first().id)
             if (existingNodeCollection == null) { // Create new node collection if it does not exist
                 existingNodeCollection = newNodeCollection(nodeCollectionSetPoints.value.first())
                 animation.nodeCollections.add(existingNodeCollection)
@@ -202,9 +202,9 @@ class NodeEdgeHandler(val animation: Animation) {
                         nodeCollectionSetPoint.time,
                         mutableListOf(nodeCollectionSetPoint)
                     )
-                    println("created new set point")
+                    //println("created new set point")
                 } else {
-                    println("added to existing set point")
+                    //println("added to existing set point")
                     existingSetPoint.add(nodeCollectionSetPoint)
                 }
             }
@@ -222,12 +222,12 @@ class NodeEdgeHandler(val animation: Animation) {
         if (at.edges.isEmpty()) {
             animation.nodes.forEach { existingNode ->
                 existingNode.edges.filter { it.segment.second.value == at.id.value }.forEach {
-                    animation.getNodeCollection(it.collectionID)!!.getSetPointOfNode(at, time)?.insert(at, node)
+                    animation.getNodeCollection(it.collectionID).getSetPointOfNode(at, time)?.insert(at, node)
                 }
             }
         } else {
             at.edges.toMutableList().forEach {
-                animation.getNodeCollection(it.collectionID)!!.getSetPointOfNode(at, time)?.insert(at, node)
+                animation.getNodeCollection(it.collectionID).getSetPointOfNode(at, time)?.insert(at, node)
             }
         }
         updateNodeCollections()

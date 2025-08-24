@@ -134,7 +134,7 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
                 inputElements.addAll(getUnitInputs(classElementMap[specificClass] as List<Unit>))
             }
             if (specificClass == Node::class.java) {
-                inputElements.addAll(getNodeInputs(classElementMap[specificClass] as List<Node>))
+                inputElements.addAll(getNodeInputs(classElementMap[specificClass] as List<Node>, time))
             }
             if (specificClass == NodeCollection::class.java) {
                 inputElements.addAll(getNodeCollectionInputs(classElementMap[specificClass] as List<NodeCollection>))
@@ -273,17 +273,29 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
         )
     }
 
-    private fun getNodeInputs(nodes: List<Node>) : List<InputElement<*>> {
-        return listOf(
-            TextInput(null, { input ->
-                for (node in nodes) {
-                    TODO("Make every node have a t set point input for every node collection it is a part of")
+    private fun getNodeInputs(nodes: List<Node>, time: Int) : List<InputElement<*>> {
+        val inputs = mutableListOf<InputElement<Double>>()
+
+        for (node in nodes) {
+            for (parent in node.parents) {
+                if (time == parent.first) {
+                    inputs.add(TextInput(null, { input ->
+                        if (input != null) {
+                            if (node.tSetPoints.setPoints[time] == null) {
+                                node.tSetPoints.setPoints[time] = mutableMapOf()
+                            }
+                            node.tSetPoints.setPoints[time]!![parent.second.value] = input
+                        } else {
+                            node.tSetPoints.setPoints[time]?.remove(parent.second.value)
+                        }
+                    }, label@{
+                        return@label node.tSetPoints.setPoints[time]?.get(parent.second.value).toString()
+                    }, Double::class.java, "Set t set point for node on NC ${parent.second.value}"))
                 }
-                animation.nodeEdgeHandler.updateNodeCollections()
-            }, label@{
-                return@label returnPropertyIfSame(nodes) { it.tSetPoints }.toString()
-            }, Double::class.java, "Set t set point")
-        )
+            }
+        }
+        animation.nodeEdgeHandler.updateNodeCollections()
+        return inputs
     }
 
     private fun getNodeCollectionInputs(nodeCollections: List<NodeCollection>) : List<InputElement<*>> {

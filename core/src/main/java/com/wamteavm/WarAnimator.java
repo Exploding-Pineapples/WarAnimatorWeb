@@ -36,7 +36,6 @@ public class WarAnimator extends Game {
     }
 
     public WarAnimator(AuthResult authResult, Animation animation) { // Skip login, go directly to AnimationScreen. Only from direct edit animation link
-        this.loader = APIExternalLoader.INSTANCE;
         APIExternalLoader.INSTANCE.getApi().setAuthToken(authResult.getToken());
         loader = APIExternalLoader.INSTANCE;
         firstScreen = new AnimationScreen(this, animation);

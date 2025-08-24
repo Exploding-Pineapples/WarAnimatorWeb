@@ -12,10 +12,10 @@ data class Node(
     val initTime: Int,
     override val id: NodeID
 ) : AnyObject, HasPosition, HasInputs, HasID, Clickable {
-    @Transient var visitedBy = mutableListOf<Pair<Int, NodeCollectionID>>()
     var tSetPoints: TSetPoints = TSetPoints() // Maps time to mutable map of node collection ID to t value for that node collection
     var edges = mutableListOf<Edge>()
     override val posInterpolator = CoordinateSetPoints().apply { setPoints[initTime] = position }
+    @Transient var parents = mutableListOf<Pair<Int, NodeCollectionID>>()
 
     fun update(time: Int) {
         val value = posInterpolator.setPoints[time]

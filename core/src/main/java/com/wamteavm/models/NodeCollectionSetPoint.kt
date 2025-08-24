@@ -32,7 +32,9 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
             for (index in 0..<nodes.size - 1) {
                 val node = nodes[index]
 
-                val setPointValue = node.tSetPoints.setPoints[time]?.get(id.value)
+                val lastDefinedTime = node.tSetPoints.setPoints.keys.lastOrNull { it <= time }
+                println(lastDefinedTime)
+                val setPointValue = node.tSetPoints.setPoints[lastDefinedTime]?.get(id.value)
                 if  (setPointValue != null) {
                     tSetPoints[index] = setPointValue
                 }
@@ -108,7 +110,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
     }
 
     fun duplicateAt(time: Int, animation: Animation) {
-        val lastTime = animation.getNodeCollection(id)!!.interpolator.setPoints.keys.last()
+        val lastTime = animation.getNodeCollection(id).interpolator.setPoints.keys.last()
         for (node in nodes) {
             node.duplicateAt(time)
             node.edges.forEach {

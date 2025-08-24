@@ -83,7 +83,11 @@ data class Animation @JvmOverloads constructor(
         return result
     }
 
-    fun getNodeCollection(id: NodeCollectionID): NodeCollection? {
+    fun getNodeCollection(id: NodeCollectionID): NodeCollection {
+        return nodeCollections.find { it.id.value == id.value }!!
+    }
+
+    fun getNodeCollectionOrNull(id: NodeCollectionID): NodeCollection? {
         return nodeCollections.find { it.id.value == id.value }
     }
 

@@ -33,6 +33,7 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
                 val node = nodes[index]
 
                 val lastDefinedTime = node.tSetPoints.setPoints.keys.lastOrNull { it <= time }
+                println(lastDefinedTime)
                 val setPointValue = node.tSetPoints.setPoints[lastDefinedTime]?.get(id.value)
                 if  (setPointValue != null) {
                     tSetPoints[index] = setPointValue
@@ -97,14 +98,12 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
     }
 
     fun insert(at: Node, node: Node) { // Insert node after at
-        val atEdge = at.edges.find { it.collectionID.value == id.value && it.times.contains(node.initTime) }
-        at.edges.add(Edge(id.duplicate(), Pair(at.id.duplicate(), node.id.duplicate()), mutableListOf(node.initTime)))
+        val atEdge = at.edges.find { edge -> (edge.collectionID.value == id.value && edge.times.any { node.timeDefined(it) })}
+        println((atEdge?.segment?.second?.value))
+        at.edges.add(Edge(id, Pair(at.id, node.id), mutableListOf(node.initTime)))
         if (atEdge != null) {
-            node.edges.add(Edge(id.duplicate(), Pair(node.id.duplicate(), atEdge.segment.second.duplicate()), ArrayList(node.posInterpolator.setPoints.keys)))
+            node.edges.add(Edge(id, Pair(node.id, atEdge.segment.second), ArrayList(node.posInterpolator.setPoints.keys)))
             atEdge.times.remove(node.initTime)
-            nodes.add(nodes.indexOf(at), node)
-        } else {
-            nodes.add(node)
         }
     }
 

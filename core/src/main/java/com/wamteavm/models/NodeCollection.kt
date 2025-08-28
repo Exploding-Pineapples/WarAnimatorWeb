@@ -33,6 +33,12 @@ open class NodeCollection(override val id: NodeCollectionID) : AnyObject, HasInp
         interpolator.holdValueUntil(time, animation)
     }
 
+    fun deleteAt(time: Int, animation: Animation) {
+        interpolator.setPoints[time]?.forEach {
+            it.deleteAt(time, animation)
+        }
+    }
+
     override fun init() {
         super<HasAlpha>.init()
         super<HasColor>.init()

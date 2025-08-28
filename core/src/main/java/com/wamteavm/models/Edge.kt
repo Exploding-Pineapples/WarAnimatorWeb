@@ -15,7 +15,13 @@ class Edge(
     }
 
     fun updateCoords(animation: Animation) {
-        coords = mutableListOf(animation.getNodeByID(segment.first)!!.position, animation.getNodeByID(segment.second)!!.position)
+        val first = animation.getNodeByID(segment.first)?.position
+        val second = animation.getNodeByID(segment.second)?.position
+        coords = if (first != null && second != null) {
+            mutableListOf(first, second)
+        } else {
+            mutableListOf()
+        }
     }
 
     override fun toString(): String {

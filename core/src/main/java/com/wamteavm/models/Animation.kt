@@ -159,10 +159,6 @@ data class Animation @JvmOverloads constructor(
         return objects
     }
 
-    fun getParents(node: Node) : List<NodeCollection> {
-        return nodeCollections.filter { it.contains(node) }
-    }
-
     fun update(time: Int, animationMode: Boolean) {
         camera().update(time)
         drawer.update(time, animationMode)

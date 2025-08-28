@@ -32,6 +32,13 @@ data class Node(
         posInterpolator.setPoints[time] = position
     }
 
+    fun deleteAt(time: Int): Boolean {
+        if (posInterpolator.setPoints.size > 1) {
+            return posInterpolator.setPoints.remove(time) != null
+        }
+        return false
+    }
+
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean
     {
         return hypot(x - position.x, y - position.y) <= (10 / zoom)

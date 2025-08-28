@@ -292,8 +292,9 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
             System.out.println("Deleted object");
             clearSelected();
             return null;
-        }, "Delete selected object", Input.Keys.FORWARD_DEL).requiresSelected(Requirement.REQUIRES).build());
+        }, "Completely delete object", Input.Keys.FORWARD_DEL).requiresSelected(Requirement.REQUIRES).build());
         actions.add(Action.createBuilder(() -> {
+            boolean actioned = false;
             for (AnyObject selectedObject : selectedObjects) {
                 if (HasPosition.class.isAssignableFrom(selectedObject.getClass())) {
                     if (((HasPosition) selectedObject).getPosInterpolator().removeFrame(time)) {
@@ -303,16 +304,22 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
                     }
                     if (selectedObject.getClass() == Node.class) {
                         animation.getNodeEdgeHandler().removeNodeAt((Node) selectedObject, time, true);
+                        actioned = true;
                     }
                 }
                 if (Edge.class.isAssignableFrom(selectedObject.getClass())) {
                     ((Edge) selectedObject).getTimes().remove(time);
+                    actioned = true;
+                }
+                if (!actioned && NodeCollection.class.isAssignableFrom(selectedObject.getClass())) {
+                    // Don't also do NC delete if edge already done
+                    ((NodeCollection) selectedObject).deleteAt(time, animation);
                 }
             }
             clearSelected();
             touchMode = TouchMode.DEFAULT;
             return null;
-        }, "Delete last frame of selected object", Input.Keys.DEL).build());
+        }, "Delete object at this time", Input.Keys.DEL).build());
     }
 
     public void updateCam() {

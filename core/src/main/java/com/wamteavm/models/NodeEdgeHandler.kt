@@ -38,16 +38,24 @@ class NodeEdgeHandler(val animation: Animation) {
         if (redirectEdge) {
             return removeNodeAt(removeNode, time)
         } else {
-            animation.nodes.forEach { node ->
-                node.edges.forEach {
-                    if (it.segment.second.value == removeNode.id.value) {
-                        it.times.remove(time)
+            removeNode.parents.forEach { it ->
+                if (it.first == time) {
+                    val parent = animation.getNodeCollection(it.second)
+                    val setPoint = parent.getSetPointOfNode(removeNode, it.first)
+                    val indexOf = setPoint?.nodes?.indexOf(removeNode)
+                    if (indexOf != null) {
+                        val previousNode = setPoint.nodes[indexOf]
+                        previousNode.edges.forEach {
+                            if (it.segment.second.value == removeNode.id.value) {
+                                it.times.remove(time)
+                            }
+                        }
+                        previousNode.edges.removeIf { it.times.isEmpty() }
                     }
                 }
-                node.edges.removeIf { it.times.isEmpty() }
             }
-            removeNode.edges.clear()
-            val result = animation.nodes.remove(removeNode)
+            removeNode.edges.forEach { it.times.remove(time) }
+            val result = removeNode.deleteAt(time)
             updateNodeCollections()
             return result
         }
@@ -136,13 +144,17 @@ class NodeEdgeHandler(val animation: Animation) {
 
         for (edge in node.edges) { // Traverses every available edge from the node
             if (currentBranch.time in edge.times) {
-                val nextNode = animation.getNodeByID(edge.segment.second)!!
-                if (edge.collectionID.value == currentBranch.id.value) { // If edge continues the Node Collection that is being constructed, then continue recursion with this branch
-                    if (nextNode.timeDefined(currentBranch.time)) {
-                        reachedEnd = false
-                        traverse(nextNode, nodeCollections, currentBranch.apply { nodes.add(node) })
-                    } else {
-                        edge.times.remove(currentBranch.time)
+                val nextNode = animation.getNodeByID(edge.segment.second)
+                if (nextNode == null) { // Remove an edge if it is invalid
+                    edge.times.remove(currentBranch.time)
+                } else {
+                    if (edge.collectionID.value == currentBranch.id.value) { // If edge continues the Node Collection that is being constructed, then continue recursion with this branch
+                        if (nextNode.timeDefined(currentBranch.time)) {
+                            reachedEnd = false
+                            traverse(nextNode, nodeCollections, currentBranch.apply { nodes.add(node) })
+                        } else {
+                            edge.times.remove(currentBranch.time)
+                        }
                     }
                 }
             }

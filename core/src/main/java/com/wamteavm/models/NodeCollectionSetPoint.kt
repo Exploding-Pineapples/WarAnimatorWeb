@@ -118,9 +118,9 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         }
     }
 
-    fun delete(animation: Animation) {
+    fun deleteAt(time: Int, animation: Animation) {
         nodes.forEach {
-            animation.nodeEdgeHandler.deleteNode(it, false)
+            animation.nodeEdgeHandler.removeNodeAt(it, time, false)
         }
     }
 }

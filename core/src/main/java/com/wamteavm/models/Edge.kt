@@ -26,5 +26,3 @@ class Edge(
         times.add(time)
     }
 }
-
-

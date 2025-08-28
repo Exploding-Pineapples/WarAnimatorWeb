@@ -312,7 +312,7 @@ class InputElementShower(val skin: Skin, val animation: Animation, private val e
                 }
             }, label@{
                 return@label returnPropertyIfSame(nodeCollections) { it.type }
-            }, String::class.java, "Set node collection type", Array<String>().apply { add("Area", "Line") })
+            }, String::class.java, "Set node collection type", Array<String>().apply { add("None","Area", "Line") })
         )
     }
 

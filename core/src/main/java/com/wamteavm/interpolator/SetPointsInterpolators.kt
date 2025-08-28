@@ -110,27 +110,9 @@ class NodeCollectionInterpolator : SetPointInterpolator<Int, MutableList<NodeCol
 
     fun holdValueUntil(time: Int, animation: Animation) {
         if (setPoints.isNotEmpty()) {
-            if (setPoints.size == 1) {
-                setPoints.values.first().forEach {
-                    it.duplicateAt(time, animation)
-                }
-                return
-            }
-            if (time > setPoints.keys.last()) {
-                setPoints.values.last().forEach {
-                    it.duplicateAt(time, animation)
-                }
-            }
-            var prev: Int? = null
-            for (definedTime in setPoints.keys) {
-                if (definedTime > time) {
-                    if (prev != null) {
-                        setPoints[prev]!!.forEach {
-                            it.duplicateAt(time, animation)
-                        }
-                    }
-                }
-                prev = definedTime
+            val definedTime = setPoints.keys.lastOrNull { it < time }?:setPoints.keys.first()
+            setPoints[definedTime]?.forEach {
+                it.duplicateAt(definedTime, time)
             }
         }
         animation.nodeEdgeHandler.updateNodeCollections()

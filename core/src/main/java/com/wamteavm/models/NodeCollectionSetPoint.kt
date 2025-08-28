@@ -107,13 +107,12 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         }
     }
 
-    fun duplicateAt(time: Int, animation: Animation) {
-        val lastTime = animation.getNodeCollection(id).interpolator.setPoints.keys.last()
+    fun duplicateAt(fromTime: Int, toTime: Int) {
         for (node in nodes) {
-            node.duplicateAt(time)
+            node.duplicateAt(toTime)
             node.edges.forEach {
-                if (it.times.contains(lastTime)) {
-                    it.duplicateAt(time)
+                if (it.times.contains(fromTime)) {
+                    it.duplicateAt(toTime)
                 }
             }
         }

@@ -100,9 +100,9 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
     fun insert(at: Node, node: Node) { // Insert node after at
         val atEdge = at.edges.find { edge -> (edge.collectionID.value == id.value && edge.times.any { node.timeDefined(it) })}
 
-        at.edges.add(Edge(id, Pair(at.id, node.id), mutableListOf(node.initTime)))
+        at.edges.add(Edge(id, Pair(at.id, node.id), mutableSetOf(node.initTime)))
         if (atEdge != null) {
-            node.edges.add(Edge(id, Pair(node.id, atEdge.segment.second), ArrayList(node.posInterpolator.setPoints.keys)))
+            node.edges.add(Edge(id, Pair(node.id, atEdge.segment.second), node.posInterpolator.setPoints.keys))
             atEdge.times.remove(node.initTime)
         }
     }
@@ -112,10 +112,8 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
         for (node in nodes) {
             node.duplicateAt(time)
             node.edges.forEach {
-                if (it.collectionID.value == id.value) {
-                    if (it.times.contains(lastTime)) {
-                        it.duplicateAt(time)
-                    }
+                if (it.times.contains(lastTime)) {
+                    it.duplicateAt(time)
                 }
             }
         }

@@ -5,11 +5,6 @@ import com.wamteavm.utilities.ColorWrapper
 class NodeEdgeHandler(val animation: Animation) {
 
     fun init() {
-        animation.nodes.forEach { node ->
-            node.edges.forEach {
-                it.updateCoords(animation)
-            }
-        }
         animation.nodeCollections.forEach { it.init() }
         updateNodeCollections()
     }
@@ -88,7 +83,7 @@ class NodeEdgeHandler(val animation: Animation) {
                 Edge(
                     NodeCollectionID(id),
                     Pair(fromNode.id, toNode.id),
-                    mutableListOf(time)
+                    mutableSetOf(time)
                 )
             )
         } else {
@@ -161,8 +156,11 @@ class NodeEdgeHandler(val animation: Animation) {
     fun updateNodeCollections() {
         val nodeCollectionSetPoints = mutableListOf<NodeCollectionSetPoint>()
 
-        animation.nodes.forEach {
-            it.parents.clear()
+        animation.nodes.forEach { node ->
+            node.edges.forEach {
+                it.updateCoords(animation)
+            }
+            node.parents.clear()
         }
         for (node in animation.nodes) { // Build all node collections in all time
             for (time in node.posInterpolator.setPoints.keys) {

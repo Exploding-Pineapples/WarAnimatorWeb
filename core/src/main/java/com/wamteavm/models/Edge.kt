@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 class Edge(
     var collectionID: NodeCollectionID,
     var segment: Pair<NodeID, NodeID>,
-    val times: MutableList<Int>,
+    val times: MutableSet<Int>,
     @Transient var coords: MutableList<Coordinate> = mutableListOf(),
 ) : AnyObject, Clickable {
     override fun clicked(x: Float, y: Float, zoom: Float): Boolean {

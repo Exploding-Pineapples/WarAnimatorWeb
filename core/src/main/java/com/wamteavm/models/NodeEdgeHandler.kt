@@ -113,10 +113,6 @@ class NodeEdgeHandler(val animation: Animation) {
         return removed
     }
 
-    fun deleteNodeCollectionSetPoint() {
-
-    }
-
     private fun traverse(node: Node, nodeCollections: MutableList<NodeCollectionSetPoint>, currentBranch: NodeCollectionSetPoint) {
         val visited = (node.parents.find { (it.first == currentBranch.time && it.second.value == currentBranch.id.value) } != null)
         if (visited) {

@@ -52,7 +52,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
         animations.remove(animation)
     }
 
-    override fun addImage(animation: Animation) {
+    override fun addImage(animation: Animation, callback: () -> Unit) {
         BrowserIO.pickImage( object: ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
                 for (i in 0 until images.length) {
@@ -63,6 +63,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                     animation.imageKeys.add(key)
                     BrowserIO.saveBase64ToIndexedDB("horsInfo","images", key, value)
                 }
+                callback()
             }
         })
     }

@@ -64,8 +64,7 @@ public class EditAnimationScreen extends ScreenAdapter {
         uploadImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.loader.addImage(animation);
-                updateImages(animation, game, imagesTable);
+                game.loader.addImage(animation, () -> {updateImages(animation, game, imagesTable); return null;});
             }
         });
         table.add(uploadImage).height(50).pad(10);

@@ -109,7 +109,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
         uploadImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.loader.addImage(animation);
+                game.loader.addImage(animation, () -> null);
             }
         });
 

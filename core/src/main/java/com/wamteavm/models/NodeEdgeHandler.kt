@@ -227,8 +227,10 @@ class NodeEdgeHandler(val animation: Animation) {
 
     fun insert(at: Node, node: Node, time: Int) {
         at.parents.forEach {
-            val parent = animation.getNodeCollection(it.second)
-            parent.getSetPointOfNode(at, time)?.insert(at, node)
+            if (it.first == time) {
+                val parent = animation.getNodeCollection(it.second)
+                parent.getSetPointOfNode(at, time)?.insert(at, node)
+            }
         }
         updateNodeCollections()
     }

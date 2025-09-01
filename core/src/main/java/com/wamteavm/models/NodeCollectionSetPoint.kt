@@ -102,8 +102,11 @@ class NodeCollectionSetPoint(val time: Int, val id: NodeCollectionID, var nodes:
 
         at.edges.add(Edge(id, Pair(at.id, node.id), mutableSetOf(node.initTime)))
         if (atEdge != null) {
-            node.edges.add(Edge(id, Pair(node.id, atEdge.segment.second), node.posInterpolator.setPoints.keys))
+            node.edges.add(Edge(id, Pair(node.id, atEdge.segment.second), node.posInterpolator.setPoints.keys.toMutableSet()))
             atEdge.times.remove(node.initTime)
+            if (atEdge.times.isEmpty()) {
+                at.edges.remove(atEdge)
+            }
         }
     }
 

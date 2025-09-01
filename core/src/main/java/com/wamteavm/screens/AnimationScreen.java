@@ -326,6 +326,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
         orthographicCamera.position.x = animation.camera().getPosition().getX();
         orthographicCamera.position.y = animation.camera().getPosition().getY();
         orthographicCamera.zoom = animation.camera().getZoomInterpolator().getValue();
+        zoomLevel = Math.toIntExact(round(Math.log(orthographicCamera.zoom) / Math.log(1.05)));
     }
 
     private void updateTime(int newTime) {

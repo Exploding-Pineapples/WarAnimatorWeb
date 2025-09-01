@@ -52,7 +52,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
         animations.remove(animation)
     }
 
-    override fun addImage(animation: Animation, callback: () -> Unit) {
+    override fun addImage(animation: Animation) {
         BrowserIO.pickImage( object: ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
                 for (i in 0 until images.length) {
@@ -63,12 +63,11 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                     animation.imageKeys.add(key)
                     BrowserIO.saveBase64ToIndexedDB("horsInfo","images", key, value)
                 }
-                callback()
             }
         })
     }
 
-    override fun loadImages(animation: Animation) {
+    override fun loadImages(animation: Animation, callback: () -> Unit) {
         loadedImages.clear()
         BrowserIO.loadIndexedDB( "horsInfo","images", object : ImageCallback {
             override fun onLoad(images: JSArray<Entry>) {
@@ -82,6 +81,7 @@ object IndexedDBExternalLoader : AbstractExternalLoader {
                     }
                 }
                 animation.loadExternal(this@IndexedDBExternalLoader)
+                callback()
             }
         })
     }

@@ -11,8 +11,8 @@ interface AbstractExternalLoader {
     fun loadAnimations(callback: () -> Unit = {})
     fun addAnimation(animation: Animation)
     fun deleteAnimation(animation: Animation)
-    fun loadImages(animation: Animation)
-    fun addImage(animation: Animation, callback: () -> Unit = {})
+    fun loadImages(animation: Animation, callback: () -> Unit = {})
+    fun addImage(animation: Animation)
     fun deleteImage(key: String) {
         loadedImages.remove(key)
     }

@@ -86,7 +86,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
         this.animation = animation;
         this.game = game;
 
-        game.loader.loadImages(animation);
+        game.loader.loadImages(animation, () -> {return null;});
 
         orthographicCamera = new OrthographicCamera(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         updateCam();
@@ -109,7 +109,7 @@ public class AnimationScreen extends ScreenAdapter implements InputProcessor, Ap
         uploadImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.loader.addImage(animation, () -> null);
+                game.loader.addImage(animation);
             }
         });
 

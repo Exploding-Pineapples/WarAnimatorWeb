@@ -55,7 +55,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
         callback()
     }
 
-    override fun loadImages(animation: Animation) {
+    override fun loadImages(animation: Animation, callback: () -> Unit) {
         loadedImages.clear()
         animation.imageKeys.forEach {
             try {
@@ -67,7 +67,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
         animation.loadExternal(this)
     }
 
-    override fun addImage(animation: Animation, callback: () -> Unit) {
+    override fun addImage(animation: Animation) {
         val result = chooser.showOpenDialog(null)
         if (result == JFileChooser.APPROVE_OPTION) {
             loadedImages[chooser.selectedFile.absolutePath] = (Texture(Gdx.files.absolute(chooser.selectedFile.absolutePath)))

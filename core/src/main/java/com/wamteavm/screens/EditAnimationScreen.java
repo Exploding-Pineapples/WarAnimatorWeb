@@ -64,7 +64,7 @@ public class EditAnimationScreen extends ScreenAdapter {
         uploadImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.loader.addImage(animation, () -> {updateImages(animation, game, imagesTable); return null;});
+                game.loader.addImage(animation);
             }
         });
         table.add(uploadImage).height(50).pad(10);
@@ -130,24 +130,27 @@ public class EditAnimationScreen extends ScreenAdapter {
 
     private void updateImages(Animation animation, WarAnimator game, Table imagesTable) {
         imagesTable.clear();
-        game.loader.loadImages(animation);
-        for (String image : game.loader.getLoadedImages().keySet().stream().toList()) { // Copy the keys to avoid concurrent modification
-            Table imageTable = new Table();
-            imageTable.add(new Label(image, game.skin)).pad(10);
-            TextButton deleteButton = new TextButton("Delete", game.skin, "small");
-            deleteButton.addListener(new ClickListener() {
-                @Override
-                public void clicked(InputEvent event, float x, float y) {
-                    animation.getImageKeys().remove(image);
-                    imagesTable.removeActor(imageTable);
-                    game.loader.saveAnimations();
-                }
-            });
+        game.loader.loadImages(animation, () -> {
+            for (String image : game.loader.getLoadedImages().keySet().stream().toList()) { // Copy the keys to avoid concurrent modification
+                Table imageTable = new Table();
+                imageTable.add(new Label(image, game.skin)).pad(10);
+                TextButton deleteButton = new TextButton("Delete", game.skin, "small");
+                deleteButton.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        animation.getImageKeys().remove(image);
+                        imagesTable.removeActor(imageTable);
+                        game.loader.saveAnimations();
+                    }
+                });
 
-            imageTable.add(deleteButton).height(45);
-            imagesTable.add(imageTable);
-            imagesTable.row();
-        }
+                imageTable.add(deleteButton).height(45);
+                imagesTable.add(imageTable);
+                imagesTable.row();
+            }
+            return null;
+        });
+
     }
 
     @Override

@@ -2,6 +2,9 @@ package com.wamteavm.loaders.externalloaders
 
 import com.badlogic.gdx.graphics.Texture
 import com.wamteavm.loaders.externalloaders.IndexedDBExternalLoader.base64ToTexture
+import com.wamteavm.loaders.externalloaders.browserio.BrowserIO
+import com.wamteavm.loaders.externalloaders.browserio.Entry
+import com.wamteavm.loaders.externalloaders.browserio.ImageCallback
 import com.wamteavm.models.Animation
 import com.waranimator.api.client.WarAnimatorAPI
 import org.teavm.jso.core.JSArray

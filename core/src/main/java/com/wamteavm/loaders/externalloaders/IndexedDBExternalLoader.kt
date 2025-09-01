@@ -3,6 +3,9 @@ package com.wamteavm.loaders.externalloaders
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.Base64Coder
+import com.wamteavm.loaders.externalloaders.browserio.BrowserIO
+import com.wamteavm.loaders.externalloaders.browserio.Entry
+import com.wamteavm.loaders.externalloaders.browserio.ImageCallback
 import com.wamteavm.models.Animation
 import kotlinx.serialization.json.Json
 import org.teavm.jso.JSBody

@@ -68,8 +68,7 @@ public class MenuScreen extends ScreenAdapter {
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new LoadingScreen(game));
-                game.setScreen(new AnimationScreen(game, animation));
+                game.setScreen(new LoadingScreen(game, () -> game.setScreen(new AnimationScreen(game, animation))));
             }
         });
         return textButton;
@@ -93,8 +92,7 @@ public class MenuScreen extends ScreenAdapter {
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                EditAnimationScreen editAnimationScreen = new EditAnimationScreen(game, animation, false);
-                game.setScreen(editAnimationScreen);
+                game.setScreen(new LoadingScreen(game, () -> game.setScreen(new EditAnimationScreen(game, animation, false))));
             }
         });
         return textButton;

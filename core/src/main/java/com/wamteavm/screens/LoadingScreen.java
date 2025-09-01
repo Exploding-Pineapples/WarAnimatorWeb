@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.wamteavm.WarAnimator;
+import java.lang.Runnable;
 
 import static com.wamteavm.WarAnimator.DISPLAY_HEIGHT;
 import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
@@ -13,9 +14,13 @@ import static com.wamteavm.WarAnimator.DISPLAY_WIDTH;
 public class LoadingScreen extends ScreenAdapter {
     WarAnimator game;
     GlyphLayout layout;
+    Runnable callback;
+    boolean rendered;
 
-    public LoadingScreen(WarAnimator game) {
+    public LoadingScreen(WarAnimator game, Runnable doLoading) {
         this.game = game;
+        callback = doLoading;
+        rendered = false;
     }
 
     @Override
@@ -43,6 +48,11 @@ public class LoadingScreen extends ScreenAdapter {
 
         game.bitmapFont.draw(game.batch, layout, DISPLAY_WIDTH/2F - layout.width / 2f, DISPLAY_HEIGHT/2F - layout.height / 2f);
         game.batch.end();
+
+        if (rendered) {
+            callback.run();
+        }
+        rendered = true;
     }
 
     @Override

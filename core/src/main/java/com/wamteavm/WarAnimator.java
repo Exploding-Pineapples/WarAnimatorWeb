@@ -32,7 +32,8 @@ public class WarAnimator extends Game {
 
     public WarAnimator(AbstractExternalLoader loader) {
         this.loader = loader;
-        firstScreen = new MenuScreen(this);
+        menuScreen = new MenuScreen(this);
+        firstScreen = menuScreen;
     }
 
     public WarAnimator(AuthResult authResult, Animation animation) { // Skip login, go directly to AnimationScreen. Only from direct edit animation link
@@ -54,7 +55,7 @@ public class WarAnimator extends Game {
             Gdx.app.error("fontShader", "compilation failed: " + fontShader.getLog());
         }
 
-        setScreen(new LoadingScreen(this));
+        setScreen(new LoadingScreen(this, () -> {}));
 
         loader.loadAnimations(() -> {setScreen(firstScreen); return null;});
     }

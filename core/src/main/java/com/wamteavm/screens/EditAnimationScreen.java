@@ -85,8 +85,7 @@ public class EditAnimationScreen extends ScreenAdapter {
                     if (newAnimation) {
                         game.loader.addAnimation(animation);
                     }
-                    game.setScreen(new LoadingScreen(game));
-                    game.setScreen(new AnimationScreen(game, animation));
+                    game.setScreen(new LoadingScreen(game, () -> game.setScreen(new AnimationScreen(game, animation))));
                 } else {
                     warningLabel.setText(inputCheck.getSecond());
                 }
@@ -104,7 +103,6 @@ public class EditAnimationScreen extends ScreenAdapter {
         menuButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Gdx.input.setInputProcessor(game.menuScreen.stage);
                 game.setScreen(game.menuScreen); //No need to reinitialize the menu since it's not possible to have added an animation
             }
         });

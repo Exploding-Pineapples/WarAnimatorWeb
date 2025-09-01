@@ -65,6 +65,7 @@ object DesktopExternalLoader : AbstractExternalLoader {
             }
         }
         animation.loadExternal(this)
+        callback()
     }
 
     override fun addImage(animation: Animation) {

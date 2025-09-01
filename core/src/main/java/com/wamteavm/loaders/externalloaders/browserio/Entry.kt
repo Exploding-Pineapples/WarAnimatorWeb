@@ -1,4 +1,4 @@
-package com.wamteavm.loaders.externalloaders;
+package com.wamteavm.loaders.externalloaders.browserio
 
 import org.teavm.jso.JSObject
 import org.teavm.jso.JSProperty
